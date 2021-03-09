@@ -1,0 +1,301 @@
+\documentclass[10pt,journal,compsoc]{IEEEtran}
+
+\usepackage{verbatim}
+\usepackage{url}
+
+\begin{comment}
+- content                                                                       
+- CPU work to create blocks, easy objective verification, 50+1 attack, collapse
+- Human work to create content, easy subjective verification, 50+1 attack,
+  community fork (actually encouraged)
+- unique identity based on CPU
+- here based on post quality
+- not CDN: Content delivery network                                             
+
+(b) double spend of coins/reps is solved by total ordering all
+Users can like \& dislike posts, which transfer reputation between them.
+Reputation is created from news
+
+Just like Bitcoin reaches consensus with the longest chain
+uses mining to
+
+(excess, SPAM, fake, abuse, illegal)                                            
+\end{comment}
+
+\begin{document}
+\title{
+    Peer-to-Peer Consensus based on Content Reputation
+}
+\author{
+    Francisco Sant'Anna~\IEEEmembership{Department of Computer Science, Rio de Janeiro State University}
+}
+
+\IEEEtitleabstractindextext{%
+\begin{abstract}
+Content publishing in social media and public Internet forums are subject to
+excess and abuse such as low quality posts and fake news.
+Centralized platforms employ filtering algorithms and anti-abuse policies, but
+demand full trust from users.
+We propose a publish-subscribe peer-to-peer protocol to model public content
+dissemination without centralized moderation.
+The central idea of the protocol is a reputation system that serves to moderate
+content and, at the same time, reach network consensus.
+We trace a parallel with Bitcoin:
+    consolidated posts create reputation (vs proof-of-work);
+    likes and dislikes transfer reputation (vs transactions);
+    forks are ordered by reputation (vs longest chain).
+The reputation system prevents content excess and abuse, imposes consensus on
+a peer-to-peer setting, and depends solely on human work to create and rate
+content.
+\end{abstract}
+
+\begin{IEEEkeywords}
+peer-to-peer, consensus, reputation system, publish-subscribe
+\end{IEEEkeywords}}
+
+\maketitle
+
+\section{Introduction}
+\label{sec.introduction}
+
+\IEEEPARstart{C}{ontent} publishing , such as in public Internet forums and
+social media platforms, is increasingly more centralized in the hands of a few
+companies~\cite{internet.fixing}.
+%
+On the one hand, these companies offer friendly user interfaces, free storage,
+and permanent connectivity.
+On the other hand, they concentrate more power than required to operate, since
+they control our data, collect private information, tune our consumption based
+on algorithms, and yet obstruct portability with proprietary protocols.
+%
+Peer-to-peer alternatives~\cite{p2p.survey} eliminate intermediates and push to
+end users the responsibility to manage data and connectivity.
+Because of the decentralization of authority and network infrastructure, some
+new challenges arise, such as dealing with malicious users, ensuring continuous
+content discovery, and enforcing overall state consistency.
+
+In a scenario of interest, suppose users want to discuss a political event by
+posting public comments in the network.
+In an ideal system,
+(i)   all posts would eventually reach all users, even those temporarily
+      disconnected;
+(ii)  posts would be delivered to users in a consistent order;
+(iii) the interactions among users would be respectful and on topic.
+In a centralized system, items (i) and (ii) are trivially achieved assuming
+availability and delivery order in the service, while for item (iii) users must
+trust the service to moderate content, e.g., removing SPAM and fake news.
+In a decentralized setting, however, none of these demands are easily
+accomplished.
+A common approach in gossiping protocols~\cite{p2p.survey} is to replicate the
+whole conversation in all peers and disseminate proactively until all users
+receive it.
+However, this approach does not guarantee consensus since messages can be
+received in conflicting orders in different peers.
+As an example, antagonistic messages such as \emph{"X is decided"} and
+\emph{"Y is decided"} might be sent concurrently and the network as a whole
+cannot decide between \emph{X} or \emph{Y}.
+
+Bitcoin~\cite{p2p.bitcoin} is the first successful permissionless consensus
+protocol, allowing anyone to participate in the network while still being
+resistant to Sybil attacks.
+%
+As an inspiration to our work, Bitcoin is centered around the concept of
+\emph{bitcoin tokens}, which are scarce internal assets that can be transferred
+between users.
+The only way to create new tokens is to work towards consensus in the network
+by proposing a total order among all transactions in the system.
+The more work is done, the stronger becomes the proposal, the more peers follow
+it, the more tokens are acquired.
+There is a strong association between work, profit and consensus that enables
+Bitcoin as a peer-to-peer cash system.
+%
+As its main contribution, Bitcoins prevents the double-spending problem as a
+consequence of the total order achieved with consensus~\cite{p2p.bitcoin}.
+This problem is the same we want to solve for public discussions:
+deciding between \emph{X} or \emph{Y} as a group (when only one option is
+applicable) is the same as buying \emph{X} or \emph{Y} (when funds are
+insufficient for both).
+%
+However, Bitcoin's basic operation is to blindly transfer tokens between users,
+with no subjective judgment that could affect transactions.
+Considering our scope of social interactions between humans, we aspire for a
+decentralized and qualitative evaluation of content in the network.
+
+In this work, we propose a consensus algorithm based on the reputation of
+content created by humans.
+Inspired by Bitcoin, users accumulate tokens named \emph{reps}, which serves as
+currency to rate users and posts in the network.
+Users can rate posts with likes (and dislikes), which transfer \emph{reps}
+among them.
+In the algorithm, work is manifested with new posts, which reward authors with
+\emph{reps}, but which are still judged by other users.
+This way, like Bitcoin, token generation is (typically) expensive, while
+verification is cheap and made by multiple users.
+However, unlike Bitcoin, both creation and verification are subjective, based
+on human creativity and judgement, which match our target domain of content
+publishing.
+
+Consensus is still required because like operations spend \emph{reps} that need
+to be verified consistently by all peers in the network.
+Posts and likes are linked as nodes in a Merkle~DAG that persists the whole
+conversation and is disseminated in the network.
+To verify operations in concurrent branches, the graph must be sequenced to
+generate a total order between nodes.
+Our sequencing proposal is straightforward and compares the sum of \emph{reps}
+accumulated in the past by the authors in pairs of concurrent branches.
+The branch with more reputation---the one with more work---prefixes the
+sequence as a whole.
+If the suffixed branch has a conflicting operation (e.g., a like from a user
+without reputation), then this operation and all remaining nodes are removed
+from the DAG.
+The proposed consensus algorithm is integrated in Freechains%
+\footnote{\url{http://www.freechains.org}}~\cite{fcs.sbseg20},
+a peer-to-peer content dissemination protocol.
+
+In Section~\ref{sec.freechains}, we introduce the basic functionality of
+the peer-to-peer protocol.
+In Section~\ref{sec.consensus}, we describe the consensus algorithm.
+- goals, incentives, possible attacks and mitigations
+In Section~\ref{sec.related},
+In Section~\ref{sec.conclusion},
+
+\section{Freechains}
+\label{sec.freechains}
+
+\section{Consensus Algorithm}
+\label{sec.consensus}
+
+\section{Related Work}
+\label{sec.related}
+
+\section{Conclusion}
+\label{sec.conclusion}
+
+
+
+With this design, we retarget  , the balance between work, profit and consensus also applies 
+
+attack 50+1 but not as
+cite local-first software
+
+ (crypto proof \& authoring),
+while verification is cheap
+
+
+requires work but evaluation
+
+
+, but
+are evaluated by other user
+The system also imposes incentives to rate posts and 
+
+Unlike bitcoin
+
+Since likes and dislikes spend reputation, \emph{creps} are scarce resources
+Incentives to post and rate content.
+
+There is a strong association between work, profit and consensus that enables
+Bitcoin as a peer-to-peer cash system.
+
+distinguish SPAM from legitimate
+Another problem CPU
+
+
+
+content.
+
+
+
+ (e.g., posts on social media, public conversations
+based on the reputation of users
+in the network.
+
+
+biggest difference:
+work is subjective as is the evaluation by other users
+
+
+ with consensus since
+whoever proposes the ordering will choose one of the operations arbitrarily
+
+
+ which is similar to the
+example above (\emph{buy X} vs \emph{buy Y})
+
+spent
+
+with work
+
+
+
+this gives consensus with total order, solves double spend, which is equivalent
+to solving X/Y is decided above
+
+we borrow token, scarcity
+
+
+ that requires work to 
+Only one purpose
+
+
+- incentive
+- security
+
+- Last-Write-Wins
+
+- just all tokens are the same, no subjective judgment, for example on why token is being transferred
+
+
+ and xx timestamps.
+
+
+ of the service and , and trust from users to deal
+
+In a decentralized setting, 
+    - spam
+    - abuse
+    - on topic
+    - disconnections
+    - order
+
+Bitcoin
+
+responses would
+
+
+
+
+n user posts 
+
+- discovery
+- also consensus, ensure that participants receive all data in a consistent order
+- bitcoin, discovery even disconnected, consensus, but not quality
+
+
+Regardless of the Internet growth over the years,
+
+\subsection{Subsection Heading Here}
+Subsection text here.
+
+\subsubsection{Subsubsection Heading Here}
+Subsubsection text here.
+
+\section{Conclusion}
+The conclusion goes here.
+
+\bibliographystyle{IEEEtran}
+\bibliography{tpd-21}
+
+\begin{IEEEbiography}{Michael Shell}
+Biography text here.
+\end{IEEEbiography}
+
+\begin{IEEEbiographynophoto}{John Doe}
+Biography text here.
+\end{IEEEbiographynophoto}
+
+\begin{IEEEbiographynophoto}{Jane Doe}
+Biography text here.
+\end{IEEEbiographynophoto}
+
+\end{document}
