@@ -191,7 +191,7 @@ The command that follows starts a daemon to serve further operations:
 
 {\footnotesize
 \begin{verbatim}
-$ freechains-host start /var/freechains/
+ $ freechains-host start /var/freechains/
 \end{verbatim}
 }
 
@@ -202,14 +202,25 @@ group chain, and (iii) posts a message in the chain:
 
 {\footnotesize
 \begin{verbatim}
-$ freechains crypto shared "strong-password"   # (i)
-A6135D...
-$ freechains "$family" join A6135D...          # (ii)
-42209B...
-$ freechains "$family" post "Good morning!"    # (iii)
-1_EF5DE3...
+ $ freechains crypto shared "strong-password" # (i)
+ A6135D...
+ $ freechains "$family" join A6135D...        # (ii)
+ 42209B...
+ $ freechains "$family" post "Good morning!"  # (iii)
+ 1_EF5DE3...
 \end{verbatim}
 }
+
+\begin{figure*}[ht]
+\centering
+%\includegraphics[width=\textwidth]{arranjos}
+\includegraphics[width=\textwidth]{family.png}
+%\includegraphics[clip, trim=1.75cm 10.25cm 1.5cm 1.75cm, width=1.00\textwidth]{arranjos.pdf}
+%\includepdf[width=\textwidth]{arranjos.pdf}
+%\includepdf[pages=-,pagecommand={},width=\textwidth]{arranjos.pdf}
+\caption{The three types of chains and arrangements in \FC.}
+\label{fig.family}
+\end{figure*}
 
 In the example, we join a private group chain (prefix $\$$) which stores and
 transmits all messages encrypted.
@@ -218,12 +229,12 @@ joining the group.
 A \emph{join} only initializes the DAG locally in the file system, and a
 \emph{post} also only modifies the local structure.
 No communication occurs at this point.
-Figure~\ref{fig.family}.a depicts the state of the chain after the first post.
-The genesis block with height $0$ and hash $42209B...$ depends only on the
-arguments given to \emph{join}.
+Figure~\ref{fig.family}.A depicts the state of the chain after the first post.
+The genesis block with height $0$ and hash beginning with \texttt{42209B}
+depends only on the arguments given to \emph{join}.
 The next block with height $1$ contains the posted message and its hash
-$EF5DE3$ depends on its payload and the hash of its previous block, complying
-with the Merkle~DAG.
+\texttt{EF5DE3} depends on its payload and the hash of its previous block,
+complying with the Merkle~DAG.
 
 \FC adheres to the \emph{local-first} software principle~\cite{p2p.local},
 allowing that networked applications build on top of it host their data and
@@ -232,31 +243,52 @@ Except for synchronization, all operations in the system only affect the local
 replica.
 In particular, joining a chain with the same arguments in another peer results
 in the same genesis state even if the peers never met before (or never will).
-Hence, before synchronizing, the others peers should initialize the chain with
-the same steps:
+Hence, before synchronizing, others peers should initialize the chain with the
+same steps:
 
 {\footnotesize
 \begin{verbatim}
-$ freechains-host start /var/freechains/
-$ freechains crypto shared "strong-password"
-A6135D...
-$ freechains "$family" join A6135D...
-42209B...
+ $ freechains-host start /var/freechains/
+ $ freechains crypto shared "strong-password"
+ A6135D...
+ $ freechains "$family" join A6135D...
+ 42209B...
 \end{verbatim}
 }
 
-
+Synchronization is explicit, in pairs, and unidirectional.
+The next command asks daemon in \emph{localhost} to connect to daemon in
+\emph{remote-ip} and receive all missing blocks from there:
 
 {\footnotesize
 \begin{verbatim}
-$ freechains "$family" recv <remote-ip>
-1/1
-$ freechains "$family" heads
-1_EF5DE3...
-$ freechains "$family" get 1_EF5DE3...
-Good morning!
+ $ freechains "$family" recv <remote-ip>
+ 1/1 # one block received from <remote-ip>
 \end{verbatim}
 }
+
+The command \emph{send} would synchronize the graph in the other direction.
+The next sequence of commands checks the hash of the block(s) at the head of
+the graph (the latest blocks), and then reads the payload of the single head
+found:
+
+{\footnotesize
+\begin{verbatim}
+ $ freechains "$family" heads
+ 1_EF5DE3...
+ $ freechains "$family" payload 1_EF5DE3...
+ Good morning!
+\end{verbatim}
+}
+
+Now the new peer is in the same state as the original peer in
+Figure~\ref{fig.family}.A.
+However, since the network is inherently concurrent and users are encouraged to
+work locally, typical graphs are not lists but DAGs with multiple heads.
+As an example, suppose the new peer posts a new message "I'm here!" before the
+\emph{recv} above, when the local graph is still in the genesis state.
+In this case, the resulting graph after the synchronization, now contains two
+blocks with height $1$, as illustrated in Figure~\ref{fig.family}.B.
 
 post before recv
 see the fork
@@ -273,7 +305,7 @@ The key pairs are generated deterministically from
 local first
 
 Falar sobre @identity
-Terminar com problema em #public
+Terminar com problema em \#public
 
 \newpage
 
