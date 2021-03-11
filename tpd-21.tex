@@ -203,24 +203,25 @@ group chain, and (iii) posts a message in the chain:
 {\footnotesize
 \begin{verbatim}
  $ freechains crypto shared "strong-password" # (i)
- A6135D...
- $ freechains "$family" join A6135D...        # (ii)
- 42209B...
+ A6135D..
+ $ freechains "$family" join A6135D..         # (ii)
+ 42209B..
  $ freechains "$family" post "Good morning!"  # (iii)
- 1_EF5DE3...
+ 1_EF5DE3..
 \end{verbatim}
 }
 
-\begin{figure*}[ht]
+\begin{figure}[t]
 \centering
 %\includegraphics[width=\textwidth]{arranjos}
-\includegraphics[width=\textwidth]{family.png}
+\includegraphics[width=0.5\textwidth]{family.png}
 %\includegraphics[clip, trim=1.75cm 10.25cm 1.5cm 1.75cm, width=1.00\textwidth]{arranjos.pdf}
 %\includepdf[width=\textwidth]{arranjos.pdf}
 %\includepdf[pages=-,pagecommand={},width=\textwidth]{arranjos.pdf}
-\caption{The three types of chains and arrangements in \FC.}
+\caption{Two DAG configurations. (A) has a single head pointing to the
+genesis block. (B) has a fork with two heads pointing to the genesis block.}
 \label{fig.family}
-\end{figure*}
+\end{figure}
 
 In the example, we join a private group chain (prefix $\$$) which stores and
 transmits all messages encrypted.
@@ -250,9 +251,9 @@ same steps:
 \begin{verbatim}
  $ freechains-host start /var/freechains/
  $ freechains crypto shared "strong-password"
- A6135D...
- $ freechains "$family" join A6135D...
- 42209B...
+ A6135D..
+ $ freechains "$family" join A6135D..
+ 42209B..
 \end{verbatim}
 }
 
@@ -275,8 +276,8 @@ found:
 {\footnotesize
 \begin{verbatim}
  $ freechains "$family" heads
- 1_EF5DE3...
- $ freechains "$family" payload 1_EF5DE3...
+ 1_EF5DE3..
+ $ freechains "$family" payload 1_EF5DE3..
  Good morning!
 \end{verbatim}
 }
@@ -284,30 +285,43 @@ found:
 Now the new peer is in the same state as the original peer in
 Figure~\ref{fig.family}.A.
 However, since the network is inherently concurrent and users are encouraged to
-work locally, typical graphs are not lists but DAGs with multiple heads.
+work locally, typical graphs are not lists, but DAGs with multiple heads.
 As an example, suppose the new peer posts a new message "I'm here!" before the
 \emph{recv} above, when the local graph is still in the genesis state.
 In this case, the resulting graph after the synchronization, now contains two
 blocks with height $1$, as illustrated in Figure~\ref{fig.family}.B.
 
-post before recv
-see the fork
-but no problem b/c operations are not handled by the protocol
-only really matter if the protocol needs an order
+Forks create ambiguity when trying to order messages in a conversation.
+In a private chain, in which users trust each other, an external method for
+consensus can be applied if necessary.
+As a simple solution, users can rely on the timestamps of blocks to order all
+messages in conversation.
+However, in public chains, malicious users can modify their local time to
+affect new block timestamps and manipulate the order of messages.
+Furthermore, when we introduce the reputation system, conflicting like
+operations must be accounted directly by the protocol, since they affect the
+reputation of users and may block certain posts.
+For these reasons, we need an internal autonomous consensus algorithm.
 
+For the sake of completeness, \FC also supports public identity chains (prefix
+$@$), which relies on public-key cryptography to attach an identity to a chain
+and verify posts authenticity:
 
-Note that 
+{\footnotesize
+\begin{verbatim}
+ $ freechains crypto pubpvt "strong-password"
+ EB172E.. 96700A..
+ $ freechains "@EB172E.." join
+ F4EE21..
+ $ freechains "@EB172E.." "From Joe" --sign=96700A..
+ 1_547A2D..
+\end{verbatim}
+}
 
-
-use the generated public key to operate on a public identity chain
-The key pairs are generated deterministically from 
-
-local first
-
-Falar sobre @identity
-Terminar com problema em \#public
-
-\newpage
+In the example above, the author \emph{Joe} creates a pair of public-private
+keys and joins an identity chain attached to his public key.
+Then, every post must be signed with his private key to be accepted in the
+network.
 
 \section{Consensus Algorithm}
 \label{sec.consensus}
