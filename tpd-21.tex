@@ -193,7 +193,7 @@ The command that follows starts a daemon to serve further operations:
 
 {\footnotesize
 \begin{verbatim}
- $ freechains-host start /var/freechains/
+ $ freechains-host start "/var/freechains/"
 \end{verbatim}
 }
 
@@ -247,10 +247,10 @@ same steps:
 
 {\footnotesize
 \begin{verbatim}
- $ freechains-host start /var/freechains/
+ $ freechains-host start "/var/freechains/"
  $ freechains crypto shared "strong-password"
  A6135D..
- $ freechains "$family" join A6135D..
+ $ freechains "$family" join "A6135D.."
  42209B..
 \end{verbatim}
 }
@@ -261,7 +261,7 @@ The next command asks daemon in \emph{localhost} to connect to daemon in
 
 {\footnotesize
 \begin{verbatim}
- $ freechains "$family" recv <remote-ip>
+ $ freechains "$family" recv "<remote-ip>"
  1/1 # one block received from <remote-ip>
 \end{verbatim}
 }
@@ -283,7 +283,7 @@ found:
 \begin{verbatim}
  $ freechains "$family" heads
  1_EF5DE3..
- $ freechains "$family" payload 1_EF5DE3..
+ $ freechains "$family" payload "1_EF5DE3.."
  Good morning!
 \end{verbatim}
 }
@@ -309,6 +309,23 @@ operations must be accounted directly by the protocol, since they affect the
 reputation of users and may block certain posts.
 For these reasons, we need an internal autonomous consensus algorithm.
 
+Users can give \emph{likes} and \emph{dislikes} to rate posts, which can be
+consulted later:
+
+{\footnotesize
+\begin{verbatim}
+ $ freechains "$family" like "1_EF5DE3.."
+ 2_BF3319..
+ $ freechains "$family" reps "1_EF5DE3.."
+ 1  # post received 1 like
+\end{verbatim}
+}
+
+In private chains, likes are unlimited and behave much like in centralized
+systems.
+In public chains, however, likes are restricted, have to be signed by users,
+and are at the core the consensus algorithm.
+
 For the sake of completeness, \FC also supports public identity chains (prefix
 $@$), which relies on public-key cryptography to attach an identity to a chain
 and to verify the authenticity of posts:
@@ -325,10 +342,10 @@ and to verify the authenticity of posts:
 \end{verbatim}
 }
 
-In the example, the author \emph{Pel\'e} creates a pair of public/private
-keys and joins an identity chain attached to his public key.
-Then, he needs to sign every post with his private key to be accepted in the
-network.
+In the example, a personality creates a pair of public/private keys and joins
+an identity chain attached to his public key.
+Every post in this chain needs to be signed with the associated private key to
+be accepted in the network.
 
 \section{The Consensus Algorithm}
 \label{sec.consensus}
