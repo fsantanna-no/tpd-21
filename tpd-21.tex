@@ -365,24 +365,24 @@ a \emph{dislike} operation is a negative feedback that revokes content when
 crossing a threshold.
 %
 Without restrictions, like operations alone are not satisfactory, specially
-considering Sybils that abuse the system.
+with considering hypothetical Sybils abusing the system.
 Therefore, \reps must be subject to some sort of scarcity that demands
 non-trivial work immune to automation.
 Bitcoin employs CPU proof-of-work as a solution for Sybils, but in our context,
-content authoring is already an intrinsic work that we can take advantage.
+content authoring is already an intrinsic human work that we can take
+advantage.
 In our system, content authoring is the only operation that can generate \reps,
 %but limited by periods of time to prevent excess (e.g., once in a day per user).
 %Additionally,
-while likes and dislikes only transfer \reps between users to preserve
+while likes and dislikes only transfer \reps between users, preserving
 scarcity.
 %
 However, like operations and scarcity are still not enough as they call for
-consensus in the network:
-Now we need to track the reputation of users to check if they are allowed to
-post new messages or give away likes.
-Since posts and like operations are occurring concurrently, we need to figure
-out how to order them consistently across all peers so that they converge to
-the same state.
+consensus in the network: now we need to track the reputation of users to check
+if they are allowed to post new messages or spend likes.
+Since posts and like operations are concurrent in the network, we need to
+figure out how to order them consistently across all peers so that they
+converge to the same state.
 
 \begin{figure}[t]
 \centering
@@ -396,28 +396,37 @@ majority of reputation, which are more likely to be non malicious.
 %
 Figure~\ref{fig.reps}.A illustrates the reputation criterion.
 %, still abstractly, since we did not discuss the actual rules for content creation and rating.
-A public chain has a common prefix with active users $a$, $b$, and $c$.
+A public chain DAG has a common prefix with signed posts from users $a$, $b$,
+and $c$.
 Let's assume that within the prefix, users $a$ and $b$ have contributed with
-more content and combined have more reputation than $c$ has alone.
+more content and have more reputation combined than $c$ has alone.
 %
-After the prefix, the chain forks in two branches.
-In \emph{branch 1}, only user $c$ remains active and we see that new users $x$
-and $y$, with no previous reputation, generate a lot of new content.
-In \emph{branch 2}, only users $a$ and $b$ exist but with less activity.
+After the prefix, the chain forks in two branches:
+in \emph{branch 1}, only user $c$ remains active and we see that new users $x$
+and $y$, with no previous reputation, generate a lot of new content;
+in \emph{branch 2}, only users $a$ and $b$ exist but with less activity.
 Nonetheless, \emph{branch 2} takes priority because, at the forking point, $a$
 and $b$ have more reputation than $c$, $x$, and $y$ combined.
 
-Figure~\ref{fig.reps}.B indicates the consensus order among all blocks in the
+Figure~\ref{fig.reps}.B indicates the consensus order between blocks in the
 chain.
 All operations in \emph{branch 2} are accounted before any operation in
 \emph{branch 1}.
 Note that the common prefix also had a fork that favored $a$.
-At any point in time, if an operation fails, all remaining blocks are removed
-from the chain DAG.
-As an example, suppose the last post by $a$ in gray dislikes user $c$,
+%
+At any point in the consensus timeline, if an operation fails, all remaining
+blocks are removed from the chain DAG.
+As an example, suppose the last post by $a$ (in gray) dislikes user $c$,
 decreasing its reputation.
-Then, it's possible that the last post by $c$ is rejected together with all
-posts in sequence by $y$ and $x$.
+Then, it's possible that the last post by $c$ (in red) is rejected together
+with all posts by $y$ and $x$ in sequence.
+%
+Unlike Bitcoin, forks are not only allowed but encourage by the local-first
+principle.
+The resulting linked list is only a view of the primary DAG structure.
+However, the longer a peer remains disconnected, the more conflicting
+operations it performs, the higher is the probability of rejection when
+rejoining.
 
 Some other considerations about merging forks:
 Peers that saw branches with less reputation first (\emph{branch 1}) need to
@@ -428,10 +437,18 @@ This behavior is similar to chain reorganization in Bitcoin when a peer detects
 a new longest chain and disconsiders old blocks.
 %
 Likewise, peers that saw branches with more reputation first (\emph{branch 2})
-just need to sequence the other branch as if they were new and do not need to
-recompute anything.
+just need to sequence the other branch and do not need to recompute anything.
 This behavior is reasonable and expected to happen in all peers connected with
 the majority of the network.
+
+- summary
+    - parallel w/ bitcoin
+    - no problem w/ forks
+
+The more CPU work is done, the stronger becomes the proposal, the more peers
+follow it, the more tokens are mined.
+There is a strong association between work, profit and consensus that enables
+Bitcoin as a peer-to-peer cash system.
 
 \begin{comment}
 As a last remark, let's assume that user $c$ is malicious and is trying to use
@@ -455,11 +472,6 @@ To reach consensus, branches with more reputed authors
 concurrent branches, such as likes with insufficient reps, are
 rejected along with further posts.
 
-The more CPU work is done, the stronger becomes the proposal, the more peers
-follow it, the more tokens are mined.
-There is a strong association between work, profit and consensus that enables
-Bitcoin as a peer-to-peer cash system.
-
 
 that preserves the order seen
 - arbitrary, internal criteria that favors/not unfavors/less surprise for most
@@ -478,6 +490,10 @@ Bitcoin employs CPU proof-of-work as a solution, but did not solve the
 centralization issue completely because the cost to perform work is not
 equally distributed
 (depends on costs of equipment and energy)
+    - bitcoin demands connectivity to avoid forks
+    - forks ok in freechains since operations are not critical and can be reverted
+    - 50+1 attack easy in first nodes if not all nodes keep participating
+        - freechains requires checkpoints
 
 
 - reputation system to rate messages
