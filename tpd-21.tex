@@ -35,7 +35,7 @@ uses mining to
 
 \begin{document}
 \title{
-    Peer-to-Peer Content Consensus based on Authoring Reputation
+    Peer-to-Peer Consensus based on Content Authoring Reputation
 }
 \author{
     Francisco Sant'Anna~\IEEEmembership{Department of Computer Science, Rio de Janeiro State University}
@@ -43,7 +43,7 @@ uses mining to
 
 \IEEEtitleabstractindextext{%
 \begin{abstract}
-Content publishing in public Internet forums and social media suffer from
+Content publishing in public Internet forums and social media suffers from
 excess and abuse, such as low quality posts and fake news.
 Centralized platforms employ filtering algorithms and anti-abuse policies, but
 impose full trust from users.
@@ -81,16 +81,15 @@ obstruct portability with proprietary standards.
 %
 Peer-to-peer alternatives~\cite{p2p.survey} eliminate intermediates and push to
 end users the responsibility to manage data and connectivity.
-Due to decentralization of authority and network infrastructure, some new
-challenges arise to deal with malicious users, support content discovery, and
-enforce overall state consistency.
+However, due to decentralization of authority and network infrastructure, some
+new challenges arise to deal with malicious users, support content discovery,
+and enforce overall state consistency.
 
 In a scenario of interest, suppose users want to discuss a political event by
 posting public comments in the network.
 In an ideal system,
-(i)   all posts would eventually reach all users, even those temporarily
-      disconnected;
-(ii)  posts would be delivered to users in a consistent order;
+(i)   all posts would eventually reach even temporarily disconnected users;
+(ii)  posts would be delivered in a consistent order;
 (iii) the interactions among users would be respectful and on topic.
 In a centralized system, items (i) and (ii) are trivially achieved assuming
 availability and delivery order in the service, while for item (iii) users must
@@ -98,24 +97,20 @@ trust the service to moderate content (e.g., removing SPAM and fake news).
 In a decentralized setting, however, none of these demands are easily
 accomplished.
 A common approach in gossiping protocols is to replicate the whole conversation
-in all peers and disseminate proactively until all users receive
-it.~\cite{p2p.survey}
+in all peers and disseminate it proactively until all users receive
+it~\cite{p2p.survey}.
 However, this approach does not guarantee consensus since posts can be received
 in conflicting orders in different peers.
-As an example, antagonistic messages such as \emph{"X is decided"} vs
-\emph{"Y is decided"} might be sent concurrently, preventing the network to
+As an example, antagonistic messages such as \emph{"X is final"} vs
+\emph{"Y is final"} might be sent concurrently, preventing the network to
 decide as a group between \emph{X} and \emph{Y}.
 
 Bitcoin~\cite{p2p.bitcoin} proposes the first successful permissionless
-consensus protocol around scarce virtual assets, the \emph{bitcoin tokens},
+consensus protocol founded on scarce virtual assets, the \emph{bitcoin tokens},
 which can be transferred between users.
 %
 The only way to create new tokens is to work towards consensus in the network
 by proposing a total order among all transactions in the system.
-The more CPU work is done, the stronger becomes the proposal, the more peers
-follow it, the more tokens are mined.
-There is a strong association between work, profit and consensus that enables
-Bitcoin as a peer-to-peer cash system.
 %
 Bitcoin prevents the double-spending problem~\cite{p2p.bitcoin}, which is
 analogous to conflicting posts in public discussions: deciding between \emph{X}
@@ -132,7 +127,7 @@ Inspired by Bitcoin, content authors accumulate tokens named \reps, which
 serve as currency to rate posts and users in the network.
 Users can rate posts with likes and dislikes, which transfer \reps between
 them.
-In the algorithm, work is manifested as new posts, which reward authors with
+In the algorithm, work is manifested as new posts, which rewards authors with
 \reps, but which are still judged by other users.
 This way, like Bitcoin, token generation is expensive, while verification is
 cheap and made by multiple users.
@@ -140,7 +135,7 @@ However, unlike Bitcoin, both creation and verification are subjective, based
 on human creativity and judgement, which match our target domain of content
 publishing.
 Posts and likes are linked as blocks in a Merkle~DAG that persists the whole
-conversation and is disseminated in the network.
+conversation and is disseminated in the network with gossiping.
 To reach consensus, branches with more reputed authors (i.e., with more work)
 take priority.
 Conflicting operations in concurrent branches, such as likes with insufficient
@@ -171,15 +166,15 @@ In Section~\ref{sec.conclusion}, yyy.
 \label{sec.freechains}
 
 \FC is an unstructured peer-to-peer topic-based publish-subscribe system.
-Each topic, or \emph{chain}, is structured as a \emph{Merkle DAG}, i.e., a
+Each topic, or \emph{chain}, is organized as a \emph{Merkle DAG}, i.e., a
 directed acyclic graph immune to modifications.
-The chain graph is disseminated peer by peer in the network with gossiping.
+The chain DAG is disseminated peer by peer in the network with gossiping.
 An author posts a message to a chain and all other users subscribed to the same
 chain eventually receive the message.
 \FC supports multiple types of chains with different arrangements of public and
 private communication, which are detailed in Figure~\ref{fig.table}.
-In this section, we describe the overall operation and structure of chains with
-private groups, which are the simplest type of chains.
+In this section, we describe the overall operation and structure of chains
+using private groups, which are the simplest type of chains.
 At the end of this section, we also illustrate public identity chains.
 In Section~\ref{sec.consensus}, we detail the behavior of public forums, which
 involve untrusted communication between users and require the proposed
@@ -193,22 +188,21 @@ The command that follows starts a daemon to serve further operations:
 
 {\footnotesize
 \begin{verbatim}
- $ freechains-host start "/var/freechains/"
+ > freechains-daemon start "/var/freechains/"
 \end{verbatim}
 }
 
-The actual operations use a separate client software that communicates with the
-daemon.
+The actual operations use a separate client to communicate with the daemon.
 The next sequence of commands (i) creates a shared key, (ii) joins a private
 group chain, and (iii) posts a message in the chain:
 
 {\footnotesize
 \begin{verbatim}
- $ freechains crypto shared "strong-password" # (i)
+ > freechains crypto shared "strong-password" # (i)
  A6135D..
- $ freechains "$family" join A6135D..         # (ii)
+ > freechains "$family" join A6135D..         # (ii)
  42209B..
- $ freechains "$family" post "Good morning!"  # (iii)
+ > freechains "$family" post "Good morning!"  # (iii)
  1_EF5DE3..
 \end{verbatim}
 }
@@ -229,15 +223,15 @@ A \emph{join} only initializes the DAG locally in the file system, and a
 \emph{post} also only modifies the local structure.
 No communication occurs at this point.
 Figure~\ref{fig.family}.A depicts the state of the chain after the first post.
-The genesis block with height $0$ and hash beginning with \texttt{42209B}
+The genesis block with height $0$ and hash \texttt{42209B..}
 depends only on the arguments given to \emph{join}.
 The next block with height $1$ contains the posted message, and its hash
-\texttt{EF5DE3} depends on its payload and hash of its previous block,
+\texttt{EF5DE3..} depends on its payload and hash of its previous block,
 complying with the Merkle~DAG.
 
 \FC adheres to the \emph{local-first} software principle~\cite{p2p.local},
-allowing that networked applications build on top of it to host their own data
-and work locally while offline.
+allowing networked applications build on top of it to host their own data and
+work locally while offline.
 Except for synchronization, all other operations in the system only affect the
 local replica.
 In particular, joining a chain with the same arguments in another peer results
@@ -247,10 +241,10 @@ same steps:
 
 {\footnotesize
 \begin{verbatim}
- $ freechains-host start "/var/freechains/"
- $ freechains crypto shared "strong-password"
+ > freechains-daemon start "/var/freechains/"
+ > freechains crypto shared "strong-password"
  A6135D..
- $ freechains "$family" join "A6135D.."
+ > freechains "$family" join "A6135D.."
  42209B..
 \end{verbatim}
 }
@@ -261,12 +255,12 @@ The next command asks daemon in \emph{localhost} to connect to daemon in
 
 {\footnotesize
 \begin{verbatim}
- $ freechains "$family" recv "<remote-ip>"
+ > freechains "$family" recv "<remote-ip>"
  1/1 # one block received from <remote-ip>
 \end{verbatim}
 }
 
-The command \emph{send} would synchronize the graph in the other direction.
+The command \emph{send} would synchronize the DAGs in the other direction.
 Note that \FC does not construct a network topology or synchronize peers
 automatically.
 There are no preconfigured peers, no \emph{root servers}, no peer discovery.
@@ -276,14 +270,14 @@ In this sense, the protocol only gives basic support for communication in pairs
 of peers and any further automation requires external tools.
 
 The next sequence of commands checks the hash(es) of the block(s) at the head
-of the graph (the latest blocks), and then reads the payload of the single head
+of the DAG (the latest blocks), and then reads the payload of the single head
 found:
 
 {\footnotesize
 \begin{verbatim}
- $ freechains "$family" heads
+ > freechains "$family" heads
  1_EF5DE3..
- $ freechains "$family" payload "1_EF5DE3.."
+ > freechains "$family" payload "1_EF5DE3.."
  Good morning!
 \end{verbatim}
 }
@@ -293,30 +287,30 @@ Figure~\ref{fig.family}.A.
 However, since the network is inherently concurrent and users are encouraged to
 work locally, typical graphs are not lists, but DAGs with multiple heads.
 As an example, suppose the new peer posts a new message "I'm here!" before the
-\emph{recv} above, when the local graph is still in the genesis state.
-In this case, the resulting graph after the synchronization, now would contain
-two blocks with height $1$, as illustrated in Figure~\ref{fig.family}.B.
+\emph{recv} above, when the local DAG is still in the genesis state.
+In this case, as illustrated in Figure~\ref{fig.family}.B, the resulting graph
+after the synchronization now would contain two blocks with height $1$.
 
 Forks create ambiguity when trying to order messages in a conversation.
 In private chains, in which users trust each other, an external method for
 consensus could be applied if necessary.
-As a simple solution, users could rely on the timestamps of blocks to order all
-messages in conversation.
+As a simple solution, users could rely on the blocks timestamps to order
+messages in a conversation.
 However, in public chains, malicious users could modify their local time to
 affect new block timestamps and manipulate the order of messages.
 Furthermore, when we introduce the reputation system, conflicting \emph{like}
 operations must be accounted directly by the protocol, since they affect the
-reputation of users and may block certain posts.
-For these reasons, we need an internal autonomous consensus algorithm.
+reputation of users and may revoke certain posts.
+%For these reasons, we need an internal autonomous consensus algorithm.
 
 Users can give \emph{likes} and \emph{dislikes} to rate posts, which can be
 consulted later:
 
 {\footnotesize
 \begin{verbatim}
- $ freechains "$family" like "1_EF5DE3.."
+ > freechains "$family" like "1_EF5DE3.."
  2_BF3319..
- $ freechains "$family" reps "1_EF5DE3.."
+ > freechains "$family" reps "1_EF5DE3.."
  1  # post received 1 like
 \end{verbatim}
 }
@@ -324,7 +318,7 @@ consulted later:
 In private chains, likes are unlimited and behave much like in centralized
 systems.
 In public chains, however, likes are restricted, have to be signed by users,
-and are at the core the consensus algorithm.
+and are at the core of the consensus algorithm.
 
 For the sake of completeness, \FC also supports public identity chains (prefix
 $@$), which relies on public-key cryptography to attach an identity to a chain
@@ -332,11 +326,11 @@ and to verify the authenticity of posts:
 
 {\footnotesize
 \begin{verbatim}
- $ freechains crypto pubpvt "strong-password"
+ > freechains crypto pubpvt "strong-password"
  EB172E.. 96700A..
- $ freechains "@EB172E.." join
+ > freechains "@EB172E.." join
  F4EE21..
- $ freechains "@EB172E.." post "This is Pele" \
+ > freechains "@EB172E.." post "This is Pele" \
     --sign=96700A..
  1_547A2D..
 \end{verbatim}
@@ -356,18 +350,18 @@ identities to abuse the system.
 In permissionless peer-to-peer systems, creating an identity is as simple as
 generating a pair of public/private keys, taking a few seconds to generate
 hundreds of identities to post thousands of SPAM messages in the system.
-Hence, there are no limits on the number and size of posts and no reasonable
-consensus to distinguish quality.
+Hence, without moderation, there are no limits on the number and size of posts
+and no reasonable policy to distinguish quality.
 
 \subsection{Overall Design}
 
-We propose a reputation system that work together with a consensus algorithm to
-make peer-to-peer public forums possible.
+We propose a reputation system that works together with a consensus algorithm
+to make peer-to-peer public forums practical.
 %
 The reputation system uses tokens named \reps to rate content:
-A \emph{like} operation is a positive feedback that helps subscribers find good
-content amid excess.
-A \emph{dislike} operation is a negative feedback that revokes content when
+a \emph{like} operation is a positive feedback that helps subscribers find good
+content amid excess;
+a \emph{dislike} operation is a negative feedback that revokes content when
 crossing a threshold.
 %
 Without restrictions, like operations alone are not satisfactory, specially
@@ -461,6 +455,10 @@ To reach consensus, branches with more reputed authors
 concurrent branches, such as likes with insufficient reps, are
 rejected along with further posts.
 
+The more CPU work is done, the stronger becomes the proposal, the more peers
+follow it, the more tokens are mined.
+There is a strong association between work, profit and consensus that enables
+Bitcoin as a peer-to-peer cash system.
 
 
 that preserves the order seen
