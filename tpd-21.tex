@@ -344,37 +344,38 @@ consensus to distinguish quality.
 
 \subsection{Overall Design}
 
-We propose a reputation system and consensus algorithm that work together to
+We propose a reputation system that work together with a consensus algorithm to
 make peer-to-peer public forums possible.
 %
 The reputation system uses tokens named \reps to rate content:
 A \emph{like} operation is a positive feedback that helps subscribers find good
-content within excess.
-A \emph{dislike} operation is a negative feedback that blocks content when
+content amid excess.
+A \emph{dislike} operation is a negative feedback that revokes content when
 crossing a threshold.
 %
-Like operations alone are not enough because of Sybils, so \reps must be
-subject to some sort of scarcity that demands non-trivial work immune to
-automation.
+Without restrictions, like operations alone are not satisfactory, specially
+considering Sybils that abuse the system.
+Therefore, \reps must be subject to some sort of scarcity that demands
+non-trivial work immune to automation.
 Bitcoin employs CPU proof-of-work as a solution for Sybils, but in our context,
 content authoring is already an intrinsic work that we can take advantage.
 In our system, content authoring is the only operation that can generate \reps,
-but limited by periods of time to prevent excess (e.g., once in a day per
-user).
-Additionally, likes and dislikes only transfer \reps between users to preserve
+%but limited by periods of time to prevent excess (e.g., once in a day per user).
+%Additionally,
+while likes and dislikes only transfer \reps between users to preserve
 scarcity.
 %
 However, like operations and scarcity are still not enough as they call for
-consensus in the network.
+consensus in the network:
 Now we need to track the reputation of users to check if they are allowed to
 post new messages or give away likes.
-Since posts and like operations are happening concurrently, we need to figure
+Since posts and like operations are occurring concurrently, we need to figure
 out how to order them consistently across all peers so that they converge to
 the same state.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.49\textwidth]{reps.png}
+\includegraphics[width=0.49\textwidth]{reps2.png}
 \caption{TODO}
 \label{fig.reps}
 \end{figure}
@@ -382,28 +383,32 @@ the same state.
 Our solution is to preserve the order seen by the users constituting the
 majority of reputation, which are more likely to be non malicious.
 %
-Figure~\ref{fig.reps}.A illustrates the reputation criterion, still abstractly,
-since we did not discuss the actual rules for content creation and rating.
+Figure~\ref{fig.reps}.A illustrates the reputation criterion.
+%, still abstractly, since we did not discuss the actual rules for content creation and rating.
 A public chain has a common prefix with active users $a$, $b$, and $c$.
 Let's assume that within the prefix, users $a$ and $b$ have contributed with
 more content and combined have more reputation than $c$ has alone.
 %
-After the prefix, the chain forks into two branches.
+After the prefix, the chain forks in two branches.
 In \emph{branch 1}, only user $c$ remains active and we see that new users $x$
 and $y$, with no previous reputation, generate a lot of new content.
 In \emph{branch 2}, only users $a$ and $b$ exist but with less activity.
 Nonetheless, \emph{branch 2} takes priority because, at the forking point, $a$
 and $b$ have more reputation than $c$, $x$, and $y$ combined.
-%
+
 Figure~\ref{fig.reps}.B indicates the consensus order among all blocks in the
 chain.
 All operations in \emph{branch 2} are accounted before any operation in
 \emph{branch 1}.
 Note that the common prefix also had a fork that favored $a$.
-At any point in time, if an operation fails (e.g., a like from a user without
-reputation), all remaining blocks are removed from the chain DAG.
+At any point in time, if an operation fails, all remaining blocks are removed
+from the chain DAG.
+As an example, suppose the last post by $a$ in gray dislikes user $c$,
+decreasing its reputation.
+Then, it's possible that the last post by $c$ is rejected together with all
+posts in sequence by $y$ and $x$.
 
-Some considerations about merging forks:
+Some other considerations about merging forks:
 Peers that saw branches with less reputation first (\emph{branch 1}) need to
 recompute everything starting at the forking block.
 This might involve reorganizing or even removing content in the end user
@@ -417,25 +422,17 @@ recompute anything.
 This behavior is reasonable and expected to happen in all peers connected with
 the majority of the network.
 
+\begin{comment}
 As a last remark, let's assume that user $c$ is malicious and is trying to use
 Sybils $x$ and $y$ to multiply content generation during a certain period and
 collect enough \reps in separate of the network to perform an attack later.
-
-note that even after a peer sees both branches in
-Figure~\ref{fig.reps}.A, 
-
-
-
-
-When merging
-, possibly as Sybils of $c$ to generate more content.
-
-
- \emph{fork 2}.
-
-
-Then
-
+Even though the blocks of \emph{branch 1} would appear after \emph{branch 2},
+they could still be successful to collect the intended \reps.
+However, if the majority of the network in \emph{branch 2} notices that the
+messages in \emph{branch 1} are malicious, they can still defend themselves:
+Since they have more reputation Users $a$ and $b$ can pretend that they did not see \emph{branch 1} and post
+dislikes to $c$ at the end of \emph{branch 2} which .
+\end{comment}
 
 The details are yet missing but the graph suggests
 
