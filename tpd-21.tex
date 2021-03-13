@@ -5,7 +5,8 @@
 \usepackage{graphicx}
 
 \usepackage{xspace}
-\newcommand{\FC} {Freechains\xspace}
+\newcommand{\FC}   {Freechains\xspace}
+\newcommand{\reps} {\emph{reps}\xspace}
 
 \newcommand{\Xon} {$1{\rightarrow}N$\xspace}
 \newcommand{\Xno} {$1{\leftarrow}N$\xspace}
@@ -127,12 +128,12 @@ In contrast, our challenge is on assessing human content based on social
 interactions between them.
 
 In this work, we propose a consensus algorithm based on authoring reputation.
-Inspired by Bitcoin, content authors accumulate tokens named \emph{reps}, which
+Inspired by Bitcoin, content authors accumulate tokens named \reps, which
 serve as currency to rate posts and users in the network.
-Users can rate posts with likes and dislikes, which transfer \emph{reps}
-between them.
+Users can rate posts with likes and dislikes, which transfer \reps between
+them.
 In the algorithm, work is manifested as new posts, which reward authors with
-\emph{reps}, but which are still judged by other users.
+\reps, but which are still judged by other users.
 This way, like Bitcoin, token generation is expensive, while verification is
 cheap and made by multiple users.
 However, unlike Bitcoin, both creation and verification are subjective, based
@@ -143,7 +144,7 @@ conversation and is disseminated in the network.
 To reach consensus, branches with more reputed authors (i.e., with more work)
 take priority.
 Conflicting operations in concurrent branches, such as likes with insufficient
-\emph{reps}, are rejected along with further posts.
+\reps, are rejected along with further posts.
 The proposed consensus algorithm is integrated in Freechains%
 \footnote{\url{http://www.freechains.org}}~\cite{fcs.sbseg20},
 a peer-to-peer publish-subscribe content dissemination protocol.
@@ -214,11 +215,7 @@ group chain, and (iii) posts a message in the chain:
 
 \begin{figure}[t]
 \centering
-%\includegraphics[width=\textwidth]{arranjos}
 \includegraphics[width=0.5\textwidth]{family.png}
-%\includegraphics[clip, trim=1.75cm 10.25cm 1.5cm 1.75cm, width=1.00\textwidth]{arranjos.pdf}
-%\includepdf[width=\textwidth]{arranjos.pdf}
-%\includepdf[pages=-,pagecommand={},width=\textwidth]{arranjos.pdf}
 \caption{Two DAG configurations. (A) has a single head pointing to the
 genesis block. (B) has a fork with two heads pointing to the genesis block.}
 \label{fig.family}
@@ -328,15 +325,169 @@ and to verify the authenticity of posts:
 \end{verbatim}
 }
 
-In the example above, the author \emph{Pel\'e} creates a pair of public-private
+In the example, the author \emph{Pel\'e} creates a pair of public/private
 keys and joins an identity chain attached to his public key.
 Then, he needs to sign every post with his private key to be accepted in the
 network.
 
-\section{Consensus Algorithm}
+\section{The Consensus Algorithm}
 \label{sec.consensus}
 
-Without any kind of moderation, public forums
+In the absence of moderation, peer-to-peer public forums are impractical.
+At the root of the problem lies Sybil attacks, which use large numbers of fake
+identities to abuse the system.
+In permissionless peer-to-peer systems, creating an identity is as simple as
+generating a pair of public/private keys, taking a few seconds to generate
+hundreds of identities to post thousands of SPAM messages in the system.
+Hence, there are no limits on the number and size of posts and no reasonable
+consensus to distinguish quality.
+
+\subsection{Overall Design}
+
+We propose a reputation system and consensus algorithm that work together to
+make peer-to-peer public forums possible.
+%
+The reputation system uses tokens named \reps to rate content:
+A \emph{like} operation is a positive feedback that helps subscribers find good
+content within excess.
+A \emph{dislike} operation is a negative feedback that blocks content when
+crossing a threshold.
+%
+Like operations alone are not enough because of Sybils, so \reps must be
+subject to some sort of scarcity that demands non-trivial work immune to
+automation.
+Bitcoin employs CPU proof-of-work as a solution for Sybils, but in our context,
+content authoring is already an intrinsic work that we can take advantage.
+In our system, content authoring is the only operation that can generate \reps,
+but limited by periods of time to prevent excess (e.g., once in a day per
+user).
+Additionally, likes and dislikes only transfer \reps between users to preserve
+scarcity.
+%
+However, like operations and scarcity are still not enough as they call for
+consensus in the network.
+Now we need to track the reputation of users to check if they are allowed to
+post new messages or give away likes.
+Since posts and like operations are happening concurrently, we need to figure
+out how to order them consistently across all peers so that they converge to
+the same state.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.49\textwidth]{reps.png}
+\caption{TODO}
+\label{fig.reps}
+\end{figure}
+
+Our solution is to preserve the order seen by the users constituting the
+majority of reputation, which are more likely to be non malicious.
+%
+Figure~\ref{fig.reps}.A illustrates the reputation criterion, still abstractly,
+since we did not discuss the actual rules for content creation and rating.
+A public chain has a common prefix with active users $a$, $b$, and $c$.
+Let's assume that within the prefix, users $a$ and $b$ have contributed with
+more content and combined have more reputation than $c$ has alone.
+%
+After the prefix, the chain forks into two branches.
+In \emph{branch 1}, only user $c$ remains active and we see that new users $x$
+and $y$, with no previous reputation, generate a lot of new content.
+In \emph{branch 2}, only users $a$ and $b$ exist but with less activity.
+Nonetheless, \emph{branch 2} takes priority because, at the forking point, $a$
+and $b$ have more reputation than $c$, $x$, and $y$ combined.
+%
+Figure~\ref{fig.reps}.B indicates the consensus order among all blocks in the
+chain.
+All operations in \emph{branch 2} are accounted before any operation in
+\emph{branch 1}.
+Note that the common prefix also had a fork that favored $a$.
+At any point in time, if an operation fails (e.g., a like from a user without
+reputation), all remaining blocks are removed from the chain DAG.
+
+Some considerations about merging forks:
+Peers that saw branches with less reputation first (\emph{branch 1}) need to
+recompute everything starting at the forking block.
+This might involve reorganizing or even removing content in the end user
+software.
+This behavior is similar to chain reorganization in Bitcoin when a peer detects
+a new longest chain and disconsiders old blocks.
+%
+Likewise, peers that saw branches with more reputation first (\emph{branch 2})
+just need to sequence the other branch as if they were new and do not need to
+recompute anything.
+This behavior is reasonable and expected to happen in all peers connected with
+the majority of the network.
+
+As a last remark, let's assume that user $c$ is malicious and is trying to use
+Sybils $x$ and $y$ to multiply content generation during a certain period and
+collect enough \reps in separate of the network to perform an attack later.
+
+note that even after a peer sees both branches in
+Figure~\ref{fig.reps}.A, 
+
+
+
+
+When merging
+, possibly as Sybils of $c$ to generate more content.
+
+
+ \emph{fork 2}.
+
+
+Then
+
+
+The details are yet missing but the graph suggests
+
+When a fork
+Forks from minor users need to be reordered
+
+To reach consensus, branches with more reputed authors
+(i.e., with more work) take priority. Conflicting operations in
+concurrent branches, such as likes with insufficient reps, are
+rejected along with further posts.
+
+
+
+that preserves the order seen
+- arbitrary, internal criteria that favors/not unfavors/less surprise for most
+  of non-malicious/correct users
+
+We reach a similar solution to Bitcoin but adapted to our domain
+- we need consensus to make the reputation system work
+- we need reputation system to reach consensus
+- same virutous cycle as bitcoin
+
+We present loosely, then precise, then discuss the implications
+
+
+- Related work.
+Bitcoin employs CPU proof-of-work as a solution, but did not solve the
+centralization issue completely because the cost to perform work is not
+equally distributed
+(depends on costs of equipment and energy)
+
+
+- reputation system to rate messages
+    - positively (to distinguish from excess), or
+    - negatively (to block SPAM, fake news, illegal content)
+- some sort of scarcity (work)
+    - you like you loose
+    - you work you get
+    - otherwise sybil, "likes" abuse
+    - incentives for continuous, good quality posts
+- consensus to 
+
+
+- ponte entre reputacao -> sybil -> consenso
+- user requires reputation
+
+- related work public forums in scuttlebutt are permissioned (you decide who
+  participates). each user has a completely different view of \#chat. not really
+  public although some intersections
+    - you can see an answer but not a question, or a question w/ no answers
+      even if the best answer exists. no content discovery
+
 
 {\footnotesize
 \begin{verbatim}
@@ -350,14 +501,14 @@ Without any kind of moderation, public forums
 ---the one with more work---prefixes the
 sequence as a whole.
 
-Our sequencing proposal is straightforward and compares the sum of \emph{reps}
+Our sequencing proposal is straightforward and compares the sum of \reps
 accumulated in the past by the authors in pairs of concurrent branches.
 
-Consensus is still required because like operations spend \emph{reps} that need
+Consensus is still required because like operations spend \reps that need
 to be verified consistently by all peers in the network.
 To verify operations in concurrent branches, the graph must be sequenced to
 generate a total order between blocks.
-Our sequencing proposal is straightforward and compares the sum of \emph{reps}
+Our sequencing proposal is straightforward and compares the sum of \reps
 accumulated in the past by the authors in pairs of concurrent branches.
 The branch with more reputation---the one with more work---prefixes the
 sequence as a whole.
