@@ -146,11 +146,7 @@ a peer-to-peer publish-subscribe content dissemination protocol.
 
 \begin{figure*}[ht]
 \centering
-%\includegraphics[width=\textwidth]{arranjos}
 \includegraphics[width=\textwidth]{arrangements.png}
-%\includegraphics[clip, trim=1.75cm 10.25cm 1.5cm 1.75cm, width=1.00\textwidth]{arranjos.pdf}
-%\includepdf[width=\textwidth]{arranjos.pdf}
-%\includepdf[pages=-,pagecommand={},width=\textwidth]{arranjos.pdf}
 \caption{The three types of chains and arrangements in \FC.}
 \label{fig.table}
 \end{figure*}
@@ -296,7 +292,7 @@ In private chains, in which users trust each other, an external method for
 consensus could be applied if necessary.
 As a simple solution, users could rely on the blocks timestamps to order
 messages in a conversation.
-However, in public chains, malicious users could modify their local time to
+However, in public forums, malicious users could modify their local time to
 affect new block timestamps and manipulate the order of messages.
 Furthermore, when we introduce the reputation system, conflicting \emph{like}
 operations must be accounted directly by the protocol, since they affect the
@@ -315,9 +311,9 @@ consulted later:
 \end{verbatim}
 }
 
-In private chains, likes are unlimited and behave much like in centralized
+In private groups, likes are unlimited and behave much like in centralized
 systems.
-In public chains, however, likes are restricted, have to be signed by users,
+In public forums, however, likes are restricted, have to be signed by users,
 and are at the core of the consensus algorithm.
 
 For the sake of completeness, \FC also supports public identity chains (prefix
@@ -408,6 +404,20 @@ in \emph{branch 2}, only users $a$ and $b$ exist but with less activity.
 Nonetheless, \emph{branch 2} takes priority because, at the forking point, $a$
 and $b$ have more reputation than $c$, $x$, and $y$ combined.
 
+\begin{comment}
+Our sequencing proposal is straightforward and compares the sum of \reps
+accumulated in the past by the authors in pairs of concurrent branches.
+Consensus is still required because like operations spend \reps that need
+to be verified consistently by all peers in the network.
+To verify operations in concurrent branches, the graph must be sequenced to
+generate a total order between blocks.
+The branch with more reputation---the one with more work---prefixes the
+sequence as a whole.
+If the suffixed branch has a conflicting operation (e.g., a like from a user
+without reputation), then this operation and all remaining blocks are removed
+from the DAG.
+\end{comment}
+
 Figure~\ref{fig.reps}.B indicates the consensus order between blocks in the
 chain.
 All operations in \emph{branch 2} are accounted before any operation in
@@ -441,15 +451,6 @@ just need to sequence the other branch and do not need to recompute anything.
 This behavior is reasonable and expected to happen in all peers connected with
 the majority of the network.
 
-- summary
-    - parallel w/ bitcoin
-    - no problem w/ forks
-
-The more CPU work is done, the stronger becomes the proposal, the more peers
-follow it, the more tokens are mined.
-There is a strong association between work, profit and consensus that enables
-Bitcoin as a peer-to-peer cash system.
-
 \begin{comment}
 As a last remark, let's assume that user $c$ is malicious and is trying to use
 Sybils $x$ and $y$ to multiply content generation during a certain period and
@@ -462,39 +463,50 @@ Since they have more reputation Users $a$ and $b$ can pretend that they did not 
 dislikes to $c$ at the end of \emph{branch 2} which .
 \end{comment}
 
-The details are yet missing but the graph suggests
+\subsection{Public Forum Chains}
 
-When a fork
-Forks from minor users need to be reordered
+\begin{figure*}[ht]
+\centering
+\includegraphics[width=\textwidth]{rules.png}
+\caption{The three types of chains and arrangements in \FC.}
+\label{fig.rules}
+\end{figure*}
 
-To reach consensus, branches with more reputed authors
-(i.e., with more work) take priority. Conflicting operations in
-concurrent branches, such as likes with insufficient reps, are
-rejected along with further posts.
+In \FC, public forums follow strict rules that track the reputation of users to
+enforce consensus and content moderation.
+The rules are specified in Figure~\ref{fig.rules}, TODO.
+Users need to sign
+
+Public forums
+
+{\footnotesize
+\begin{verbatim}
+ > freechains crypto pubpvt "strong-password"
+ 4B56AD.. DA3B5F..
+ > freechains "#forum" join "4B56AD.."
+ 10AE3E..
+ > freechains "From Alice" --sign=DA3B5F..
+ 1_CC2184..
+\end{verbatim}
+}
 
 
-that preserves the order seen
-- arbitrary, internal criteria that favors/not unfavors/less surprise for most
-  of non-malicious/correct users
+\subsection{TODO}
+
+- summary
+    - parallel w/ bitcoin
+        - ponte entre reputacao -> sybil -> consenso
+    - no problem w/ forks
 
 We reach a similar solution to Bitcoin but adapted to our domain
 - we need consensus to make the reputation system work
 - we need reputation system to reach consensus
 - same virutous cycle as bitcoin
 
-We present loosely, then precise, then discuss the implications
-
-
-- Related work.
-Bitcoin employs CPU proof-of-work as a solution, but did not solve the
-centralization issue completely because the cost to perform work is not
-equally distributed
-(depends on costs of equipment and energy)
-    - bitcoin demands connectivity to avoid forks
-    - forks ok in freechains since operations are not critical and can be reverted
-    - 50+1 attack easy in first nodes if not all nodes keep participating
-        - freechains requires checkpoints
-
+The more CPU work is done, the stronger becomes the proposal, the more peers
+follow it, the more tokens are mined.
+There is a strong association between work, profit and consensus that enables
+Bitcoin as a peer-to-peer cash system.
 
 - reputation system to rate messages
     - positively (to distinguish from excess), or
@@ -504,11 +516,19 @@ equally distributed
     - you work you get
     - otherwise sybil, "likes" abuse
     - incentives for continuous, good quality posts
-- consensus to 
+- consensus to ???
 
+\section{Related Work}
+\label{sec.related}
 
-- ponte entre reputacao -> sybil -> consenso
-- user requires reputation
+Bitcoin employs CPU proof-of-work as a solution, but did not solve the
+centralization issue completely because the cost to perform work is not
+equally distributed
+(depends on costs of equipment and energy)
+    - bitcoin demands connectivity to avoid forks
+    - forks ok in freechains since operations are not critical and can be reverted
+    - 50+1 attack easy in first nodes if not all nodes keep participating
+        - freechains requires checkpoints
 
 - related work public forums in scuttlebutt are permissioned (you decide who
   participates). each user has a completely different view of \#chat. not really
@@ -517,35 +537,6 @@ equally distributed
       even if the best answer exists. no content discovery
 
 
-{\footnotesize
-\begin{verbatim}
- $ freechains "#chat" join "EB172E.."
- 10AE3E..
- $ freechains "From Joe" --sign=96700A..
- 1_547A2D..
-\end{verbatim}
-}
-
----the one with more work---prefixes the
-sequence as a whole.
-
-Our sequencing proposal is straightforward and compares the sum of \reps
-accumulated in the past by the authors in pairs of concurrent branches.
-
-Consensus is still required because like operations spend \reps that need
-to be verified consistently by all peers in the network.
-To verify operations in concurrent branches, the graph must be sequenced to
-generate a total order between blocks.
-Our sequencing proposal is straightforward and compares the sum of \reps
-accumulated in the past by the authors in pairs of concurrent branches.
-The branch with more reputation---the one with more work---prefixes the
-sequence as a whole.
-If the suffixed branch has a conflicting operation (e.g., a like from a user
-without reputation), then this operation and all remaining blocks are removed
-from the DAG.
-
-\section{Related Work}
-\label{sec.related}
 
 \section{Conclusion}
 \label{sec.conclusion}
