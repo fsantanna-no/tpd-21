@@ -394,6 +394,13 @@ converge to the same state.
 \label{fig.reps}
 \end{figure}
 
+\begin{figure*}[ht]
+\centering
+\includegraphics[width=\textwidth]{rules.png}
+\caption{Reputation rules for public forum chains.}
+\label{fig.rules}
+\end{figure*}
+
 Our solution is to preserve the order seen by the users constituting the
 majority of reputation, which are more likely to be non malicious.
 %
@@ -472,13 +479,6 @@ dislikes to $c$ at the end of \emph{branch 2} which .
 
 \subsection{Public Forum Chains}
 
-\begin{figure*}[ht]
-\centering
-\includegraphics[width=\textwidth]{rules.png}
-\caption{Reputation rules for public forum chains.}
-\label{fig.rules}
-\end{figure*}
-
 In \FC, public forums follow strict rules that track the reputation of users in
 order to enforce consensus and content moderation.
 Users in public forums need to sign their posts in order to be accounted by the
@@ -545,6 +545,15 @@ new message, which is welcomed with a like signed by the pioneer:
 
 The pioneer started with \nreps{30} and .
 - state machine
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.49\textwidth]{forum.png}
+\caption{
+    \texttt{\#forum} DAG: like approved the newbie message into the chain.
+}
+\label{fig.like}
+\end{figure}
 
 loosing reps, will reach zero. how to create new reps?
 
