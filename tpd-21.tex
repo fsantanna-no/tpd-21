@@ -5,8 +5,12 @@
 \usepackage{graphicx}
 
 \usepackage{xspace}
-\newcommand{\FC}   {Freechains\xspace}
-\newcommand{\reps} {\emph{reps}\xspace}
+\newcommand{\FC}        {Freechains\xspace}
+\newcommand{\reps}      {\emph{reps}\xspace}
+\newcommand{\onerep}    {\emph{1~rep}\xspace}
+\newcommand{\nreps}[1]  {\emph{#1~reps\xspace}}
+\newcommand{\nrule}[2]  {rule \texttt{#1}: \emph{#2}}
+\newcommand{\nRule}[2]  {Rule {#1} (\emph{#2})}
 
 \newcommand{\Xon} {$1{\rightarrow}N$\xspace}
 \newcommand{\Xno} {$1{\leftarrow}N$\xspace}
@@ -322,7 +326,7 @@ and to verify the authenticity of posts:
 
 {\footnotesize
 \begin{verbatim}
- > freechains crypto pubpvt "strong-password"
+ > freechains crypto pubpvt "other-password"
  EB172E.. 96700A..
  > freechains "@EB172E.." join
  F4EE21..
@@ -475,23 +479,106 @@ dislikes to $c$ at the end of \emph{branch 2} which .
 \label{fig.rules}
 \end{figure*}
 
-In \FC, public forums follow strict rules that track the reputation of users to
-enforce consensus and content moderation.
-The rules are specified in Figure~\ref{fig.rules}, TODO.
-Users need to sign
+In \FC, public forums follow strict rules that track the reputation of users in
+order to enforce consensus and content moderation.
+Users in public forums need to sign their posts in order to be accounted by the
+reputation system and operate in the chains.
+The rules are specified in Figure~\ref{fig.rules} and are explained as follows.
 
-Public forums
+\nRule{1.a}{pioneer} bootstraps a chain assigning \nreps{30} to the author
+referred in the \emph{join} command.
+The commands that follow create an identity whose public key is assigned as the
+pioneer in the public chain.
+The first post is signed by the pioneer and indicates the purpose of the chain:
 
 {\footnotesize
 \begin{verbatim}
- > freechains crypto pubpvt "strong-password"
+ > freechains crypto pubpvt "pioneer-password"
  4B56AD.. DA3B5F..
  > freechains "#forum" join "4B56AD.."
  10AE3E..
- > freechains "From Alice" --sign=DA3B5F..
+ > freechains "#forum" post --sign=DA3B5F.. \
+    "The purpose of this chain is..."
  1_CC2184..
 \end{verbatim}
 }
+
+The pioneer shapes the initial culture of the chain with its first posts, while
+he gradually transfers \reps to other authors, which transfer to other authors,
+expanding the community.
+
+Our most basic concern in public forums is to resist Sybils spamming the chains
+with new posts.
+Fully peer-to-peer systems cannot rely on identity validations or CAPTCHAs due
+to the lack of a central authority.
+Other alternatives include relying on social trust graphs, in which users
+already in the community vouch for new users, or imposing economic costs to new
+posts, such as solving a proof-of-work puzzle.
+
+We propose a mix between the last two approaches with the basic premise that
+users with no previous reputation are not allowed to post new content.
+\nRule{2}{new post} states that new posts cost \onerep, which prevents Sybils
+to abuse the system.
+\nRule{3.a}{like} allows an existing user to vouch for a new user through a
+like to the new post, which unblocks it, but also at the cost of \onerep.
+These rules impose costs not only for welcoming new users, but also for posting
+new messages, which also prevents abuse from malicious users already in the
+chain.
+%
+In the commands that follow, a new user joins the same public chain and posts a
+new message, which is welcomed with a like signed by the pioneer:
+
+{\footnotesize
+\begin{verbatim}
+ > freechains crypto pubpvt "new-author-password"
+ 503AB5.. 41DDF1..
+ > freechains "#forum" join "4B56AD.."
+ 10AE3E..
+ > freechains "#forum" post --sign=41DDF1.. \
+    "I'm a newbie..."
+ 2_C3A40F..
+ > freechains "#forum" like "2_C3A40F.." \
+    --sign=DA3B5F..
+ 3_59F3E1..
+\end{verbatim}
+}
+
+The pioneer started with \nreps{30} and .
+- state machine
+
+loosing reps, will reach zero. how to create new reps?
+
+Note that chains with the same name but different pioneers are incompatible
+since the hash of genesis block also depends on the pioneer's public key.
+Note also that \nrule{1.a}{pioneer} solves a chicken-and-egg problem in which
+the first new author would require \reps from non-existing previous authors.
+
+Figure~\ref{fig.forum}
+
+Posts from new authors are blocked and require approval from existing users
+with reputation.
+ (even for existing
+users), while 
+However, since a new user has \nreps{0}, his post is blocked unless an existing
+user likes it (\nrule{3.a}{like}).
+
+Note also that there is a chicken-and-egg problem to bootstrap a chain, since
+that a new users needs at least the first user requires 
+If a new user requires
+
+
+posts consume \reps
+but only existing users can give them
+this is trust graph but has a cost b/c a like removes -1 from origin
+also, if new user is fake or malicious original friend can be penalized
+alem disso, usuarios ja no sistema continuam pagando apos entrarem, mas preco retorna com um tempo
+
+for peer-to-peer public forums is to resist Sybils.
+
+
+Public forums
+
+Terminar com "@!xxx" dizendo que vale reps mas que owner pode "intervene"
 
 
 \subsection{TODO}
