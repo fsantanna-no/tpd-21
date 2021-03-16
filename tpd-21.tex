@@ -567,7 +567,7 @@ Then, a new user with \nreps{0} tried to post a message
 the red background suggests.
 Then, the pioneer likes the \emph{newbie} message, which reduces his balance to
 \nreps{28} and increments new user's to \onerep (rule~\texttt{3.a}, which is
-immediatelly consumed by the blocked post.
+immediately consumed by the blocked post.
 At the end, the pioneer has \nreps{28} and the new user remains with \nreps{0}
 but with his post accepted.
 Note that the overall balance is -\nreps{2} from the penalties in the two post
@@ -577,14 +577,14 @@ recovered (rule~\texttt{2}):
     the pioneer goes to \nreps{29} and the new user to \onerep, which sum up to
     the pioneer's original \nreps{30}.
 
-With no additional rules to generate \reps, the inital \nreps{30} would
+With no additional rules to generate \reps, the initial \nreps{30} would
 constitute the whole ``chain economy'' forever.
 In order to stimulate content creation and grow the economy of chains,
 rule~\texttt{1.b} awards authors with \onerep 24 hours after each post.
 This period allows other users to judge the post before awarding the author,
 and also regulates the growth speed of the chain.
 Hence, 24 hours after the commands above, the pioneer would accumulate
-\nreps{30} and the new user \nreps{2}, growing the total chain ammount in
+\nreps{30} and the new user \nreps{2}, growing the total chain amount in
 \nreps{2} as result of the two consolidated posts.
 Rule~\texttt{1.b} awards at most one post per day per author, i.e., with 10
 posts in 7 days an author would collect \nreps{7}.
@@ -594,41 +594,26 @@ incentivizes them to spend likes and promotes decentralization in the network.
 Likes and dislikes (rules \texttt{3.a} and \texttt{3.b}) serve three purposes:
     (a) welcoming new users, (b) measuring the quality of posts, and
     (c) censoring abuse (SPAM, fake news, illegal content).
+%
 The reputation of a given post is the difference between its likes and
 dislikes, which can be used for end-user software for filtering and
 highlighting purposes.
+%
+The quality of posts is subjective and is up to users to judge with likes,
+dislikes, or simply abstaining.
+On the one hand, since \reps are finite, users need to ponder and avoid
+indiscriminate expenditure.
+On the other hand, \reps limited to at most \nreps{30} per author and expire
+after 90 days (rules~\texttt{4.b} and~\texttt{4.c}).
+The scarcity and limits work together towards the chain quality.
+%
 Note that a dislike shrinks the chain economy since it removes \reps from both
 the origin and target.
-The contents of a post may be hidden by the network if it has at least 3
-dislikes and the number of dislikes is higher than the number of likes.
-
-A post has three possible states: \emph{BLOCKED}, \emph{ACCEPTED}, or
-\emph{HIDDEN}.
-Figure~\ref{fig.state} specifies the transitions between the states.
-%
-If the author has reputation, the post is immediately accepted.
-Otherwise, it is blocked and requires a like from another user.
-%
-Blocked posts are not considered part of the chain DAG in the sense that new
-posts do not link back to it.
-Peers are not required to hold blocked posts and neither retransmit them to
-other peers.
-However, if they do not reach other users, they will never have the chance to
-be welcomed with a like.
-A reasonable policy for blocked posts is to hold them in a temporary queue and
-retransmit them to a small extent for some visibility.
-%
-Once accepted, the post becomes part of the chain and can never be removed
-again since Merkle DAGs are immutable by design.
-%
-If the number of dislikes exceed the threshold, the post payload becomes
-hidden, i.e., it is not retransmited to other peers and should be removed from
-local storage.
-The Merkle DAG depends only on the hash of the payload, hence, it is not a
-problem to hide it since the DAG itself contains the dislikes that prove the
-state of the post.
-Also, if the post receives new likes and changes its state, it means that the
-payload is still known and peers can request it when synchronizing again.
+The contents of a post may be hidden by the network, as detailed next, if it
+has at least 3 dislikes and the number of dislikes is higher than the number of
+likes.
+Considering that \reps are scarce, dislikes are more directed to combat abuse,
+but not to eliminate divergence of opinion.
 
 \begin{figure}[ht]
 \centering
@@ -642,7 +627,40 @@ payload is still known and peers can request it when synchronizing again.
 \label{fig.state}
 \end{figure}
 
+A post has three possible states: \emph{BLOCKED}, \emph{ACCEPTED}, or
+\emph{HIDDEN}.
+Figure~\ref{fig.state} specifies the transitions between the states.
+%
+If the author has reputation, the post is immediately accepted.
+Otherwise, it is blocked and requires a like from another user.
+Blocked posts are not considered part of the chain DAG in the sense that new
+posts do not link back to it.
+%
+Peers are not required to hold blocked posts and neither retransmit them to
+other peers.
+However, if they do not reach other users, they will never have the chance to
+be welcomed with a like.
+A reasonable policy for blocked posts is to hold them in a temporary queue and
+retransmit them to a small extent for some visibility.
+%
+Once accepted, the post becomes part of the chain and can never be removed
+again since Merkle DAGs are immutable by design.
+Note that blocked posts that become accepted must always be succeeded by a
+\emph{like} (Figure~\ref{fig.forum}).
+%
+If the number of dislikes exceed the threshold, the post payload becomes
+hidden, i.e., it is not retransmitted to other peers and should be removed from
+local storage.
+The Merkle DAG depends only on the hash of the payload, so it is not a problem
+to hide it since the DAG itself contains the dislikes that prove the state of
+the post.
+Also, if the post receives new likes and changes its state, it means that the
+payload is still known somewhere and peers can request it when synchronizing
+again.
+
 \subsection{TODO}
+
+- users that work twice, bots
 
 Terminar com "@!xxx" dizendo que vale reps mas que owner pode "intervene"
 
