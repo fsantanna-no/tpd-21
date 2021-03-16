@@ -504,6 +504,9 @@ The first post is signed by the pioneer and indicates the purpose of the chain:
 The pioneer shapes the initial culture of the chain with its first posts, while
 he gradually transfers \reps to other authors, which transfer to other authors,
 expanding the community.
+%
+Note that chains with the same name but different pioneers are incompatible
+because the hash of genesis blocks also depend on the pioneers' public key.
 
 Our most basic concern in public forums is to resist Sybils spamming the chains
 with new posts.
@@ -525,6 +528,10 @@ These rules impose costs not only for welcoming new users, but also for posting
 new messages, which also prevents abuse from malicious users already in the
 chain.
 %
+Note that the pioneer rule~\texttt{1.a} solves a chicken-and-egg problem in
+which the first new author would require \reps from non-existing previous
+authors.
+%
 In the commands that follow, a new user joins the same public chain and posts a
 new message, which is welcomed with a like signed by the pioneer:
 
@@ -543,7 +550,16 @@ new message, which is welcomed with a like signed by the pioneer:
 \end{verbatim}
 }
 
-Figure~\ref{fig.like} illustrates the chain DAG up to the like operation.
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.49\textwidth]{forum.png}
+\caption{
+    The \texttt{like} approved the newbie message into the \texttt{\#forum} DAG.
+}
+\label{fig.forum}
+\end{figure}
+
+Figure~\ref{fig.forum} illustrates the chain DAG up to the like operation.
 The pioneer started with \nreps{30} (rule~\texttt{1.a}) and posted an
 initial message, reducing his balance to \nreps{29} (rule~\texttt{2}).
 Then, a new user with \nreps{0} tried to post a message
@@ -556,65 +572,79 @@ At the end, the pioneer has \nreps{28} and the new user remains with \nreps{0}
 but with his post accepted.
 Note that the overall balance is -\nreps{2} from the penalties in the two post
 operations (rule~\texttt{2}).
-After at most 12h, these penalties are dismissed and the \nreps{2} are
+After at most 12 hours, these penalties are dismissed and the \nreps{2} are
 recovered (rule~\texttt{2}):
     the pioneer goes to \nreps{29} and the new user to \onerep, which sum up to
     the pioneer's original \nreps{30}.
 
-With no additional rules to create \reps, the inital \nreps{30} would
-constitute the whole chain economy, just moving between users.
-Rule~\ref{1.b} ...
+With no additional rules to generate \reps, the inital \nreps{30} would
+constitute the whole ``chain economy'' forever.
+In order to stimulate content creation and grow the economy of chains,
+rule~\texttt{1.b} awards authors with \onerep 24 hours after each post.
+This period allows other users to judge the post before awarding the author,
+and also regulates the growth speed of the chain.
+Hence, 24 hours after the commands above, the pioneer would accumulate
+\nreps{30} and the new user \nreps{2}, growing the total chain ammount in
+\nreps{2} as result of the two consolidated posts.
+Rule~\texttt{1.b} awards at most one post per day per author, i.e., with 10
+posts in 7 days an author would collect \nreps{7}.
+Note that rule~\texttt{4.b} limits authors to at most \nreps{30}, which
+incentivizes them to spend likes and promotes decentralization in the network.
 
+Likes and dislikes (rules \texttt{3.a} and \texttt{3.b}) serve three purposes:
+    (a) welcoming new users, (b) measuring the quality of posts, and
+    (c) censoring abuse (SPAM, fake news, illegal content).
+The reputation of a given post is the difference between its likes and
+dislikes, which can be used for end-user software for filtering and
+highlighting purposes.
+Note that a dislike shrinks the chain economy since it removes \reps from both
+the origin and target.
+The contents of a post may be hidden by the network if it has at least 3
+dislikes and the number of dislikes is higher than the number of likes.
 
-Besides the pioneer rule, the only way to create reputation
-
-- state machine
+A post has three possible states: \emph{BLOCKED}, \emph{ACCEPTED}, or
+\emph{HIDDEN}.
+Figure~\ref{fig.state} specifies the transitions between the states.
+%
+If the author has reputation, the post is immediately accepted.
+Otherwise, it is blocked and requires a like from another user.
+%
+Blocked posts are not considered part of the chain DAG in the sense that new
+posts do not link back to it.
+Peers are not required to hold blocked posts and neither retransmit them to
+other peers.
+However, if they do not reach other users, they will never have the chance to
+be welcomed with a like.
+A reasonable policy for blocked posts is to hold them in a temporary queue and
+retransmit them to a small extent for some visibility.
+%
+Once accepted, the post becomes part of the chain and can never be removed
+again since Merkle DAGs are immutable by design.
+%
+If the number of dislikes exceed the threshold, the post payload becomes
+hidden, i.e., it is not retransmited to other peers and should be removed from
+local storage.
+The Merkle DAG depends only on the hash of the payload, hence, it is not a
+problem to hide it since the DAG itself contains the dislikes that prove the
+state of the post.
+Also, if the post receives new likes and changes its state, it means that the
+payload is still known and peers can request it when synchronizing again.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.49\textwidth]{forum.png}
+\includegraphics[width=0.49\textwidth]{state.png}
 \caption{
-    \texttt{\#forum} DAG: like approved the newbie message into the chain.
+    State machine of posts:
+    \emph{BLOCKED} posts are not linked in the DAG.
+    The payload of \emph{HIDDEN} posts are not retransmitted.
+    \emph{ACCEPTED} posts are linked and retransmitted.
 }
-\label{fig.like}
+\label{fig.state}
 \end{figure}
 
-loosing reps, will reach zero. how to create new reps?
-
-Note that chains with the same name but different pioneers are incompatible
-since the hash of genesis block also depends on the pioneer's public key.
-Note also that nrule{1.a}{pioneer} solves a chicken-and-egg problem in which
-the first new author would require \reps from non-existing previous authors.
-
-Figure~\ref{fig.forum}
-
-Posts from new authors are blocked and require approval from existing users
-with reputation.
- (even for existing
-users), while 
-However, since a new user has \nreps{0}, his post is blocked unless an existing
-user likes it (nrule{3.a}{like}).
-
-Note also that there is a chicken-and-egg problem to bootstrap a chain, since
-that a new users needs at least the first user requires 
-If a new user requires
-
-
-posts consume \reps
-but only existing users can give them
-this is trust graph but has a cost b/c a like removes -1 from origin
-also, if new user is fake or malicious original friend can be penalized
-alem disso, usuarios ja no sistema continuam pagando apos entrarem, mas preco retorna com um tempo
-
-for peer-to-peer public forums is to resist Sybils.
-
-
-Public forums
+\subsection{TODO}
 
 Terminar com "@!xxx" dizendo que vale reps mas que owner pode "intervene"
-
-
-\subsection{TODO}
 
 - summary
     - parallel w/ bitcoin
