@@ -52,7 +52,7 @@ impose full trust from users.
 We propose a publish-subscribe peer-to-peer protocol to model public content
 dissemination without centralized control.
 The central idea of the protocol is a reputation system that moderates content
-and, at the same time, reaches network consensus.
+and, at the same time, supports network consensus.
 We trace a parallel with Bitcoin:
     consolidated posts create reputation (vs proof-of-work);
     likes and dislikes transfer reputation (vs transactions);
@@ -71,12 +71,12 @@ peer-to-peer, consensus, reputation system, publish-subscribe
 \section{Introduction}
 \label{sec.introduction}
 
-\IEEEPARstart{C}{ontent} publishing, such as in public Internet forums and
-social media platforms, is increasingly more centralized in the hands of a few
+\IEEEPARstart{C}{ontent} publishing in public Internet forums and social media
+platforms is increasingly more centralized in the hands of a few
 companies~\cite{internet.fixing}.
 %
-On the one hand, these companies offer friendly user interfaces, free storage,
-and permanent connectivity.
+On the one hand, these companies offer free storage, friendly user interfaces,
+and robust access.
 On the other hand, they concentrate more power than required to operate, since
 they collect and control our data, ``algorithmize'' our consumption, and yet
 obstruct portability with proprietary standards.
@@ -92,7 +92,7 @@ posting public comments in the network.
 In an ideal system,
 (i)   all posts would eventually reach even temporarily disconnected users;
 (ii)  posts would be delivered in a consistent order;
-(iii) the interactions among users would be respectful and on topic.
+(iii) the interactions between users would be respectful and on topic.
 In a centralized system, items (i) and (ii) are trivially achieved assuming
 availability and delivery order in the service, while for item (iii) users must
 trust the service to moderate content (e.g., removing SPAM and fake news).
@@ -114,7 +114,7 @@ which can be transferred between users.
 The only way to create new tokens is to work towards consensus in the network
 by proposing a total order among all transactions in the system.
 %
-Bitcoin prevents the double-spending problem~\cite{p2p.bitcoin}, which is
+This way, Bitcoin prevents the double spending~\cite{p2p.bitcoin}, which is
 analogous to conflicting posts in public discussions: deciding between \emph{X}
 and \emph{Y} as a group is the same as trying to buy \emph{X} and \emph{Y} with
 insufficient funds for both.
@@ -167,13 +167,13 @@ In Section~\ref{sec.conclusion}, yyy.
 Each topic, or \emph{chain}, is organized as a \emph{Merkle DAG}, i.e., a
 directed acyclic graph immune to modifications.
 The chain DAG is disseminated peer by peer in the network with gossiping.
-An author posts a message to a chain and all other users subscribed to the same
+This way, as an author posts to a chain, other users subscribed to the same
 chain eventually receive the message.
 \FC supports multiple types of chains with different arrangements of public and
 private communication, which are detailed in Figure~\ref{fig.table}.
-In this section, we describe the overall operation and structure of chains
-using private groups, which are the simplest type of chains.
-At the end of this section, we also illustrate public identity chains.
+In this section, we operate a private group to describe the basic behavior of
+chains.
+At the end of the section, we also exemplify a public identity chain.
 In Section~\ref{sec.consensus}, we detail the behavior of public forums, which
 involve untrusted communication between users and require the proposed
 reputation and consensus mechanisms.
@@ -190,15 +190,16 @@ The command that follows starts a daemon to serve further operations:
 \end{verbatim}
 }
 
-The actual operations use a separate client to communicate with the daemon.
+The actual chain operations use a separate client to communicate with the
+daemon.
 The next sequence of commands (i) creates a shared key, (ii) joins a private
-group chain, and (iii) posts a message in the chain:
+group chain (prefix $\$$), and (iii) posts a message in the chain:
 
 {\footnotesize
 \begin{verbatim}
  > freechains crypto shared "strong-password" # (i)
  A6135D..
- > freechains "$family" join A6135D..         # (ii)
+ > freechains "$family" join "A6135D.."       # (ii)
  42209B..
  > freechains "$family" post "Good morning!"  # (iii)
  1_EF5DE3..
@@ -213,8 +214,6 @@ genesis block. (B) has a fork with two heads pointing to the genesis block.}
 \label{fig.family}
 \end{figure}
 
-In the example, we join a private group chain (prefix $\$$) which stores and
-transmits all messages encrypted.
 A private chain requires that all participants use the same shared key when
 joining the group.
 A \emph{join} only initializes the DAG locally in the file system, and a
@@ -224,8 +223,8 @@ Figure~\ref{fig.family}.A depicts the state of the chain after the first post.
 The genesis block with height $0$ and hash \texttt{42209B..}
 depends only on the arguments given to \emph{join}.
 The next block with height $1$ contains the posted message, and its hash
-\texttt{EF5DE3..} depends on its payload and hash of its previous block,
-complying with the Merkle~DAG.
+\texttt{EF5DE3..} depends on its payload and hash of previous block, complying
+with the Merkle~DAG.
 
 \FC adheres to the \emph{local-first} software principle~\cite{p2p.local},
 allowing networked applications build on top of it to host their own data and
@@ -258,7 +257,8 @@ The next command asks daemon in \emph{localhost} to connect to daemon in
 \end{verbatim}
 }
 
-The command \emph{send} would synchronize the DAGs in the other direction.
+The complementary command \emph{send} synchronizes the DAGs in the other
+direction.
 Note that \FC does not construct a network topology or synchronize peers
 automatically.
 There are no preconfigured peers, no \emph{root servers}, no peer discovery.
@@ -285,24 +285,18 @@ Figure~\ref{fig.family}.A.
 However, since the network is inherently concurrent and users are encouraged to
 work locally, typical graphs are not lists, but DAGs with multiple heads.
 As an example, suppose the new peer posts a new message "I'm here!" before the
-\emph{recv} above, when the local DAG is still in the genesis state.
+\emph{recv} above, when the local DAG is still in its genesis state.
 In this case, as illustrated in Figure~\ref{fig.family}.B, the resulting graph
 after the synchronization now would contain two blocks with height $1$.
-
+%
 Forks create ambiguity when trying to order messages in a conversation.
-In private chains, in which users trust each other, an external method for
-consensus could be applied if necessary.
-As a simple solution, users could rely on the blocks timestamps to order
-messages in a conversation.
+Private chains can apply simple methods to reach consensus, such as relying on
+the blocks timestamps.
 However, in public forums, malicious users could modify their local time to
 affect new block timestamps and manipulate the order of messages.
-Furthermore, when we introduce the reputation system, conflicting \emph{like}
-operations must be accounted directly by the protocol, since they affect the
-reputation of users and may revoke certain posts.
-%For these reasons, we need an internal autonomous consensus algorithm.
 
-Users can give \emph{likes} and \emph{dislikes} to rate posts, which can be
-consulted later:
+To conclude the basic chain operations, users can rate posts with \emph{likes}
+and \emph{dislikes}, which can be consulted later:
 
 {\footnotesize
 \begin{verbatim}
@@ -334,7 +328,7 @@ and to verify the authenticity of posts:
 \end{verbatim}
 }
 
-In the example, a personality creates a pair of public/private keys and joins
+In the example, a public figure creates a pair of public/private keys and joins
 an identity chain attached to his public key.
 Every post in this chain needs to be signed with the associated private key to
 be accepted in the network.
@@ -387,7 +381,7 @@ converge to the same state.
 \includegraphics[width=0.49\textwidth]{reps2.png}
 \caption{
     (A) A public forum DAG with a common prefix and two branches.
-    (B) Corresponding total order between blocks.
+    (B) Hypothetical corresponding total order between blocks.
 }
 \label{fig.reps}
 \end{figure}
@@ -517,7 +511,7 @@ already in the community vouch for new users, or imposing economic costs to new
 posts, such as solving a proof-of-work puzzle.
 
 We propose a mix between the last two approaches with the basic premise that
-users with no previous reputation are not allowed to post new content
+users with no previous reputation are not allowed to post.
 Rule~\texttt{4.a} states that authors require at least \onerep to post, while
 rule~\texttt{2} states that new posts cost \onerep, even from existing users.
 These rules combined prevents Sybils to abuse the system.
@@ -712,6 +706,9 @@ equally distributed
 \section{Conclusion}
 \label{sec.conclusion}
 
+
+Like \emph{bitcoins}, \reps are scarce, hard to generate, and easy to verify.
+Unlike \emph{bitcoins}, \reps .
 
 
 With this design, we retarget  , the balance between work, profit and consensus also applies 
