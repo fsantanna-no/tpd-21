@@ -527,15 +527,14 @@ Our most basic concern in public forums is to resist Sybils spamming the chains
 with new posts.
 Fully peer-to-peer systems cannot rely on identity logins or CAPTCHAs due
 to the lack of a central authority.
-Other alternatives include building social trust graphs, in which users already
-in the community vouch for new users, or imposing economic costs to new
-posts, such as solving proof-of-work puzzles.
+Other alternatives include (i) building social trust graphs, in which users
+already in the community vouch for new users, or (ii) imposing economic costs
+for new posts, such as proof of work.
 
-We propose a mix between the last two approaches: trust on new users and costs
-in \reps.
+We propose a mix between trust graphs and economic costs.
 % with the basic premise that users with no previous reputation are not allowed to post.
-Rule~\texttt{4.a} states that authors require at least \onerep to post, while
-rule~\texttt{2} states that new posts cost \onerep, even from existing users.
+Rule~\texttt{4.a} imposes that authors require at least \onerep to post, while
+rule~\texttt{2} imposes a cost of \onerep to post, even for existing users.
 These rules combined prevents Sybils to abuse the system.
 Rule~\texttt{3.a} allows an existing user to like a new user's post, which
 unblocks the post and vouches for the new user, but also at the cost of
@@ -544,9 +543,8 @@ unblocks the post and vouches for the new user, but also at the cost of
 %new messages, which also prevents abuse from malicious users already in the
 %chain.
 %
-Note that the pioneer rule~\texttt{1.a} solves a chicken-and-egg problem in
-which the first new author would require \reps from non-existing previous
-authors.
+Note that the pioneer rule~\texttt{1.a} solves the chicken-and-egg problem
+imposed by rule~\texttt{4.a}.
 
 The next commands illustrate the reputation rules with numbers.
 A new user joins the same public chain as before and posts a new message, which
@@ -557,7 +555,7 @@ is welcomed with a like signed by the pioneer:
  > freechains crypto pubpvt 'new-author-password'
  503AB5.. 41DDF1..
  > freechains '#forum' join '4B56AD..'
- 10AE3E..
+ 10AE3E..  <-- same pioneer as before
  > freechains '#forum' post 'I'm a newbie...' \
     --sign=41DDF1..
  2_C3A40F..
@@ -571,7 +569,7 @@ is welcomed with a like signed by the pioneer:
 \centering
 \includegraphics[width=0.49\textwidth]{forum.png}
 \caption{
-    The \texttt{like} approved the newbie message into the \texttt{\#forum} DAG.
+    The \texttt{like} approves the newbie message into the \texttt{\#forum} DAG.
 }
 \label{fig.forum}
 \end{figure}
@@ -582,7 +580,7 @@ message, reducing his balance to \nreps{29} (rule~\texttt{2}).
 Then, a new user with \nreps{0} tries to post a message
 (hash~\texttt{C3A40F..}), which is initially blocked (rule~\texttt{4.a}), as
 the red background highlights.
-Then, the pioneer likes the \emph{newbie} message, which reduces himself to
+Then, the pioneer likes the blocked message, which reduces himself to
 \nreps{28} and increments new user to \onerep (rule~\texttt{3.a}), which is
 immediately consumed by the blocked post to become accepted.
 At the end, the pioneer has \nreps{28} and the new user remains with \nreps{0}
@@ -596,17 +594,18 @@ recovered (rule~\texttt{2}):
 
 With no additional rules to generate \reps, the initial \nreps{30} would
 constitute the whole ``chain economy'' forever.
-For this reason, rule~\texttt{1.b} awards authors with \onerep 24 hours after
-of a new post, stimulating content creation and growing the economy of chains.
-This period allows other users to judge the post before awarding the author,
-and also regulates the growth speed of the chain.
-Therefore, 24 hours after the commands above, the pioneer accumulates
+For this reason, rule~\texttt{1.b} awards authors 24 hours after a new post
+with \onerep.
+This rule stimulates content creation and grows the economy of chains.
+The 24-hour period allows other users to judge the post before awarding the
+author, and also regulates the growth speed of the chain.
+Therefore, after the commands above complete 1 day, the pioneer accumulates
 \nreps{30} and the new user \nreps{2}, growing the economy in \nreps{2} as
 result of the two consolidated posts.
 Note that rule~\texttt{1.b} awards at most one post per day per author, i.e.,
 with 10 posts in 7 days an author collects at most \nreps{7}.
 Note also that rule~\texttt{4.b} limits authors to at most \nreps{30}, which
-provides incentives to spend likes and decentralize the network.
+provides incentives to spend likes and thus decentralize the network.
 
 Likes and dislikes (rules \texttt{3.a} and \texttt{3.b}) serve three purposes
 in the chains:
@@ -621,16 +620,18 @@ The quality of posts is subjective and is up to users to judge then with likes,
 dislikes, or simply abstaining.
 On the one hand, since \reps are finite, users need to ponder and avoid
 indiscriminate expenditure.
-On the other hand, \reps are limited to at most \nreps{30} per author and
-expire after 90 days (rules~\texttt{4.b} and~\texttt{4.c}).
-The scarcity and limits work together towards the quality of the chains.
+On the other hand, since \reps are limited to at most \nreps{30} per author and
+expire after 90 days (rules~\texttt{4.b} and~\texttt{4.c}), users also have
+incentives to spend them.
+Hence, the scarcity and limits work together towards the quality of the chains.
 %
 Note that a dislike shrinks the chain economy since it removes \reps from both
 the origin and target.
 As detailed next, the contents of a post may become hidden if it has at least 3
-dislikes and the number of dislikes is higher than the number of likes.
-However, considering that \reps are scarce, dislikes are more directed to
-combat abuse, but not to eliminate divergence of opinion.
+dislikes and the number of dislikes is higher than the number of likes
+(rule~\texttt{3}).
+However, considering that \reps are scarce, dislikes should be more directed to
+combat abuse, but not much to eliminate divergence of opinion.
 
 \begin{figure}[ht]
 \centering
@@ -648,30 +649,31 @@ A post has three possible states: \emph{BLOCKED}, \emph{ACCEPTED}, or
 \emph{HIDDEN}.
 Figure~\ref{fig.state} specifies the transitions between the states.
 %
-If the author has reputation, its new post is immediately accepted in the
-chain.
-Otherwise, it is blocked and requires a like from another user.
+If the author has reputation, its new post is immediately \emph{ACCEPTED} in
+the chain.
+Otherwise, it is \emph{BLOCKED} and requires a like from another user.
 Blocked posts are not considered part of the chain DAG in the sense that new
 posts do not link back to it.
 %
 Peers are not required to hold blocked posts and neither retransmit them to
 other peers.
-However, blocked posts do not reach other users, they will never have the
+However, if blocked posts do not reach other users, they will never have the
 chance to be welcomed with a like.
-A reasonable policy for blocked posts is to hold them in a temporary queue and
-retransmit them to a small extent for some visibility in the network.
+A reasonable policy for blocked posts is to hold them in a temporary bag and
+retransmit them for some visibility in the network.
 %
-Once accepted, the post becomes part of the chain and can never be removed
+Once accepted, a post becomes part of the chain and can never be removed
 again since Merkle DAGs are immutable by design.
-Note that blocked posts that become accepted are always be succeeded by a
-\emph{like} (Figure~\ref{fig.forum}).
+%Note that blocked posts that become accepted are always succeeded by a
+%\emph{like} (Figure~\ref{fig.forum}).
 %
-If the number of dislikes exceed the threshold, the post payload becomes
-hidden, i.e., it is not retransmitted to other peers.
+If the number of dislikes of a post exceeds the threshold, its payload becomes
+\emph{HIDDEN} and is not retransmitted to other peers.
 % and should be removed from local storage.
-Removing the payload is harmless because the Merkle DAG depends only on the
-Furthermore, the DAG itself contains the dislikes that prove the hidden state
-to other peers.
+Since the Merkle DAG depends only on its hash, removing the actual payload is
+harmless.
+Also, the DAG itself contains the dislikes that prove the hidden state to other
+peers.
 Later, if the post receives new likes and changes its state, it means that the
 payload is still known somewhere and peers can request it when synchronizing
 again.
