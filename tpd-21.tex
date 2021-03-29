@@ -620,9 +620,8 @@ The quality of posts is subjective and is up to users to judge then with likes,
 dislikes, or simply abstaining.
 On the one hand, since \reps are finite, users need to ponder and avoid
 indiscriminate expenditure.
-On the other hand, since \reps are limited to at most \nreps{30} per author and
-expire after 90 days (rules~\texttt{4.b} and~\texttt{4.c}), users also have
-incentives to spend them.
+On the other hand, since \reps are limited to at most \nreps{30} per author
+(rule~\texttt{4.b}), users also have incentives to spend them.
 Hence, the scarcity and limits work together towards the quality of the chains.
 %
 Note that a dislike shrinks the chain economy since it removes \reps from both
@@ -661,6 +660,8 @@ However, if blocked posts do not reach other users, they will never have the
 chance to be welcomed with a like.
 A reasonable policy for blocked posts is to hold them in a temporary bag and
 retransmit them for some visibility in the network.
+Rule~\texttt{4.c} limits the size of posts to at most \emph{128Kb} to prevent
+DDoS attacks using gigantic blocked posts.
 %
 Once accepted, a post becomes part of the chain and can never be removed
 again since Merkle DAGs are immutable by design.
