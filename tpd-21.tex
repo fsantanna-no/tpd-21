@@ -148,10 +148,11 @@ protocol~\cite{fcs.sbseg20}.
 
 Our main contribution is to make public forums practical with complete
 decentralization.
-The proposed reputation system depends solely on human work to create and
-moderate content.
-It can be applied to any public forum system that uses DAGs to structure its
-messages.
+The proposed reputation and consensus mechanism depends solely on human work to
+create and moderate content, which distinguishes itself from most systems which
+rely on external resources to reach consensus.
+The general idea of the algorithm can be applied to any public forum system
+that uses DAGs to structure its messages.
 
 \begin{figure*}[ht]
 \centering
@@ -184,7 +185,7 @@ chains.
 At the end of the section, we also exemplify a public identity chain.
 In Section~\ref{sec.consensus}, we detail the behavior of public forums, which
 involve untrusted communication between users and require the proposed
-reputation and consensus mechanisms.
+reputation and consensus mechanism.
 
 All \FC operations go through a \emph{daemon} (analogous to Bitcoin full nodes)
 which validates posts, links them in the Merkle DAGs, persists the chains in
@@ -418,7 +419,7 @@ future operations.
 \begin{figure*}[ht]
 \centering
 \includegraphics[width=\textwidth]{rules.png}
-\caption{Reputation rules for public forum chains.}
+\caption{Reputation rules for public forum chains in \FC.}
 \label{fig.rules}
 \end{figure*}
 
@@ -508,8 +509,8 @@ Figure~\ref{fig.rules} details the concrete rules which are discussed as
 follows.
 Authors have to sign their posts in order to be accounted by the reputation
 system and operate in the chains.
-The next example creates an identity whose public key is assigned as the
-pioneer in the public chain (prefix $\#$):
+The example that follows creates an identity whose public key is assigned as
+the pioneer in a public chain (prefix $\#$):
 
 {\footnotesize
 \begin{verbatim}
@@ -526,17 +527,14 @@ pioneer in the public chain (prefix $\#$):
 The \emph{join} command in rule~\texttt{1.a} bootstraps a public chain,
 assigning \nreps{30} to the pioneer referred in the public key.
 The pioneer shapes the initial culture of the chain with its first posts and
-likes, while gradually transferring \reps to other authors, which may also
+likes, while he gradually transfers \reps to other authors, which may also
 transfer to other authors, expanding the community.
 %
-In this regard, the \emph{post} command above, signed by the pioneer, indicates
-the purpose of the chain to other users joining.
-%
-Note that chains with the same name but different pioneers are incompatible
-because the hash of genesis blocks also depend on the pioneers' public keys.
+In this regard, the \emph{post} command in sequence, which is signed by the
+pioneer and indicates the purpose of the chain to future users.
 
-Our most basic concern in public forums is to resist Sybils spamming the chains
-with new posts.
+Our most basic concern in public forums is to resist Sybils spamming the
+chains.
 Fully peer-to-peer systems cannot rely on identity logins or CAPTCHAs due
 to the lack of a central authority.
 Other alternatives include (i) building social trust graphs, in which users
@@ -544,16 +542,12 @@ already in the community vouch for new users, or (ii) imposing economic costs
 for new posts, such as proof of work.
 
 We propose a mix between trust graphs and economic costs.
-% with the basic premise that users with no previous reputation are not allowed to post.
 Rule~\texttt{4.a} imposes that authors require at least \onerep to post, while
-rule~\texttt{2} imposes a cost of \onerep to post, even for existing users.
-These rules combined prevents Sybils to abuse the system.
-Rule~\texttt{3.a} allows an existing user to like a new user's post, which
-unblocks the post and vouches for the new user, but also at the cost of
-\onerep.
-%These rules impose costs not only for welcoming new users, but also for posting
-%new messages, which also prevents abuse from malicious users already in the
-%chain.
+rule~\texttt{2} imposes a cost of \onerep for each new post.
+To vouch for new users, rule~\texttt{3.a} allows that existing users like and
+unblock newbies' posts, but also at the cost of \onerep.
+These rules impose costs not only for welcoming new users, but also for posting
+new messages, which prevents abuse from malicious users already in the chain.
 %
 Note that the pioneer rule~\texttt{1.a} solves the chicken-and-egg problem
 imposed by rule~\texttt{4.a}.
@@ -576,6 +570,9 @@ is welcomed with a like signed by the pioneer:
  3_59F3E1..
 \end{verbatim}
 }
+
+Note that chains with the same name but different pioneers are incompatible
+because the hash of genesis blocks also depend on the pioneers' public keys.
 
 \begin{figure}[ht]
 \centering
