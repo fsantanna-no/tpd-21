@@ -553,8 +553,8 @@ Note that the pioneer rule~\texttt{1.a} solves the chicken-and-egg problem
 imposed by rule~\texttt{4.a}.
 
 The next commands illustrate the reputation rules with numbers.
-A new user joins the same public chain as before and posts a new message, which
-is welcomed with a like signed by the pioneer:
+A new user joins the same public chain as before and posts a message, which is
+welcomed with a like signed by the pioneer:
 
 {\footnotesize
 \begin{verbatim}
@@ -562,7 +562,7 @@ is welcomed with a like signed by the pioneer:
  503AB5.. 41DDF1..
  > freechains '#forum' join '4B56AD..'
  10AE3E..  <-- same pioneer as before
- > freechains '#forum' post 'I'm a newbie...' \
+ > freechains '#forum' post 'Im a newbie...' \
     --sign='41DDF1..'
  2_C3A40F..
  > freechains '#forum' like '2_C3A40F..' \
@@ -591,10 +591,10 @@ Then, a new user with \nreps{0} tries to post a message
 the red background highlights.
 Then, the pioneer likes the blocked message, which reduces himself to
 \nreps{28} and increments new user to \onerep (rule~\texttt{3.a}), which is
-immediately consumed by the blocked post to become accepted.
+immediately consumed by the blocked post that becomes accepted.
 At the end, the pioneer has \nreps{28} and the new user remains with \nreps{0}
 but with his post accepted.
-Note that the overall balance after the commands above is -\nreps{2} due to the
+Note that the overall balance after the commands is -\nreps{2} due to the
 penalties of the two post operations (rule~\texttt{2}).
 After at most 12 hours, these penalties are dismissed and the \nreps{2} are
 recovered (rule~\texttt{2}):
@@ -603,10 +603,10 @@ recovered (rule~\texttt{2}):
 
 With no additional rules to generate \reps, the initial \nreps{30} would
 constitute the whole ``chain economy'' forever.
-For this reason, rule~\texttt{1.b} awards authors 24 hours after a new post
+For this reason, rule~\texttt{1.b} awards authors 24 hours after each new post
 with \onerep.
 This rule stimulates content creation and grows the economy of chains.
-The 24-hour period allows other users to judge the post before awarding the
+The 24-hour period allows other users to judge the post before awarding its
 author, and also regulates the growth speed of the chain.
 Therefore, after the commands above complete 1 day, the pioneer accumulates
 \nreps{30} and the new user \nreps{2}, growing the economy in \nreps{2} as
@@ -618,25 +618,26 @@ provides incentives to spend likes and thus decentralize the network.
 
 Likes and dislikes (rules \texttt{3.a} and \texttt{3.b}) serve three purposes
 in the chains:
-    (a) welcoming new users, (b) measuring the quality of posts, and
-    (c) censoring abuse (SPAM, fake news, illegal content).
+    (i) welcoming new users,
+    (ii) measuring the quality of posts, and
+    (iii) censoring abuse (SPAM, fake news, illegal content).
 %
 The reputation of a given post is the difference between its likes and
-dislikes, which can be used for end-user software for filtering and
-highlighting purposes.
+dislikes, which can be used in end-user software for filtering and highlighting
+purposes.
 %
 The quality of posts is subjective and is up to users to judge then with likes,
 dislikes, or simply abstaining.
-On the one hand, since \reps are finite, users need to ponder and avoid
+On the one hand, since \reps are finite, users need to ponder to avoid
 indiscriminate expenditure.
 On the other hand, since \reps are limited to at most \nreps{30} per author
-(rule~\texttt{4.b}), users also have incentives to spend them.
+(rule~\texttt{4.b}), users also have incentives to rate content.
 Hence, the scarcity and limits work together towards the quality of the chains.
 %
 Note that a dislike shrinks the chain economy since it removes \reps from both
 the origin and target.
-As detailed next, the contents of a post may become hidden if it has at least 3
-dislikes and the number of dislikes is higher than the number of likes
+As detailed next, the actual contents of a post may become hidden if it has at
+least 3 dislikes and the number of dislikes is higher than the number of likes
 (rule~\texttt{3}).
 However, considering that \reps are scarce, dislikes should be more directed to
 combat abuse, but not much to eliminate divergence of opinion.
@@ -677,8 +678,8 @@ again since Merkle DAGs are immutable by design.
 %Note that blocked posts that become accepted are always succeeded by a
 %\emph{like} (Figure~\ref{fig.forum}).
 %
-If the number of dislikes of a post exceeds the threshold, its payload becomes
-\emph{HIDDEN} and is not retransmitted to other peers.
+If the number of dislikes of a post exceeds the threshold (rule~\texttt{3}),
+its payload becomes \emph{HIDDEN} and is not retransmitted to other peers.
 % and should be removed from local storage.
 Since the Merkle DAG depends only on its hash, removing the actual payload is
 harmless.
@@ -688,7 +689,16 @@ Later, if the post receives new likes and changes its state, it means that the
 payload is still known somewhere and peers can request it when synchronizing
 again.
 
+% MERGING CONFLICTS
+
+% APPS / USE CASES
+
 \subsection{TODO}
+
+- INSIGHT
+ Uso descentralizado
+ Emissão descentralizada e restrita
+ Criação difícil / Verificação fácil
 
 - users that work twice, bots
 
