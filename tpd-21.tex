@@ -146,6 +146,10 @@ We integrated the proposed consensus algorithm into Freechains%
 a peer-to-peer publish-subscribe content dissemination
 protocol~\cite{fcs.sbseg20}.
 
+% TODO: contributions more explicit
+% We propose a publish-subscribe peer-to-peer protocol to model public content dissemination without centralized control.
+% The reputation system depends solely on human work to create and rate content, preventing abuse while imposing consensus on a peer-to-peer setting.
+
 \begin{figure*}[ht]
 \centering
 \includegraphics[width=\textwidth]{arrangements.png}
@@ -263,7 +267,7 @@ The complementary command \emph{send} synchronizes the DAGs in the other
 direction.
 Note that \FC does not construct a network topology or synchronize peers
 automatically.
-There are no preconfigured peers, no \emph{root servers}, no peer discovery.
+There are no preconfigured peers, no root servers, no peer discovery.
 All connections happen through the \emph{send} and \emph{recv} commands which
 have to specify the peers explicitly.
 In this sense, the protocol only gives basic support for communication in pairs
@@ -286,17 +290,17 @@ Now, the new peer is in the same state as the original peer in
 Figure~\ref{fig.family}.A.
 However, since the network is inherently concurrent and users are encouraged to
 work locally, typical graphs are not lists, but DAGs with multiple heads.
-As an example, suppose the new peer posts a new message "I'm here!" before the
-\emph{recv} above, when the local DAG is still in its genesis state.
+As an example, suppose the new peer posts a message "I'm here!" \textbf{before}
+the \emph{recv} above, when the local DAG is still in its genesis state.
 In this case, as illustrated in Figure~\ref{fig.family}.B, the resulting graph
 after the synchronization now contains two blocks with height $1$.
 %
-Note that forks create ambiguity in the order of messages, which is a
-fundamental obstacle to reach consensus.
+Note that forks in the DAG create ambiguity in the order of messages, which is
+the fundamental obstacle to reach consensus.
 In private chains, which we use in this example, we can apply simple methods to
 reach consensus, such as relying on the timestamps of blocks.
-However, in public forums, malicious users could modify their local time to
-affect new block timestamps and manipulate the order of messages.
+However, in public forums, a malicious user can modify his local time to affect
+new block timestamps and manipulate the order of messages.
 
 To conclude the basic chain operations, users can rate posts with \emph{likes}
 and \emph{dislikes}, which can be consulted later:
@@ -317,16 +321,16 @@ and are at the core of the consensus algorithm.
 
 For the sake of completeness, \FC also supports public identity chains (prefix
 $@$), which relies on public-key cryptography to attach an identity to a chain
-and to verify the authenticity of posts:
+and verify the authenticity of posts:
 
 {\footnotesize
 \begin{verbatim}
  > freechains crypto pubpvt 'other-password'
- EB172E.. 96700A..
+ EB172E.. 96700A..   <- public and private keys
  > freechains '@EB172E..' join
  F4EE21..
  > freechains '@EB172E..' post 'This is Pele' \
-    --sign=96700A..
+    --sign='96700A..'
  1_547A2D..
 \end{verbatim}
 }
@@ -342,8 +346,8 @@ be accepted in the network.
 In the absence of moderation, peer-to-peer public forums are impractical.
 At the root of the problem lies Sybil attacks, which use large numbers of fake
 identities to abuse the system.
-For instance, it takes a few seconds to generate thousands of public/private
-key identities and SPAM million of messages into the system.
+For instance, it should take a few seconds to generate thousands of
+public/private key identities and SPAM million of messages into the system.
 %Hence, without moderation, there are no limits on the number and size of posts
 %and no reasonable policy to distinguish quality.
 For this reason, we propose a reputation system that works together with a
@@ -361,35 +365,42 @@ distinguish good content amid excess;
 a \emph{dislike} operation is a negative feedback that revokes content when
 crossing a threshold.
 %
-However, without restrictions, post and like operations alone are not
-satisfactory, specially considering hypothetical Sybils abusing the system.
+However, without restrictions, posts and likes alone are not satisfactory in
+the presence of Sybils.
 Therefore, \reps must be subject to some sort of scarcity that demands
 non-trivial work immune to automation.
 
-Bitcoin employs CPU proof-of-work as a solution for Sybil attacks.
-But in the context of content publishing, we understand that authoring is
+Bitcoin employs CPU proof-of-work to mitigate Sybil attacks.
+However, in the context of content publishing, we understand that authoring is
 already an intrinsic human work that we can take advantage.
-Creating new content is hard and takes time, but comparatively easy to verify
-and rate.
-In our system, in order to impose scarcity, content authoring is the only
-operation that can generate \reps, while likes and dislikes only transfer \reps
-between users.
+Creating new content is hard and takes time, but is comparatively easy to
+verify and rate.
+Therefore, in order to impose scarcity, only content authoring generates \reps,
+while likes and dislikes only transfer \reps between users.
 %but limited by periods of time to prevent excess (e.g., once in a day per user).
 %Additionally,
 %
-Still, scarce post and like operations are not enough as they call for
-consensus in the network: now we need to track the reputation of users to check
-if they are allowed to post new messages or spend likes.
-Since posts and like operations are concurrent in the network, we need to
-figure out how to order them consistently across all peers so that they
-converge to the same state.
+Still, scarce posts and likes are not yet enough because they demand consensus
+in the network.
+Now, we need to track the reputation of users to check if they are allowed to
+post new messages or spend likes.
+Since posts and likes are concurrent in the network, we need to figure out how
+to order them consistently across all peers so that they converge to the same
+state.
+As an example, it is possible that an author with a single unit of \reps
+receives a dislike at the same time he posts a new message in the network.
+If accounted before, the dislike blocks the new post, otherwise the post is
+valid.
+Even though it is impossible to determine which action happened first, the
+network as a whole needs to agree on a single order because it affects all
+future operations.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.49\textwidth]{reps2.png}
 \caption{
     (A) A public forum DAG with a common prefix and two branches.
-    (B) Hypothetical corresponding total order between blocks.
+    (B) Total order between blocks of the DAG.
 }
 \label{fig.reps}
 \end{figure}
@@ -401,11 +412,11 @@ converge to the same state.
 \label{fig.rules}
 \end{figure*}
 
-Our solution is to preserve the order of messages that is seen by the users
-constituting the majority of reputation in the network.
-This way, in order to attack and manipulate the order of messages, malicious
-users first need to cooperate with good content to gain reputation, which is
-a non-trivial endeavor.
+Our solution is to order posts in the network favoring forks with participants
+that constitute the majority of reputation.
+This way, in order to manipulate consensus, malicious users first need to
+cooperate to gain reputation, which is a non-trivial work and contradicts their
+intent.
 %
 Figure~\ref{fig.reps}.A illustrates the reputation criterion.
 %, still abstractly, since we did not discuss the actual rules for content creation and rating.
@@ -415,40 +426,24 @@ Let's assume that within the prefix, users $a$ and $b$ have contributed with
 more content and have more reputation combined than $c$ has alone.
 %
 After the prefix, the chain forks in two branches:
-in \emph{branch 1}, only user $c$ remains active and we see that new users $x$
+in \emph{branch~1}, only user $c$ remains active and we see that new users $x$
 and $y$, with no previous reputation, generate a lot of new content;
-in \emph{branch 2}, only users $a$ and $b$ exist but with less activity.
-Nonetheless, \emph{branch 2} takes priority because, at the forking point, $a$
+in \emph{branch~2}, only users $a$ and $b$ participate but with less activity.
+Nonetheless, \emph{branch~2} takes priority because, at the forking point, $a$
 and $b$ have more reputation than $c$, $x$, and $y$ combined.
 %
-In this example, user $c$ represents a malicious user trying to cultivate fake
-identities $x$ and $y$ in separate of the network to accumulate \reps.
-However, the whole \emph{branch 1} becomes vulnerable when rejoining since
-\emph{branch 2} takes priority and can invalidate $c$ completely as discussed
-further.
-
-\begin{comment}
-Our sequencing proposal is straightforward and compares the sum of \reps
-accumulated in the past by the authors in pairs of concurrent branches.
-Consensus is still required because like operations spend \reps that need
-to be verified consistently by all peers in the network.
-To verify operations in concurrent branches, the graph must be sequenced to
-generate a total order between blocks.
-The branch with more reputation---the one with more work---prefixes the
-sequence as a whole.
-If the suffixed branch has a conflicting operation (e.g., a like from a user
-without reputation), then this operation and all remaining blocks are removed
-from the DAG.
-\end{comment}
+User $c$ here represents a malicious user trying to cultivate fake identities
+$x$ and $y$ in separate of the network to accumulate \reps.
+However, the whole \emph{branch~1} becomes vulnerable because \emph{branch~2}
+takes priority and can overthrow user $c$ as discussed further.
 
 Figure~\ref{fig.reps}.B indicates the consensus order between blocks in the
 chain.
-All operations in \emph{branch 2} are accounted before any operation in
-\emph{branch 1}.
-Note that the common prefix also had a fork that favored user $a$.
+All operations in \emph{branch~2} are accounted before any operation in
+\emph{branch~1}.
 %
 At any point in the consensus timeline, if an operation fails, all remaining
-blocks are removed from the chain DAG.
+blocks in the offending branch are removed from the chain DAG.
 As an example, suppose the last post by $a$ (in gray) is a dislike to user $c$,
 which decreases its reputation.
 Then, it's possible that the last post by $c$ (in red) is rejected together
@@ -456,23 +451,31 @@ with all posts by $y$ and $x$ in sequence.
 %
 Unlike Bitcoin, forks are not only allowed but encouraged due to the
 local-first principle.
-The resulting linked list is only a view of the primary DAG structure.
+The resulting ordered list is only a view of the primary DAG structure.
 However, the longer a peer remains disconnected, the more conflicting
-operations it may perform, and the higher is the probability of rejection when
+operations it may perform, and the higher are the chances of rejection when
 rejoining.
+%
+Note that users in \emph{branch~2} with more reputation may judge
+\emph{branch~1} as malicious and can react even after the fact.
+For instance, users $a$ and $b$ can post extra dislikes in \emph{branch~2} so
+that merging with \emph{branch~1} removes all of its blocks.
+It is also possible that users disagree with the consensus protocol and want to
+fork the chain permanently.
+We discuss these countermeasures in Section~\ref{sec.TODO}.
 
 Some other considerations about merging forks:
-Peers that saw branches with less reputation first (\emph{branch 1}) need to
-reorder all blocks starting at the forking point.
+Peers that received branches with less reputation first (\emph{branch~1}) will
+need to reorder all blocks starting at the forking point.
 This might even involve removing content in the end user software.
 This behavior is similar to chain reorganization in Bitcoin when a peer detects
 a new longest chain and disconsiders old blocks.
 %
-Likewise, peers that saw branches with more reputation first (\emph{branch 2})
+Likewise, peers that saw branches with more reputation first (\emph{branch~2})
 just need to put the other branch in sequence and do not need to recompute
 anything.
-This normal behavior is expected to happen in all peers connected with the
-majority of the network.
+This should be the normal behavior and is expected to happen in the majority of
+the network.
 
 \begin{comment}
 As a last remark, let's assume that user $c$ is malicious and is trying to use
@@ -501,10 +504,10 @@ pioneer in the public chain (prefix $\#$):
 {\footnotesize
 \begin{verbatim}
  > freechains crypto pubpvt 'pioneer-password'
- 4B56AD.. DA3B5F..  <- public and private keys
+ 4B56AD.. DA3B5F..
  > freechains '#forum' join '4B56AD..'
  10AE3E..
- > freechains '#forum' post --sign=DA3B5F.. \
+ > freechains '#forum' post --sign='DA3B5F..' \
     'The purpose of this chain is...'
  1_CC2184..
 \end{verbatim}
@@ -556,10 +559,10 @@ is welcomed with a like signed by the pioneer:
  > freechains '#forum' join '4B56AD..'
  10AE3E..  <-- same pioneer as before
  > freechains '#forum' post 'I'm a newbie...' \
-    --sign=41DDF1..
+    --sign='41DDF1..'
  2_C3A40F..
  > freechains '#forum' like '2_C3A40F..' \
-    --sign=DA3B5F..
+    --sign='DA3B5F..'
  3_59F3E1..
 \end{verbatim}
 }
