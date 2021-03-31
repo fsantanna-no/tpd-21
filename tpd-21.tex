@@ -146,9 +146,12 @@ We integrated the proposed consensus algorithm into Freechains%
 a peer-to-peer publish-subscribe content dissemination
 protocol~\cite{fcs.sbseg20}.
 
-% TODO: contributions more explicit
-% We propose a publish-subscribe peer-to-peer protocol to model public content dissemination without centralized control.
-% The reputation system depends solely on human work to create and rate content, preventing abuse while imposing consensus on a peer-to-peer setting.
+Our main contribution is to make public forums practical with complete
+decentralization.
+The proposed reputation system depends solely on human work to create and
+moderate content.
+It can be applied to any public forum system that uses DAGs to structure its
+messages.
 
 \begin{figure*}[ht]
 \centering
@@ -159,8 +162,8 @@ protocol~\cite{fcs.sbseg20}.
 
 In Section~\ref{sec.freechains}, we introduce the basic functionalities of \FC
 to create, rate, and disseminate posts.
-In Section~\ref{sec.consensus}, we describe the consensus algorithm with its
-goals, incentives, and possible attacks and mitigations.
+In Section~\ref{sec.consensus}, we describe the general design of the consensus
+algorithm and how we applied it to \FC.
 In Section~\ref{sec.related}, xxx.
 In Section~\ref{sec.conclusion}, yyy.
 
@@ -354,10 +357,17 @@ For this reason, we propose a reputation system that works together with a
 consensus algorithm to mitigate Sybil attacks and make peer-to-peer public
 forums practical.
 
+Section~\ref{sec.consensus.design} describes the overall consensus rules which
+can be applied to any public forum system that uses DAGs to structure its
+messages.
+Section~\ref{sec.consensus.chains} describes the concrete rules we chose for
+the public forums of \FC.
+
 \subsection{Overall Design}
+\label{sec.consensus.design}
 
 In the proposed reputation system, users can spend tokens named \reps to post
-and rate content in the chains:
+and rate content in the forums:
 a \emph{post} operation initially penalizes authors until it consolidates and
 counts positively;
 a \emph{like} operation is a positive feedback that helps subscribers
@@ -420,12 +430,12 @@ intent.
 %
 Figure~\ref{fig.reps}.A illustrates the reputation criterion.
 %, still abstractly, since we did not discuss the actual rules for content creation and rating.
-A public chain DAG has a common prefix with signed posts from users $a$, $b$,
+A public forum DAG has a common prefix with signed posts from users $a$, $b$,
 and $c$.
 Let's assume that within the prefix, users $a$ and $b$ have contributed with
 more content and have more reputation combined than $c$ has alone.
 %
-After the prefix, the chain forks in two branches:
+After the prefix, the forum forks in two branches:
 in \emph{branch~1}, only user $c$ remains active and we see that new users $x$
 and $y$, with no previous reputation, generate a lot of new content;
 in \emph{branch~2}, only users $a$ and $b$ participate but with less activity.
@@ -438,12 +448,12 @@ However, the whole \emph{branch~1} becomes vulnerable because \emph{branch~2}
 takes priority and can overthrow user $c$ as discussed further.
 
 Figure~\ref{fig.reps}.B indicates the consensus order between blocks in the
-chain.
+forum.
 All operations in \emph{branch~2} are accounted before any operation in
 \emph{branch~1}.
 %
 At any point in the consensus timeline, if an operation fails, all remaining
-blocks in the offending branch are removed from the chain DAG.
+blocks in the offending branch are removed from the forum DAG.
 As an example, suppose the last post by $a$ (in gray) is a dislike to user $c$,
 which decreases its reputation.
 Then, it's possible that the last post by $c$ (in red) is rejected together
@@ -461,15 +471,15 @@ Note that users in \emph{branch~2} with more reputation may judge
 For instance, users $a$ and $b$ can post extra dislikes in \emph{branch~2} so
 that merging with \emph{branch~1} removes all of its blocks.
 It is also possible that users disagree with the consensus protocol and want to
-fork the chain permanently.
+fork the forum permanently.
 We discuss these countermeasures in Section~\ref{sec.TODO}.
 
 Some other considerations about merging forks:
 Peers that received branches with less reputation first (\emph{branch~1}) will
 need to reorder all blocks starting at the forking point.
 This might even involve removing content in the end user software.
-This behavior is similar to chain reorganization in Bitcoin when a peer detects
-a new longest chain and disconsiders old blocks.
+This behavior is similar to blockchain reorganization in Bitcoin when a peer
+detects a new longest chain and disconsiders old blocks.
 %
 Likewise, peers that saw branches with more reputation first (\emph{branch~2})
 just need to put the other branch in sequence and do not need to recompute
@@ -490,14 +500,14 @@ dislikes to $c$ at the end of \emph{branch 2} which .
 \end{comment}
 
 \subsection{Public Forum Chains}
+\label{sec.consensus.chains}
 
-The public forums of \FC adopt the proposed reputation system.
-We now present the concrete rules that track the reputation of users in order
-to enforce consensus and support content moderation.
+We integrated the proposed reputation system in the public forums of \FC to
+support content moderation and enforce consensus in the chains.
+Figure~\ref{fig.rules} details the concrete rules which are discussed as
+follows.
 Authors have to sign their posts in order to be accounted by the reputation
 system and operate in the chains.
-The reputation rules are detailed in Figure~\ref{fig.rules} and discussed as
-follows.
 The next example creates an identity whose public key is assigned as the
 pioneer in the public chain (prefix $\#$):
 
