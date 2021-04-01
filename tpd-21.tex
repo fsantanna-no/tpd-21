@@ -72,7 +72,7 @@ distributed consensus, peer-to-peer, publish-subscribe, reputation system
 
 \IEEEPARstart{C}{ontent} publishing in public Internet forums and social media
 platforms is increasingly more centralized in the hands of a few
-companies~\cite{internet.fixing}.
+companies~\cite{internet.fixing,p2p.osn}.
 %
 On the one hand, these companies offer free storage, friendly user interfaces,
 and robust access.
@@ -585,13 +585,31 @@ because the hash of genesis blocks also depend on the pioneers' public keys.
 
 Figure~\ref{fig.forum} illustrates the chain DAG up to the like operation.
 The pioneer starts with \nreps{30} (rule~\texttt{1.a}) and posts an initial
-message, reducing his balance to \nreps{29} (rule~\texttt{2}).
-Then, a new user with \nreps{0} tries to post a message
+message.
+%
+A new post penalizes its author with \nreps{-1} (rule~\texttt{2}) which is
+restored after at most 12 hours.
+This period depends on the activity that comes after the new post (including
+it).
+The more activity from reputed authors, the less time the discount persists.
+In the example, since the post is from the pioneer, which currently controls
+all \reps in the chain, the penalty falls immediately and the pioneer remains
+with \nreps{30}.
+This mechanism dynamically limits the excess of posts in a chain.
+With little activity in the chain (e.g, a technical mailing list), it becomes
+more and more expensive to continue posting new messages.
+However, if the majority of the chain participates at the same time (e.g., a
+real-time chat), then the penalty can be reduced to zero.
+%
+Back to the figure, a new user with \nreps{0} tries to post a message
 (hash~\texttt{C3A40F..}), which is initially blocked (rule~\texttt{4.a}), as
 the red background highlights.
 Then, the pioneer likes the blocked message, which reduces himself to
-\nreps{28} and increments new user to \onerep (rule~\texttt{3.a}), which is
-immediately consumed by the blocked post that becomes accepted.
+\nreps{29} and increases new user to \onerep (rule~\texttt{3.a}).
+Once again, the penalty expires immediately since the like that follows the new
+post is from the pioneer still with all \reps in the chain.
+%
+\begin{comment}
 At the end, the pioneer has \nreps{28} and the new user remains with \nreps{0}
 but with his post accepted.
 Note that the overall balance after the commands is -\nreps{2} due to the
@@ -600,7 +618,8 @@ After at most 12 hours, these penalties are dismissed and the \nreps{2} are
 recovered (rule~\texttt{2}):
     the pioneer goes to \nreps{29} and the new user to \onerep, which sum up to
     the pioneer's original \nreps{30}.
-
+\end{comment}
+%
 With no additional rules to generate \reps, the initial \nreps{30} would
 constitute the whole ``chain economy'' forever.
 For this reason, rule~\texttt{1.b} awards authors 24 hours after each new post
@@ -611,8 +630,8 @@ author, and also regulates the growth speed of the chain.
 Therefore, after the commands above complete 1 day, the pioneer accumulates
 \nreps{30} and the new user \nreps{2}, growing the economy in \nreps{2} as
 result of the two consolidated posts.
-Note that rule~\texttt{1.b} awards at most one post per day per author, i.e.,
-with 10 posts in 7 days an author collects at most \nreps{7}.
+Note that rule~\texttt{1.b} awards at most one post at a time.
+New posts during the 24-hour period will not awards extra \reps to the author.
 Note also that rule~\texttt{4.b} limits authors to at most \nreps{30}, which
 provides incentives to spend likes and thus decentralize the network.
 
@@ -731,6 +750,9 @@ Bitcoin as a peer-to-peer cash system.
 
 \section{Related Work}
 \label{sec.related}
+
+https://ieeexplore.ieee.org/document/5766541
+https://arxiv.org/abs/2001.02962
 
 Bitcoin employs CPU proof-of-work as a solution, but did not solve the
 centralization issue completely because the cost to perform work is not
