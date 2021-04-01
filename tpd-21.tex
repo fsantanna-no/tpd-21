@@ -40,7 +40,7 @@ uses mining to
     Peer-to-Peer Consensus via Authoring Reputation
 }
 \author{
-    Francisco Sant'Anna~\IEEEmembership{Department of Computer Science, Rio de Janeiro State University}
+    %Francisco Sant'Anna~\IEEEmembership{Department of Computer Science, Rio de Janeiro State University}
 }
 
 \IEEEtitleabstractindextext{%
@@ -595,11 +595,11 @@ The more activity from reputed authors, the less time the discount persists.
 In the example, since the post is from the pioneer, which currently controls
 all \reps in the chain, the penalty falls immediately and the pioneer remains
 with \nreps{30}.
-This mechanism dynamically limits the excess of posts in a chain.
-With little activity in the chain (e.g, a technical mailing list), it becomes
-more and more expensive to continue posting new messages.
-However, if the majority of the chain participates at the same time (e.g., a
-real-time chat), then the penalty can be reduced to zero.
+This mechanism limits the excess of posts in a chain dynamically.
+For instance, in a slow technical mailing list, it is more expensive to post
+messages in sequence.
+However, in a chat with the majority of users participating, the penalty for
+new posts can be reduced to zero.
 %
 Back to the figure, a new user with \nreps{0} tries to post a message
 (hash~\texttt{C3A40F..}), which is initially blocked (rule~\texttt{4.a}), as
@@ -711,6 +711,8 @@ again.
 % MERGING CONFLICTS
 
 % APPS / USE CASES
+
+\begin{comment}
 
 \subsection{TODO}
 
@@ -880,14 +882,10 @@ n user posts
 
 Regardless of the Internet growth over the years,
 
-\subsection{Subsection Heading Here}
-Subsection text here.
-
-\subsubsection{Subsubsection Heading Here}
-Subsubsection text here.
-
 \section{Conclusion}
 The conclusion goes here.
+
+\end{comment}
 
 \bibliographystyle{IEEEtran}
 \bibliography{tpd-21}
