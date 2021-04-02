@@ -154,7 +154,7 @@ rely on external resources to reach consensus.
 The general idea of the algorithm can be applied to any public forum system
 that uses DAGs to structure its messages.
 
-\begin{figure*}[ht]
+\begin{figure*}
 \centering
 \includegraphics[width=\textwidth]{arrangements.png}
 \caption{The three types of chains and arrangements in \FC.}
@@ -215,7 +215,7 @@ group chain (prefix $\$$), and (iii) posts a message into the chain:
 \end{verbatim}
 }
 
-\begin{figure}[t]
+\begin{figure}
 \centering
 \includegraphics[width=0.5\textwidth]{family.png}
 \caption{Two DAG configurations. (A) has a single head pointing to the
@@ -344,7 +344,7 @@ an identity chain attached to his public key.
 Every post in this chain needs to be signed with the associated private key to
 be accepted in the network.
 
-\section{The Consensus Algorithm}
+\section{Reputation and Consensus Mechanism}
 \label{sec.consensus}
 
 In the absence of moderation, peer-to-peer public forums are impractical.
@@ -358,11 +358,11 @@ For this reason, we propose a reputation system that works together with a
 consensus algorithm to mitigate Sybil attacks and make peer-to-peer public
 forums practical.
 
-Section~\ref{sec.consensus.design} describes the overall consensus rules which
-can be applied to any public forum system that uses DAGs to structure its
-messages.
-Section~\ref{sec.consensus.chains} describes the concrete rules we chose for
-the public forums of \FC.
+Section~\ref{sec.consensus.design} describes the overall reputation and
+consensus mechanism, which can be applied to any public forum system that uses
+DAGs to structure its messages~\cite{33,34}.
+Section~\ref{sec.consensus.chains} describes the concrete rules we implement
+for public forums in \FC.
 
 \subsection{Overall Design}
 \label{sec.consensus.design}
@@ -375,11 +375,19 @@ a \emph{like} operation is a positive feedback that helps subscribers
 distinguish good content amid excess;
 a \emph{dislike} operation is a negative feedback that revokes content when
 crossing a threshold.
+Figure~\ref{fig.general} summarizes the reputation operations and their goals.
 %
 However, without restrictions, posts and likes alone are not satisfactory in
 the presence of Sybils.
 Therefore, \reps must be subject to some sort of scarcity that demands
 non-trivial work immune to automation.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.49\textwidth]{general.png}
+\caption{General reputation operations in public forums.}
+\label{fig.general}
+\end{figure}
 
 Bitcoin employs CPU proof-of-work to mitigate Sybil attacks.
 However, in the context of content publishing, we understand that authoring is
@@ -403,10 +411,10 @@ receives a dislike at the same time he posts a new message in the network.
 If accounted before, the dislike blocks the new post, otherwise the post is
 valid.
 Even though it is impossible to determine which action happened first, the
-network as a whole needs to agree on a single order because it affects all
-future operations.
+network as a whole needs to agree on a single order because this decision
+affects all future operations.
 
-\begin{figure}[t]
+\begin{figure}
 \centering
 \includegraphics[width=0.49\textwidth]{reps2.png}
 \caption{
@@ -415,13 +423,6 @@ future operations.
 }
 \label{fig.reps}
 \end{figure}
-
-\begin{figure*}[ht]
-\centering
-\includegraphics[width=\textwidth]{rules.png}
-\caption{Reputation rules for public forum chains in \FC.}
-\label{fig.rules}
-\end{figure*}
 
 Our solution is to order posts in the network favoring forks with participants
 that constitute the majority of reputation.
@@ -434,19 +435,20 @@ Figure~\ref{fig.reps}.A illustrates the reputation criterion.
 A public forum DAG has a common prefix with signed posts from users $a$, $b$,
 and $c$.
 Let's assume that within the prefix, users $a$ and $b$ have contributed with
-more content and have more reputation combined than $c$ has alone.
+better content and have more reputation combined than $c$ has alone.
 %
 After the prefix, the forum forks in two branches:
 in \emph{branch~1}, only user $c$ remains active and we see that new users $x$
 and $y$, with no previous reputation, generate a lot of new content;
 in \emph{branch~2}, only users $a$ and $b$ participate but with less activity.
-Nonetheless, \emph{branch~2} takes priority because, at the forking point, $a$
-and $b$ have more reputation than $c$, $x$, and $y$ combined.
+Nonetheless, \emph{branch~2} takes priority because, before the forking point,
+$a$ and $b$ have more reputation than $c$, $x$, and $y$ combined.
 %
 User $c$ here represents a malicious user trying to cultivate fake identities
 $x$ and $y$ in separate of the network to accumulate \reps.
-However, the whole \emph{branch~1} becomes vulnerable because \emph{branch~2}
-takes priority and can overthrow user $c$ as discussed further.
+However, the whole malicious \emph{branch~1} is vulnerable because users in
+\emph{branch~2} with more previous reputation take the priority and can
+overthrow user $c$.
 
 Figure~\ref{fig.reps}.B indicates the consensus order between blocks in the
 forum.
@@ -471,9 +473,50 @@ Note that users in \emph{branch~2} with more reputation may judge
 \emph{branch~1} as malicious and can react even after the fact.
 For instance, users $a$ and $b$ can post extra dislikes in \emph{branch~2} so
 that merging with \emph{branch~1} removes all of its blocks.
-It is also possible that users disagree with the consensus protocol and want to
-fork the forum permanently.
-We discuss these countermeasures in Section~\ref{sec.TODO}.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.49\textwidth]{merge.png}
+\caption{
+    Merging rules:
+    (a) The branch with more reputation in the common prefix is ordered first.
+    (b) A branch with 50\% or more reputation then its prefix is ordered first.
+    (c) If rules (a) and (b) conflict, the merge fails.
+}
+\label{fig.reps}
+\end{figure}
+
+As a counterpoint, suppose that in the same example of Figure~\ref{fig.reps}.A,
+users $a$ and $b$ actually abandoned the chain for months and \emph{branch-1}
+is legit.
+In this case, $a$ and $b$ are the ones malicious trying to take over the chain
+by artificially creating an early \emph{branch-2}, even with knowledge about
+\emph{branch-1}.
+There is even a third option in which both branches are legit but were
+disconnected for a long period.
+It is impossible to determine.
+Nonetheless, the breach that permits an early branch to take over a long active
+chain is compromising.
+For this reason, the consensus algorithm includes an extra constraint on
+merging:
+If a branch creates new \reps that reach 50\% of its prefix, then it is
+guaranteed that the branch will take priority in merges.
+In the example, suppose that the common prefix accumulates \nreps{50}
+considering users $a$, $b$, and $c$.
+If \emph{branch-1} creates at least $25$ new \reps, then the merge with
+\emph{branch-2} will fail and the chains will never synchronize again.
+This situation is analogous to a hard fork in Bitcoin.
+%
+Figure~\ref{fig.consensus} summarizes the merging algorithm.
+
+
+
+
+\emph{branch-1}
+
+%It is also possible that users disagree with the consensus protocol and want to
+%fork the forum permanently.
+%We discuss these countermeasures in Section~\ref{sec.TODO}.
 
 Some other considerations about merging forks:
 Peers that received branches with less reputation first (\emph{branch~1}) will
@@ -502,6 +545,13 @@ dislikes to $c$ at the end of \emph{branch 2} which .
 
 \subsection{Public Forum Chains}
 \label{sec.consensus.chains}
+
+\begin{figure*}
+\centering
+\includegraphics[width=\textwidth]{rules.png}
+\caption{Specific reputation rules for public forum chains in \FC.}
+\label{fig.rules}
+\end{figure*}
 
 We integrated the proposed reputation system in the public forums of \FC to
 support content moderation and enforce consensus in the chains.
@@ -574,7 +624,7 @@ welcomed with a like signed by the pioneer:
 Note that chains with the same name but different pioneers are incompatible
 because the hash of genesis blocks also depend on the pioneers' public keys.
 
-\begin{figure}[ht]
+\begin{figure}
 \centering
 \includegraphics[width=0.49\textwidth]{forum.png}
 \caption{
@@ -661,7 +711,7 @@ least 3 dislikes and the number of dislikes is higher than the number of likes
 However, considering that \reps are scarce, dislikes should be more directed to
 combat abuse, but not much to eliminate divergence of opinion.
 
-\begin{figure}[ht]
+\begin{figure}
 \centering
 \includegraphics[width=0.49\textwidth]{state.png}
 \caption{
