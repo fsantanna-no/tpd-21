@@ -474,50 +474,6 @@ Note that users in \emph{branch~2} with more reputation may judge
 For instance, users $a$ and $b$ can post extra dislikes in \emph{branch~2} so
 that merging with \emph{branch~1} removes all of its blocks.
 
-\begin{figure}
-\centering
-\includegraphics[width=0.49\textwidth]{merge.png}
-\caption{
-    Merging rules:
-    (a) The branch with more reputation in the common prefix is ordered first.
-    (b) A branch with 50\% or more reputation then its prefix is ordered first.
-    (c) If rules (a) and (b) conflict, the merge fails.
-}
-\label{fig.reps}
-\end{figure}
-
-As a counterpoint, suppose that in the same example of Figure~\ref{fig.reps}.A,
-users $a$ and $b$ actually abandoned the chain for months and \emph{branch-1}
-is legit.
-In this case, $a$ and $b$ are the ones malicious trying to take over the chain
-by artificially creating an early \emph{branch-2}, even with knowledge about
-\emph{branch-1}.
-There is even a third option in which both branches are legit but were
-disconnected for a long period.
-It is impossible to determine.
-Nonetheless, the breach that permits an early branch to take over a long active
-chain is compromising.
-For this reason, the consensus algorithm includes an extra constraint on
-merging:
-If a branch creates new \reps that reach 50\% of its prefix, then it is
-guaranteed that the branch will take priority in merges.
-In the example, suppose that the common prefix accumulates \nreps{50}
-considering users $a$, $b$, and $c$.
-If \emph{branch-1} creates at least $25$ new \reps, then the merge with
-\emph{branch-2} will fail and the chains will never synchronize again.
-This situation is analogous to a hard fork in Bitcoin.
-%
-Figure~\ref{fig.consensus} summarizes the merging algorithm.
-
-
-
-
-\emph{branch-1}
-
-%It is also possible that users disagree with the consensus protocol and want to
-%fork the forum permanently.
-%We discuss these countermeasures in Section~\ref{sec.TODO}.
-
 Some other considerations about merging forks:
 Peers that received branches with less reputation first (\emph{branch~1}) will
 need to reorder all blocks starting at the forking point.
@@ -531,17 +487,42 @@ anything.
 This should be the normal behavior and is expected to happen in the majority of
 the network.
 
-\begin{comment}
-As a last remark, let's assume that user $c$ is malicious and is trying to use
-Sybils $x$ and $y$ to multiply content generation during a certain period and
-collect enough \reps in separate of the network to perform an attack later.
-Even though the blocks of \emph{branch 1} would appear after \emph{branch 2},
-they could still be successful to collect the intended \reps.
-However, if the majority of the network in \emph{branch 2} notices that the
-messages in \emph{branch 1} are malicious, they can still defend themselves:
-Since they have more reputation Users $a$ and $b$ can pretend that they did not see \emph{branch 1} and post
-dislikes to $c$ at the end of \emph{branch 2} which .
-\end{comment}
+\begin{figure}
+\centering
+\includegraphics[width=0.49\textwidth]{merge.png}
+\caption{
+    Merging rules:
+    (a) The branch with more reputation in the common prefix is ordered first.
+    (b) A branch with 50\% or more reputation then its prefix is ordered first.
+    (c) The merge fails if rules (a) and (b) conflict.
+}
+\label{fig.merge}
+\end{figure}
+
+As a counterpoint, suppose users $a$ and $b$ in Figure~\ref{fig.reps}.A have
+actually abandoned the chain for months and thus \emph{branch-1} is legit.
+In this case, $a$ and $b$ are the ones trying to take over the chain by
+forging an early \emph{branch-2}, even with knowledge about \emph{branch-1}.
+There is even a third option in which both branches are legit but became
+disconnected for a long period.
+It is impossible to determine.
+Nonetheless, the breach that permits an forged branch to take over a long
+active chain is compromising.
+For this reason, the consensus algorithm includes an extra constraint when
+merging:
+If a branch creates new \reps that reach 50\% of its prefix, then it is
+guaranteed that this branch will take priority in merges.
+In the example, suppose that the common prefix accumulates \nreps{50}
+considering users $a$, $b$, and $c$.
+If \emph{branch-1} creates at least $25$ new \reps, then the merge with
+\emph{branch-2} will fail and the chains will never synchronize again.
+This situation is analogous to a hard fork in Bitcoin.
+%
+Figure~\ref{fig.merge} summarizes the merging algorithm.
+
+%It is also possible that users disagree with the consensus protocol and want to
+%fork the forum permanently.
+%We discuss these countermeasures in Section~\ref{sec.TODO}.
 
 \subsection{Public Forum Chains}
 \label{sec.consensus.chains}
