@@ -102,7 +102,7 @@ However, this approach does not guarantee consensus since posts can be received
 in conflicting orders in different peers.
 As an example, antagonistic messages such as \emph{"X is final"} vs
 \emph{"Y is final"} might be sent concurrently, preventing the network to
-decide as a group between \emph{X} and \emph{Y}.
+determine as a group its intention as \emph{X} or \emph{Y}~\cite{p2p.intention}.
 
 Bitcoin~\cite{p2p.bitcoin} proposes a permissionless consensus protocol founded
 on scarce virtual assets, the \emph{bitcoin tokens}.
@@ -141,10 +141,8 @@ The list is then verified for conflicting operations, such as likes with
 insufficient \reps, which is equivalent to double spending in Bitcoin.
 In this case, the branch that causes the conflict, which is always the one with
 less work, is removed from the DAG and the linked list is recalculated.
-We integrated the proposed consensus algorithm into Freechains%
-\footnote{\url{http://www.freechains.org}},
-a peer-to-peer publish-subscribe content dissemination
-protocol~\cite{fcs.sbseg20}.
+We integrated the proposed consensus algorithm into Freechains, a peer-to-peer
+publish-subscribe content dissemination protocol~\cite{fcs.sbseg20}.
 
 Our main contribution is to make public forums practical with complete
 decentralization.
@@ -163,8 +161,10 @@ that uses DAGs to structure its messages.
 
 In Section~\ref{sec.freechains}, we introduce the basic functionalities of \FC
 to create, rate, and disseminate posts.
-In Section~\ref{sec.consensus}, we describe the general design of the consensus
-algorithm and how we applied it to \FC.
+In Section~\ref{sec.consensus}, we describe the general reputation and
+consensus mechanism, and how it integrates with public forums in \FC.
+In Section~\ref{sec.crdts}, we discuss the correspondences with CRDTs and
+present a peer-to-peer Git application with automatic merge.
 In Section~\ref{sec.related}, xxx.
 In Section~\ref{sec.conclusion}, yyy.
 
@@ -344,6 +344,11 @@ an identity chain attached to his public key.
 Every post in this chain needs to be signed with the associated private key to
 be accepted in the network.
 
+\FC is less than $1500$ LoC in Kotlin and is publicly
+available~\footnote{\url{http://www.freechains.org}}.
+The binary for the JVM is less than $6Mb$ in size and works in Android and most
+desktop systems.
+
 \section{Reputation and Consensus Mechanism}
 \label{sec.consensus}
 
@@ -360,7 +365,7 @@ forums practical.
 
 Section~\ref{sec.consensus.design} describes the overall reputation and
 consensus mechanism, which can be applied to any public forum system that uses
-DAGs to structure its messages~\cite{33,34}.
+DAGs to structure its messages~\cite{33,34,p2p.merkle-crdts}.
 Section~\ref{sec.consensus.chains} describes the concrete rules we implement
 for public forums in \FC.
 
@@ -461,6 +466,9 @@ As an example, suppose the last post by $a$ (in gray) is a dislike to user $c$,
 which decreases its reputation.
 Then, it's possible that the last post by $c$ (in red) is rejected together
 with all posts by $y$ and $x$ in sequence.
+Note that in a Merkle DAG, it is not possible to remove only the block with the
+failing operation.
+We need to remove the whole remaining branch as if it never existed.
 %
 Unlike Bitcoin, forks are not only allowed but encouraged due to the
 local-first principle.
@@ -510,19 +518,32 @@ Nonetheless, the breach that permits an forged branch to take over a long
 active chain is compromising.
 For this reason, the consensus algorithm includes an extra constraint when
 merging:
-If a branch creates new \reps that reach 50\% of its prefix, then it is
-guaranteed that this branch will take priority in merges.
+If a branch creates new \reps that reach $50\%$ of its prefix, then the
+algorithm guarantees that this branch takes priority in merges.
 In the example, suppose that the common prefix accumulates \nreps{50}
 considering users $a$, $b$, and $c$.
 If \emph{branch-1} creates at least $25$ new \reps, then the merge with
 \emph{branch-2} will fail and the chains will never synchronize again.
 This situation is analogous to a hard fork in Bitcoin.
 %
-Figure~\ref{fig.merge} summarizes the merging algorithm.
+Figure~\ref{fig.merge} summarizes the merging algorithm:
+    rule (a) favors the branch with more reputation;
+    rule (b) forces the branch with $50\%+$ \reps of its prefix to go first;
+    rule (c) enforces that previous rules do not conflict.
 
-%It is also possible that users disagree with the consensus protocol and want to
-%fork the forum permanently.
-%We discuss these countermeasures in Section~\ref{sec.TODO}.
+A fundamental drawback of Merkle DAGs is that all replicas in the system need
+to store the complete graph in order to synchronize and verify new blocks.
+Tree pruning techniques allow to remove parts of the graph to save
+space~\cite{p2p.prune}.
+The rule (b) in the consensus algorithm allows to prune the chain DAG, at least
+for lightweight clients for resource-constrained devices.
+A branch that reaches the threshold of $50\%+$ \reps is freezed in the ordered
+list and becomes safe to remove along with all of its past back to the genesis
+block.
+However, this host can no longer verify forks starting past the removed blocks
+and will fail to synchronize.
+In this case, the host needs to delegate trust to other nodes for the first
+verification of these forks.
 
 \subsection{Public Forum Chains}
 \label{sec.consensus.chains}
@@ -739,6 +760,88 @@ Later, if the post receives new likes and changes its state, it means that the
 payload is still known somewhere and peers can request it when synchronizing
 again.
 
+\section{ Correspondence with CRDTs }
+
+Conflict-free replicated
+conflict-free replicated data type (CRDT) is a data structure which can be replicated across multiple computers in a network, where the replicas can be updated independently and concurrently without coordination between the replicas, and where it is always mathematically possible to resolve inconsistencies that might come up.
+
+2020
+Merkle-CRDTs Merkle-DAGs meet CRDTs
+Hector Sanjuan, Samuli P oyhtari, Pedro Teixeira, and Ioannis Psaras
+0 cites
+We study Merkle-DAGs as a transport and persis-
+tence layer for Conflict-Free Replicated Data Types (CRDTs),
+Strong eventual consistency (SEC)
+addresses these issues by establishing an additional safety
+guarantee: if two replicas have received the same updates, their
+state will be the same.
+Additionally, CRDTs also feature monotonicity.
+The concept of monotonicity applied to data types is the notion
+that every update is an inflation, making the state grow, not in
+size, but in respect to a previous state. This implies that there
+will always be an order between states. Monotonicity implies
+that rollbacks on the state are not necessary regardless of the
+order in which updates happen.
+This implies that the
+⊔ operation must be idempotent (X ⊔ X = X), commutative
+(X ⊔Y = Y ⊔X) and associative ((X ⊔Y )⊔Z = X ⊔(Y ⊔Z)).
+There are two prominent types of CRDTs: state-based and
+operation-based CRDTs
+    - FC is state-based and nodes are operations, better of both worlds
+        - exactly once op (not 0 not 2)
+        - only holds ops (not full states)
+The integration of distributed dataset synchronisation fea-
+tures natively at the network layer of the network is clearly
+an advanced endeavour, which comes with its own challenges.
+
+sync algorithm???
+    - two dags if one contains the other, ok
+    - otherwise sync diffs
+    - converge, monotonic
+    - Merkle-Clock -> Growing Set
+Unsurprisingly, the Merkle-Clock representation corre-
+sponds in fact to a Grow-Only-Set (G-Set) in the state-based
+CRDT form [33]
+
+Conflict-free Replicated Data Types
+Marc Shapiro, Nuno Preguiça, Carlos Baquero, Marek Zawirski
+
+- what is?
+- importance for LFS
+- converge to same data
+    - conflicts are solved
+    - or forked w/o breaking
+- trivially CRDT as it holds everything
+- except for merges
+- but reputation system can help here
+    - more reputation applied first
+        - conflicts ignored but returned
+    - dislikes can clean conflict or even invert if problem is in richest branch
+
+- three levels
+    - transport
+        - no semantics
+    - consensus
+        - reputation semantics, much richer than merkle, application can take adv as Git example
+        - permanent partition
+        - but both working and even communicating (inefficient though)
+    - application
+        - no guarantees
+        - also reordering
+
+- LIMITATION
+    - space
+    - prune on >50\%, guaranteed to persist
+
+\subsection{P2P Git SCM}
+
+- source files
+- wikipedia pages
+
+\subsection{A Wiki}
+
+- follow links?
+
 % MERGING CONFLICTS
 
 % APPS / USE CASES
@@ -783,6 +886,10 @@ Bitcoin as a peer-to-peer cash system.
 
 \section{Related Work}
 \label{sec.related}
+
+radicle
+gun
+orbitdb
 
 https://ieeexplore.ieee.org/document/5766541
 https://arxiv.org/abs/2001.02962
