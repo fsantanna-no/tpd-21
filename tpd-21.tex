@@ -51,19 +51,20 @@ Centralized platforms employ filtering algorithms and anti-abuse policies, but
 impose full trust from users.
 We propose a publish-subscribe peer-to-peer protocol to model public content
 dissemination without centralized control.
-Abuse is mitigated with a reputation system that moderates content and, at the
-same time, delivers network consensus.
+The protocol mitigates abuse a reputation system that moderates content and, at
+the same time, delivers network consensus.
 We trace a parallel with Bitcoin:
     posts create reputation (vs proof-of-work),
     likes and dislikes transfer reputation (vs transactions),
     and aggregate reputation determines consensus (vs longest chain).
 The reputation system depends solely on human work to create and rate content,
 preventing abuse while imposing consensus on a peer-to-peer setting.
-TODO: permissionless VCS.
+We prototype a simple permissionless version control system that relies on
+reputation consensus to resolve conflicts automatically.
 \end{abstract}
 
 \begin{IEEEkeywords}
-bitcoin, crdts, distributed consensus, peer-to-peer, publish-subscribe, reputation system
+bitcoin, crdts, distributed consensus, peer-to-peer, publish-subscribe, reputation system, version control system
 \end{IEEEkeywords}}
 
 \maketitle
@@ -144,6 +145,8 @@ In this case, the branch that causes the conflict, which is always the one with
 less work, is removed from the DAG and the linked list is recalculated.
 We integrated the proposed consensus algorithm into Freechains, a peer-to-peer
 publish-subscribe content dissemination protocol~\cite{fcs.sbseg20}.
+We also present the prototype of a permissionless version control system that
+relies on consensus to apply automatic merges.
 
 Our main contribution is to make public forums practical with complete
 decentralization.
@@ -152,19 +155,16 @@ create and moderate content, which distinguishes itself from most systems which
 rely on external resources to reach consensus.
 The general idea of the algorithm can be applied to any public forum system
 that uses DAGs to structure its messages.
-TODO: permissionless VCS.
-
-- TODO: limitations
-    - Ever-growing DAG-Size, disk, slow data restore, sync not parallelizable
-    - metadata, sign, etc
-A fundamental drawback of Merkle DAGs is that all replicas in the system need
-to store the complete graph in order to synchronize and verify new blocks.
-Tree pruning techniques allow to remove parts of the graph to save
-space~\cite{p2p.prune}.
-- LIMITATION
-    - space
-    - prune on >50\%, guaranteed to persist
-We do not claim...
+%
+As a main limitation, Merkle DAGs are ever growing data structures that also
+carry considerable metadata overhead.
+Pruning DAGs require particular solutions that do not solve the fundamental
+problem.
+%
+Public forums are still social platforms and we do not claim that a reputation
+system enforces ``good'' human behavior.
+Instead, it provides a transparent and quantitative mechanism that helps users
+understand the evolution of the community and act accordingly.
 
 \begin{figure*}
 \centering
@@ -178,8 +178,7 @@ to create, rate, and disseminate posts.
 In Section~\ref{sec.consensus}, we describe the general reputation and
 consensus mechanism, and how it integrates with public forums in \FC.
 In Section~\ref{sec.crdts}, we discuss the correspondences with CRDTs and
-present a peer-to-peer Git application with automatic merge.
-TODO: permissionless VCS.
+present the version control system prototype.
 In Section~\ref{sec.related}, xxx.
 In Section~\ref{sec.conclusion}, yyy.
 
