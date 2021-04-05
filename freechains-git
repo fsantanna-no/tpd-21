@@ -1,0 +1,35 @@
+#!/bin/sh
+
+PORT=${PORT:-'8330'}
+if [ -z "$PVT" ]; then
+    exit 1
+fi
+
+CHAIN="#$2"
+echo $CHAIN
+GEN=`freechains --port=$PORT chain $CHAIN genesis`
+
+case $1 in
+	commit)
+        mv $2 $2.local
+        $0 checkout $2
+        diff -ruN $2 $2.local > diff.patch
+        mv $2.local $2
+        freechains --port=$PORT chain $CHAIN post file 'diff.patch' --sign=$PVT
+        rm diff.patch
+		break
+		;;
+	checkout)
+        hs=`freechains --port=$PORT chain $CHAIN traverse $GEN`
+        rm -f $2
+        touch $2
+        for h in $hs
+        do
+            freechains --port=$PORT chain $CHAIN get payload $h file 'diff.patch'
+            patch -s -p0 < diff.patch
+            # TODO: testar $?
+        done
+        diff -ruN $2 $2.local > diff.patch
+		break
+		;;
+esac

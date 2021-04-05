@@ -59,10 +59,11 @@ We trace a parallel with Bitcoin:
     and aggregate reputation determines consensus (vs longest chain).
 The reputation system depends solely on human work to create and rate content,
 preventing abuse while imposing consensus on a peer-to-peer setting.
+TODO: permissionless VCS.
 \end{abstract}
 
 \begin{IEEEkeywords}
-distributed consensus, peer-to-peer, publish-subscribe, reputation system
+bitcoin, crdts, distributed consensus, peer-to-peer, publish-subscribe, reputation system
 \end{IEEEkeywords}}
 
 \maketitle
@@ -151,6 +152,19 @@ create and moderate content, which distinguishes itself from most systems which
 rely on external resources to reach consensus.
 The general idea of the algorithm can be applied to any public forum system
 that uses DAGs to structure its messages.
+TODO: permissionless VCS.
+
+- TODO: limitations
+    - Ever-growing DAG-Size, disk, slow data restore, sync not parallelizable
+    - metadata, sign, etc
+A fundamental drawback of Merkle DAGs is that all replicas in the system need
+to store the complete graph in order to synchronize and verify new blocks.
+Tree pruning techniques allow to remove parts of the graph to save
+space~\cite{p2p.prune}.
+- LIMITATION
+    - space
+    - prune on >50\%, guaranteed to persist
+We do not claim...
 
 \begin{figure*}
 \centering
@@ -165,6 +179,7 @@ In Section~\ref{sec.consensus}, we describe the general reputation and
 consensus mechanism, and how it integrates with public forums in \FC.
 In Section~\ref{sec.crdts}, we discuss the correspondences with CRDTs and
 present a peer-to-peer Git application with automatic merge.
+TODO: permissionless VCS.
 In Section~\ref{sec.related}, xxx.
 In Section~\ref{sec.conclusion}, yyy.
 
@@ -760,59 +775,46 @@ Later, if the post receives new likes and changes its state, it means that the
 payload is still known somewhere and peers can request it when synchronizing
 again.
 
-\section{ Correspondence with CRDTs }
+\section{Correspondence with CRDTs}
 
-Conflict-free replicated
-conflict-free replicated data type (CRDT) is a data structure which can be replicated across multiple computers in a network, where the replicas can be updated independently and concurrently without coordination between the replicas, and where it is always mathematically possible to resolve inconsistencies that might come up.
+Conflict-free replicated data types (CRDTs) are data structures that can be
+updated concurrently with the guarantee that they converge to the same state on
+synchronization, despite arbitrary failures~\cite{p2p.crdts}.
+%
+CRDTs serve as a robust foundation to model data in networked local-first
+applications~\cite{p2p.local}.
 
-2020
-Merkle-CRDTs Merkle-DAGs meet CRDTs
-Hector Sanjuan, Samuli P oyhtari, Pedro Teixeira, and Ioannis Psaras
-0 cites
-We study Merkle-DAGs as a transport and persis-
-tence layer for Conflict-Free Replicated Data Types (CRDTs),
-Strong eventual consistency (SEC)
-addresses these issues by establishing an additional safety
-guarantee: if two replicas have received the same updates, their
-state will be the same.
-Additionally, CRDTs also feature monotonicity.
-The concept of monotonicity applied to data types is the notion
-that every update is an inflation, making the state grow, not in
-size, but in respect to a previous state. This implies that there
-will always be an order between states. Monotonicity implies
-that rollbacks on the state are not necessary regardless of the
-order in which updates happen.
-This implies that the
-⊔ operation must be idempotent (X ⊔ X = X), commutative
-(X ⊔Y = Y ⊔X) and associative ((X ⊔Y )⊔Z = X ⊔(Y ⊔Z)).
-There are two prominent types of CRDTs: state-based and
-operation-based CRDTs
-    - FC is state-based and nodes are operations, better of both worlds
-        - exactly once op (not 0 not 2)
-        - only holds ops (not full states)
-The integration of distributed dataset synchronisation fea-
-tures natively at the network layer of the network is clearly
-an advanced endeavour, which comes with its own challenges.
+Considering \FC operating as a transport layer for networked applications, the
+Merkle DAG chains are trivially CRDTs because the DAG itself is the
+CRDT~\cite{p2p.merkle-crdts}.
+More specifically, they are state-based CRDTs (CvRDTs) because, on
+synchronization, the missing parts of the self-verifiable DAGs are exchanged to
+converge to the same state.
+%
+At the application layer, however, DAGs are not CRDTs because branches are
+delivered to peers in different orders, and thus can lead to different states
+when processed.
+An interesting approach~\cite{p2p.merkle-crdts} is to require blocks in the
+DAGs to represent commutative operations.
+Commutative operations, combined with Merkle's exactly-once delivery guarantee,
+lead to operation-based CRDTs (CmRDTs) at the application layer.
+CmRDTs have the advantage that it only needs to store the operations to
+reconstruct any version of the data, instead of storing each complete version
+of the data as required in CvRDTs.
+%
+Our proposed consensus algorithm goes one step further and transforms a DAG
+into a totally-ordered set, which leads to a CRDT that does not require
+commutative operations.
 
-sync algorithm???
-    - two dags if one contains the other, ok
-    - otherwise sync diffs
-    - converge, monotonic
-    - Merkle-Clock -> Growing Set
-Unsurprisingly, the Merkle-Clock representation corre-
-sponds in fact to a Grow-Only-Set (G-Set) in the state-based
-CRDT form [33]
+Next, we illustrate the three-layered CRDT framework through an example of a
+simple permissionless peer-to-peer Version Control System implemented on top
+of public chains.
 
-Conflict-free Replicated Data Types
-Marc Shapiro, Nuno Preguiça, Carlos Baquero, Marek Zawirski
-
-- what is?
-- importance for LFS
 - converge to same data
     - conflicts are solved
     - or forked w/o breaking
 - trivially CRDT as it holds everything
-- except for merges
+    - except for merges
 - but reputation system can help here
     - more reputation applied first
         - conflicts ignored but returned
@@ -829,11 +831,65 @@ Marc Shapiro, Nuno Preguiça, Carlos Baquero, Marek Zawirski
         - no guarantees
         - also reordering
 
-- LIMITATION
-    - space
-    - prune on >50\%, guaranteed to persist
+\subsection{A P2P VCS with Automatic Merge}
 
-\subsection{P2P Git SCM}
+We built a simple peer-to-peer Version Control System with the following
+operations:
+%
+\begin{itemize}
+    \item initialize a repository
+    \item commit local changes to repository
+    \item compare local changes vs repository
+    \item checkout repository changes to local
+    \item synchronize with remote peer
+    \item rate commits with likes \& dislikes
+\end{itemize}
+%
+The system executes under public chain, which means that repositories are
+permissionless and adhere to the reputation and consensus mechanism of \FC.
+The main innovations in this system are that (i) commits can be rated to affect
+and (ii) checkouts already merge commits based on consensus.
+
+- discutir idempot, comut, assoc
+    - merkle vs ops
+
+The synchronization operation
+--
+    - merge changes automatically
+    - rate commits (permissionless: no trust)
+
+
+We assume local repositories do not create branches since remote peers can
+simulate this feature.
+
+{\footnotesize
+\begin{verbatim}
+ > freechains-git init 'A2885F..' 'Peer-to-Peer.wiki'
+ > vi Peer-to-Peer.wiki
+ # Peer-to-peer
+ Peer-to-peer (P2P) computing or networking is...
+ > freechains-git commit 'Peer-to-Peer.wiki'
+ > vi Peer-to-Peer.wiki
+ ...
+ Peers make a portion of their resources...
+ > freechains-git commit 'Peer-to-Peer.wiki'
+\end{verbatim}
+}
+
+{\footnotesize
+\begin{verbatim}
+ > freechains-git init 'A2885F..' 'Peer-to-Peer.wiki'
+ > freechains-git recv 'Peer-to-Peer.wiki' localhost:8401
+ > freechains-git checkout 'Peer-to-Peer.wiki'
+ > vi Peer-to-Peer.wiki
+ ...
+ Peer-to-Peer networks do not scale!
+ > freechains-git commit 'Peer-to-Peer.wiki'
+\end{verbatim}
+}
+
+The 
+\texttt{diff} operations merged with \texttt{patch}
 
 - source files
 - wikipedia pages
@@ -890,9 +946,13 @@ Bitcoin as a peer-to-peer cash system.
 radicle
 gun
 orbitdb
+hypercore
 
 https://ieeexplore.ieee.org/document/5766541
 https://arxiv.org/abs/2001.02962
+
+- automerge
+Thus, CRDTs have some similarity to version control systems like Git, except that they operate on richer data types than text files. CRDTs can sync their state via any communication channel (e.g. via a server, over a peer-to-peer connection, by Bluetooth between local devices, or even on a USB stick).
 
 Bitcoin employs CPU proof-of-work as a solution, but did not solve the
 centralization issue completely because the cost to perform work is not
