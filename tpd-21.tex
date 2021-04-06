@@ -937,7 +937,7 @@ editing.
     The branches in the DAG are ordered by reputation.
     The application ...
 }
-\label{fig.state}
+\label{fig.conflict}
 \end{figure}
 
 Next, we create a conflict situation in which two authors in different peers
@@ -988,7 +988,7 @@ saves the conflict file and indicates the block causing it.
 We believe this optimistic choice is the most advantageous, because it keeps
 the file in an usable state while showing that there is a conflict to solve.
 For instance, the authors can later decide to dislike one of the two commits to
-settle the file and remove the warning.
+settle the file (possibly inverting their reputation) and remove the warning.
 
 In summary, the proposed reputation and consensus mechanism empowers a simple
 P2P VCS with cooperative authoring and automatic conflict resolution.
@@ -999,43 +999,24 @@ manipulation of the internal structure of the DAG.
 
 In the VCS example, we apply the three-layered CRDT framework discussed in the
 beginning of this section as follows:
-The whole file commit history of small patches is transported as a DAG between
-the peers with the basic commands of \FC.
+In the first layer, the whole file commit history of small patches is
+transported as a DAG between the peers with the basic commands of \FC.
 Eventually, all peers reach to same state with the full commit history.
 However, in order to recreate the file, the peers need to interpret the DAG,
-which requires a commutative operation because of existing branches.
-The \emph{patch} tool is mostly commutative, except for
+which requires a commutative operation in the second layer because of branches.
+The \emph{patch} tool is mostly commutative, except when branches edit the same
+lines of a file.
+Hence, in these situations we resort to the third layer which determines a
+total order between the patches, which we apply sequentially until a conflict
+occurs.
+The final state of the file is guaranteed to be consistent, i.e., the result of
+a sequence of correct patch applications.
 
-no need to see the internal structure of the chain dag
-only consensus
-simple 
-
-
-
-Keeping the history, withouth interpreting it, does not raise any conflicts
+\begin{comment}
 
 where else can we use this?
     - reddit
 branch contamination
-
-
- Since no operations 
-
-of commits
-as a last resort
-
-- discutir idempot, comut, assoc
-    - merkle vs ops
-
-- converge to same data
-    - conflicts are solved
-    - or forked w/o breaking
-- trivially CRDT as it holds everything
-    - except for merges
-- but reputation system can help here
-    - more reputation applied first
-        - conflicts ignored but returned
-    - dislikes can clean conflict or even invert if problem is in richest branch
 
 - three levels
     - transport
@@ -1054,9 +1035,6 @@ as a last resort
 - Permission less not in the sense that anyone can participate, but more in the sense that content not identity must be verified
 - Fulfill the expectations of part of the community                             
 - Part from the principle that the pioneers want it to decentralize, otherwise would create a public identity chain fig2
-
-
-\begin{comment}
 
 \subsection{TODO}
 
@@ -1237,21 +1215,18 @@ Regardless of the Internet growth over the years,
 \section{Conclusion}
 The conclusion goes here.
 
-\end{comment}
-
 \bibliographystyle{IEEEtran}
 \bibliography{tpd-21}
 
-\begin{IEEEbiography}{Michael Shell}
-Biography text here.
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{chico}}]{Francisco Sant'Anna}
+received his PhD degree in Computer Science from PUC-Rio, Brazil in
+2013.
+In 2016, he joined the Faculty of Computer Science at the Rio de Janeiro State
+University, Brazil.
+His research interests include Programming Languages and Concurrent \&
+Distributed Systems.
 \end{IEEEbiography}
 
-\begin{IEEEbiographynophoto}{John Doe}
-Biography text here.
-\end{IEEEbiographynophoto}
-
-\begin{IEEEbiographynophoto}{Jane Doe}
-Biography text here.
-\end{IEEEbiographynophoto}
+\end{comment}
 
 \end{document}
