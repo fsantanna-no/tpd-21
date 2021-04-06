@@ -29,7 +29,6 @@ case $1 in
             patch -s -p0 < diff.patch
             # TODO: testar $?
         done
-        diff -ruN $2 $2.local > diff.patch
 		break
 		;;
 esac

@@ -833,65 +833,120 @@ of public chains.
 \subsection{A P2P VCS with Automatic Merge}
 
 We built a simple peer-to-peer Version Control System with the following
-operations:
+operations and respective \FC operations in parenthesis:
 %
 \begin{itemize}
-    \item initialize a repository
-    \item commit local changes to repository
-    \item compare local changes vs repository
-    \item checkout repository changes to local
-    \item synchronize with remote peer
-    \item rate commits with likes \& dislikes
+    \setlength{\itemindent}{-8pt}
+    \item initialize a repository (\texttt{join})
+    \item commit local changes to repository (\texttt{post})
+    \item checkout repository changes to local (\texttt{traverse/get})
+    \item synchronize with remote peer (\texttt{send/recv})
+    \item rate commits with likes \& dislikes (\texttt{like/dislike})
 \end{itemize}
 %
-The system executes under public chain, which means that repositories are
+The system executes under public chains, which means that repositories are
 permissionless and adhere to the reputation and consensus mechanism of \FC.
-The main innovations in this system are that (i) commits can be rated to affect
-and (ii) checkouts already merge commits based on consensus.
+The main innovations in this system are that
+    (i)  users can rate commits which can thus be rejected,  and
+    (ii) checkouts merge commits automatically based on consensus.
 
-- discutir idempot, comut, assoc
-    - merkle vs ops
+Suppose we want to model a Wiki with public forums in \FC.
+Each article is a chain behaving as its own VCS, holding the full edition
+history.
+Articles can link to other articles referring to other chains.
 
-The synchronization operation
---
-    - merge changes automatically
-    - rate commits (permissionless: no trust)
-
-
-We assume local repositories do not create branches since remote peers can
-simulate this feature.
-
-{\footnotesize
-\begin{verbatim}
- > freechains-git init 'A2885F..' 'Peer-to-Peer.wiki'
- > vi Peer-to-Peer.wiki
- # Peer-to-peer
- Peer-to-peer (P2P) computing or networking is...
- > freechains-git commit 'Peer-to-Peer.wiki'
- > vi Peer-to-Peer.wiki
- ...
- Peers make a portion of their resources...
- > freechains-git commit 'Peer-to-Peer.wiki'
-\end{verbatim}
-}
+We use the \FC operations directly, except for \emph{commit} and
+\emph{checkout}, which require multiple operations.
+As an example, we join a public chain with the name of the file we want to
+track, then we create and commit it:
 
 {\footnotesize
 \begin{verbatim}
- > freechains-git init 'A2885F..' 'Peer-to-Peer.wiki'
- > freechains-git recv 'Peer-to-Peer.wiki' localhost:8401
- > freechains-git checkout 'Peer-to-Peer.wiki'
- > vi Peer-to-Peer.wiki
- ...
- Peer-to-Peer networks do not scale!
- > freechains-git commit 'Peer-to-Peer.wiki'
+ > freechains #p2p.md join A2885F..
+ > echo "Peer-to-peer networking is..." > p2p.md
+ > freechains-vcs #p2p.md commit
+ 1_4F3EE1..
+ > echo "The [USENET](#usenet.md), ..." >> p2p.md
+ > freechains-vcs #p2p.md commit
+ 2_B58D22..
 \end{verbatim}
 }
+
+The \emph{commit} operation expands as follows:
+
+{\footnotesize
+\begin{verbatim}
+ > freechains-vcs #p2p.md checkout p2p.remote
+ > diff p2p.remote p2p.md > p2p.patch
+ > freechains #p2p.md post p2p.patch --sign=699299..
+\end{verbatim}
+}
+
+A commit first checks out the remote version held in the chain to an output
+file \texttt{p2p.remote}.
+Then, it diffs the remote against the local version to generate the file
+\texttt{p2p.patch} with our changes.
+Finally, the commit posts the signed patch file into the chain.
+
+Much time later, another reputed author synchronizes with us, checks out the
+file, then edits and commits it back:
+
+{\footnotesize
+\begin{verbatim}
+ > freechains #p2p.md recv '<our-ip>'
+ > freechains-vcs #p2p.md checkout p2p.md
+ > echo "Peer-to-Peer does not scale!" >> p2p.md
+ > freechains-vcs #p2p.md commit
+ 23_AE3A1B..
+\end{verbatim}
+}
+
+The checkout operation needs to recreate the file by applying all patches since
+the genesis block:
+
+{\footnotesize
+\begin{verbatim}
+ > rm p2p.md && touch p2p.md
+ > for blk in `freechains #p2p.md traverse` do
+     freechains #p2p.md payload $blk > p2p.patch
+     patch p2p.md p2p.patch
+   done
+\end{verbatim}
+}
+
+The \texttt{traverse} operation returns all hashes since the genesis block
+respecting the consensus order.
+The loop acquires each of the payloads representing the patches and apply them
+in order to recreate the current version of the file in the chain.
+
+Since the last edition is clearly wrong, other users in the network will
+dislike its commit until it becomes \emph{HIDDEN} in the chain
+(Figure~\ref{fig.state}):
+
+{\footnotesize
+\begin{verbatim}
+ > freechains chain #p2p.md dislike 23_AE3A1B --sign=49A0DD..
+ > freechains chain #p2p.md dislike 23_AE3A1B --sign=F481A4..
+ > freechains chain #p2p.md dislike 23_AE3A1B --sign=CDA911..
+ > freechains-vcs #p2p.md checkout p2p.md
+ > cat p2p.md
+ Peer-to-peer networking is...
+ The [USENET](#usenet.md), ...
+ ...
+\end{verbatim}
+}
+
+This way, the checkout operation above will apply an empty patch and the
+offending line will disappear from the file.
 
 The 
 \texttt{diff} operations merged with \texttt{patch}
 
 - source files
 - wikipedia pages
+
+- discutir idempot, comut, assoc
+    - merkle vs ops
 
 \subsection{A Wiki}
 
