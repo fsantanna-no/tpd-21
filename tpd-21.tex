@@ -69,6 +69,8 @@ bitcoin, crdts, distributed consensus, peer-to-peer, publish-subscribe, reputati
 
 \maketitle
 
+% TOTAL: 12 pages
+
 \section{Introduction}
 \label{sec.introduction}
 
@@ -591,13 +593,14 @@ the pioneer in a public chain (prefix $\#$):
 }
 
 The \emph{join} command in rule~\texttt{1.a} bootstraps a public chain,
-assigning \nreps{30} to the pioneer referred in the public key.
-The pioneer shapes the initial culture of the chain with its first posts and
+assigning \nreps{30} equally distributed to the pioneers referred in the public
+keys.
+The pioneers shape the initial culture of the chain with its first posts and
 likes, while he gradually transfers \reps to other authors, which may also
 transfer to other authors, expanding the community.
 %
 In this regard, the \emph{post} command in sequence, which is signed by the
-pioneer and indicates the purpose of the chain to future users.
+single pioneer and indicates the purpose of the chain to future users.
 
 Our most basic concern in public forums is to resist Sybils spamming the
 chains.
@@ -809,27 +812,6 @@ Next, we illustrate the three-layered CRDT framework through an example of a
 simple permissionless peer-to-peer Version Control System implemented on top
 of public chains.
 
-- converge to same data
-    - conflicts are solved
-    - or forked w/o breaking
-- trivially CRDT as it holds everything
-    - except for merges
-- but reputation system can help here
-    - more reputation applied first
-        - conflicts ignored but returned
-    - dislikes can clean conflict or even invert if problem is in richest branch
-
-- three levels
-    - transport
-        - no semantics
-    - consensus
-        - reputation semantics, much richer than merkle, application can take adv as Git example
-        - permanent partition
-        - but both working and even communicating (inefficient though)
-    - application
-        - no guarantees
-        - also reordering
-
 \subsection{A P2P VCS with Automatic Merge}
 
 We built a simple peer-to-peer Version Control System with the following
@@ -839,7 +821,7 @@ operations and respective \FC operations in parenthesis:
     \setlength{\itemindent}{-8pt}
     \item initialize a repository (\texttt{join})
     \item commit local changes to repository (\texttt{post})
-    \item checkout repository changes to local (\texttt{traverse/get})
+    \item checkout repository changes to local (\texttt{traverse/payload})
     \item synchronize with remote peer (\texttt{send/recv})
     \item rate commits with likes \& dislikes (\texttt{like/dislike})
 \end{itemize}
@@ -858,16 +840,17 @@ Articles can link to other articles referring to other chains.
 We use the \FC operations directly, except for \emph{commit} and
 \emph{checkout}, which require multiple operations.
 As an example, we join a public chain with the name of the file we want to
-track, then we create and commit it:
+track and multiple pioneers.
+We then edit the file and commit it:
 
 {\footnotesize
 \begin{verbatim}
- > freechains #p2p.md join A2885F..
+ > freechains #p2p.md join A2885F.. 2B9C32..
  > echo "Peer-to-peer networking is..." > p2p.md
- > freechains-vcs #p2p.md commit
+ > freechains-vcs #p2p.md commit --sign=699299..
  1_4F3EE1..
  > echo "The [USENET](#usenet.md), ..." >> p2p.md
- > freechains-vcs #p2p.md commit
+ > freechains-vcs #p2p.md commit --sign=699299..
  2_B58D22..
 \end{verbatim}
 }
@@ -896,7 +879,7 @@ file, then edits and commits it back:
  > freechains #p2p.md recv '<our-ip>'
  > freechains-vcs #p2p.md checkout p2p.md
  > echo "Peer-to-Peer does not scale!" >> p2p.md
- > freechains-vcs #p2p.md commit
+ > freechains-vcs #p2p.md commit --sign=320B59..
  23_AE3A1B..
 \end{verbatim}
 }
@@ -910,24 +893,30 @@ the genesis block:
  > for blk in `freechains #p2p.md traverse` do
      freechains #p2p.md payload $blk > p2p.patch
      patch p2p.md p2p.patch
+     if [ $? != 0 ]; then
+       echo $blk  # hash of failing patch
+       break
+     fi
    done
 \end{verbatim}
 }
 
 The \texttt{traverse} operation returns all hashes since the genesis block
 respecting the consensus order.
-The loop acquires each of the payloads representing the patches and apply them
-in order to recreate the current version of the file in the chain.
+The loop reads each of the payloads representing the patches and apply them in
+order to recreate the current version of the file in the chain.
+If the patch application fails, the command exhibits the hash of the block in
+the screen.
 
 Since the last edition is clearly wrong, other users in the network will
-dislike its commit until it becomes \emph{HIDDEN} in the chain
-(Figure~\ref{fig.state}):
+dislike its commit until it becomes \emph{HIDDEN} in the chain (as described in
+Figure~\ref{fig.state}):
 
 {\footnotesize
 \begin{verbatim}
- > freechains chain #p2p.md dislike 23_AE3A1B --sign=49A0DD..
- > freechains chain #p2p.md dislike 23_AE3A1B --sign=F481A4..
- > freechains chain #p2p.md dislike 23_AE3A1B --sign=CDA911..
+ > freechains #p2p.md dislike 23_AE3A1B.. --sign=USR1
+ > freechains #p2p.md dislike 23_AE3A1B.. --sign=USR2
+ > freechains #p2p.md dislike 23_AE3A1B.. --sign=USR3
  > freechains-vcs #p2p.md checkout p2p.md
  > cat p2p.md
  Peer-to-peer networking is...
@@ -936,25 +925,136 @@ dislike its commit until it becomes \emph{HIDDEN} in the chain
 \end{verbatim}
 }
 
-This way, the checkout operation above will apply an empty patch and the
-offending line will disappear from the file.
+This way, the checkout operation above applies an empty patch and the offending
+line disappears from the file.
+This illustrates how the reputation system enables collaborative permissionless
+editing.
 
-The 
-\texttt{diff} operations merged with \texttt{patch}
+\begin{figure}
+\centering
+\includegraphics[width=0.35\textwidth]{conflict.png}
+\caption{
+    The branches in the DAG are ordered by reputation.
+    The application ...
+}
+\label{fig.state}
+\end{figure}
 
-- source files
-- wikipedia pages
+Next, we create a conflict situation in which two authors in different peers
+edit the same line concurrently:
+
+{\footnotesize
+\begin{verbatim}
+ # PEER A (more reputation):
+ > sed -i 's/peer/Peer/g' p2p.md  # fix typo
+ > freechains-vcs #p2p.md commit --sign=699299..
+ 27_A..
+
+ # PEER B (less reputation):
+ > sed -i 's/networking/computing/g' p2p.md
+ > freechains-vcs #p2p.md commit --sign=320B59..
+ 27_B..
+
+ # SYNCHRONIZE (exchange conflicting forks):
+ > freechains #p2p.md recv '<our-ip>'
+ 1 / 1
+ > freechains #p2p.md send '<our-ip>'
+ 1 / 1
+ > freechains-vcs #p2p.md checkout p2p.md
+ 1 out of 1 hunk FAILED -- saving rejects to file p2p.md.rej
+ 27_B..
+ > cat p2p.md
+ Peer-to-Peer networking is...
+ The [USENET](#usenet.md), ...
+ ...
+\end{verbatim}
+}
+
+After they commit the conflicting changes, the peers synchronize in both
+directions and reach the state of Figure~\ref{fig.conflict}.
+Then, we checkout the file which applies the patches respecting the consensus
+order.
+As a result, although the conflict exists, we see that the first branch is
+still applied, leaving the file in the longest possible consistent state.
+%
+Because of the \texttt{break} in the checkout operation above, note that once a
+conflict is found, no further patches apply in any of the remaining branches.
+%
+We chose to adopt a \emph{first write wins} resolution to preserve further work
+in the branches with more reputation.
+However, the failing patch branch is not totally ignored, since the checkout
+saves the conflict file and indicates the block causing it.
+%
+We believe this optimistic choice is the most advantageous, because it keeps
+the file in an usable state while showing that there is a conflict to solve.
+For instance, the authors can later decide to dislike one of the two commits to
+settle the file and remove the warning.
+
+In summary, the proposed reputation and consensus mechanism empowers a simple
+P2P VCS with cooperative authoring and automatic conflict resolution.
+It only requires \emph{diff \& patch} and the basic API of \FC with no extra
+manipulation of the internal structure of the DAG.
+
+\subsection{Discussion}
+
+In the VCS example, we apply the three-layered CRDT framework discussed in the
+beginning of this section as follows:
+The whole file commit history of small patches is transported as a DAG between
+the peers with the basic commands of \FC.
+Eventually, all peers reach to same state with the full commit history.
+However, in order to recreate the file, the peers need to interpret the DAG,
+which requires a commutative operation because of existing branches.
+The \emph{patch} tool is mostly commutative, except for
+
+no need to see the internal structure of the chain dag
+only consensus
+simple 
+
+
+
+Keeping the history, withouth interpreting it, does not raise any conflicts
+
+where else can we use this?
+    - reddit
+branch contamination
+
+
+ Since no operations 
+
+of commits
+as a last resort
 
 - discutir idempot, comut, assoc
     - merkle vs ops
 
-\subsection{A Wiki}
+- converge to same data
+    - conflicts are solved
+    - or forked w/o breaking
+- trivially CRDT as it holds everything
+    - except for merges
+- but reputation system can help here
+    - more reputation applied first
+        - conflicts ignored but returned
+    - dislikes can clean conflict or even invert if problem is in richest branch
 
-- follow links?
+- three levels
+    - transport
+        - no semantics
+    - consensus
+        - reputation semantics, much richer than merkle, application can take adv as Git example
+        - permanent partition
+        - but both working and even communicating (inefficient though)
+    - application
+        - no guarantees
+        - also reordering
 
-% MERGING CONFLICTS
+- Users can fork or recreate the chain.
+  Unlike bitcoin, the value is not on the size, but the cohesion is users.
+- Safe for niche topics and minority groups                                     
+- Permission less not in the sense that anyone can participate, but more in the sense that content not identity must be verified
+- Fulfill the expectations of part of the community                             
+- Part from the principle that the pioneers want it to decentralize, otherwise would create a public identity chain fig2
 
-% APPS / USE CASES
 
 \begin{comment}
 
