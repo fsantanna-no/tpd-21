@@ -157,8 +157,9 @@ create and moderate content, which distinguishes itself from most systems which
 rely on external resources to reach consensus.
 The general idea of the algorithm can be applied to any public forum system
 that uses DAGs to structure its messages.
+TODO: three-layer CRDTs
 %
-As a main limitation, Merkle DAGs are ever growing data structures that also
+As a main limitation, Merkle~DAGs are ever growing data structures that also
 carry considerable metadata overhead.
 Pruning DAGs require particular solutions that do not solve the fundamental
 problem.
@@ -168,6 +169,8 @@ Public forums are still social platforms and we do not claim that a reputation
 system enforces ``good'' human behavior.
 Instead, it provides a transparent and quantitative mechanism that helps users
 understand the evolution of the community and act accordingly.
+
+TODO: permissionless expect for first like
 
 \begin{figure*}
 \centering
@@ -182,15 +185,17 @@ In Section~\ref{sec.consensus}, we describe the general reputation and
 consensus mechanism, and how it integrates with public forums in \FC.
 In Section~\ref{sec.crdts}, we discuss the correspondences with CRDTs and
 present the version control system prototype.
-In Section~\ref{sec.related}, xxx.
-In Section~\ref{sec.conclusion}, yyy.
+In Section~\ref{sec.related}, compare our protocol and consensus mechanism with
+other publish-subscribe middlewares, federated applications, and fully
+peer-to-peer systems.
+In Section~\ref{sec.conclusion}, we conclude this work.
 
 \section{Freechains}
 \label{sec.freechains}
 
 \FC is an unstructured peer-to-peer topic-based publish-subscribe
 system~\cite{fcs.sbseg20}.
-Each topic, or \emph{chain}, is organized as a \emph{Merkle DAG}, i.e., a
+Each topic, or \emph{chain}, is organized as a \emph{Merkle~DAG}, i.e., a
 directed acyclic graph immune to modifications.
 The chain DAG is disseminated peer by peer in the network with gossiping.
 This way, as an author posts to a chain, other users subscribed to the same
@@ -205,7 +210,7 @@ involve untrusted communication between users and require the proposed
 reputation and consensus mechanism.
 
 All \FC operations go through a \emph{daemon} (analogous to Bitcoin full nodes)
-which validates posts, links them in the Merkle DAGs, persists the chains in
+which validates posts, links them in the Merkle~DAGs, persists the chains in
 the disk, and communicates with other peers in the network to disseminate the
 graphs.
 The command that follows starts a daemon to serve further operations:
@@ -483,7 +488,7 @@ As an example, suppose the last post by $a$ (in gray) is a dislike to user $c$,
 which decreases its reputation.
 Then, it's possible that the last post by $c$ (in red) is rejected together
 with all posts by $y$ and $x$ in sequence.
-Note that in a Merkle DAG, it is not possible to remove only the block with the
+Note that in a Merkle~DAG, it is not possible to remove only the block with the
 failing operation.
 We need to remove the whole remaining branch as if it never existed.
 %
@@ -548,12 +553,12 @@ Figure~\ref{fig.merge} summarizes the merging algorithm:
     rule (b) forces the branch with $50\%+$ \reps of its prefix to go first;
     rule (c) enforces that previous rules do not conflict.
 
-A fundamental drawback of Merkle DAGs is that all replicas in the system need
+A fundamental drawback of Merkle~DAGs is that all replicas in the system need
 to store the complete graph in order to synchronize and verify new blocks.
 Tree pruning techniques allow to remove parts of the graph to save
 space~\cite{p2p.prune}.
 The rule (b) in the consensus algorithm allows to prune the chain DAG, at least
-for lightweight clients for resource-constrained devices.
+for lightweight clients in resource-constrained devices.
 A branch that reaches the threshold of $50\%+$ \reps is freezed in the ordered
 list and becomes safe to remove along with all of its past back to the genesis
 block.
@@ -561,6 +566,7 @@ However, this host can no longer verify forks starting past the removed blocks
 and will fail to synchronize.
 In this case, the host needs to delegate trust to other nodes for the first
 verification of these forks.
+TODO: revoke own posts // 3.b-no cost to revoke own post
 
 \subsection{Public Forum Chains}
 \label{sec.consensus.chains}
@@ -763,14 +769,14 @@ Rule~\texttt{4.c} limits the size of posts to at most \emph{128Kb} to prevent
 DDoS attacks using gigantic blocked posts.
 %
 Once accepted, a post becomes part of the chain and can never be removed
-again since Merkle DAGs are immutable by design.
+again since Merkle~DAGs are immutable by design.
 %Note that blocked posts that become accepted are always succeeded by a
 %\emph{like} (Figure~\ref{fig.forum}).
 %
 If the number of dislikes of a post exceeds the threshold (rule~\texttt{3}),
 its payload becomes \emph{HIDDEN} and is not retransmitted to other peers.
 % and should be removed from local storage.
-Since the Merkle DAG depends only on its hash, removing the actual payload is
+Since the Merkle~DAG depends only on its hash, removing the actual payload is
 harmless.
 Also, the DAG itself contains the dislikes that prove the hidden state to other
 peers.
@@ -779,6 +785,7 @@ payload is still known somewhere and peers can request it when synchronizing
 again.
 
 \section{Correspondence with CRDTs}
+\label{sec.crdts}
 
 Conflict-free replicated data types (CRDTs) are data structures that can be
 updated concurrently with the guarantee that they converge to the same state on
@@ -788,7 +795,7 @@ CRDTs serve as a robust foundation to model data in networked local-first
 applications~\cite{p2p.local}.
 
 Considering \FC operating as a transport layer for networked applications, the
-Merkle DAG chains are trivially CRDTs because the DAG itself is the
+Merkle~DAG chains are trivially CRDTs because the DAG itself is the
 CRDT~\cite{p2p.merkle-crdts}.
 More specifically, they are state-based CRDTs (CvRDTs) because, on
 synchronization, the missing parts of the self-verifiable DAGs are exchanged to
@@ -1023,8 +1030,8 @@ status updates, engagements, sensor readings, etc.
 
 where else can we use this?
     - reddit
-branch contamination
-
+- branch contamination
+    - conflict and further commits
 - three levels
     - transport
         - no semantics
@@ -1042,8 +1049,6 @@ branch contamination
 - Permission less not in the sense that anyone can participate, but more in the sense that content not identity must be verified
 - Fulfill the expectations of part of the community                             
 - Part from the principle that the pioneers want it to decentralize, otherwise would create a public identity chain fig2
-
-\subsection{TODO}
 
 - INSIGHT
  Uso descentralizado
@@ -1079,115 +1084,91 @@ Bitcoin as a peer-to-peer cash system.
     - incentives for continuous, good quality posts
 - consensus to ???
 
+Like \emph{bitcoins}, \reps are scarce, hard to generate, and easy to verify.
+Unlike \emph{bitcoins}, \reps .
+
 \end{comment}
 
 \section{Related Work}
 \label{sec.related}
 
-\subsection{Content Dissemination}
+% Content Dissemination
+% CRDTs
+% Consensus
 
-Many other systems have been proposed for distributed content dissemination.
-Here we consider publish-subscribe decentralized middlewares, federated
-applications, and fully peer-to-peer systems.
-~\cite{p2p.xmpp,p2p.activitypub,p2p.gossipsub},
+Many other systems have been proposed for distributed content
+dissemination~\cite{p2p.ecosystem}.
+Here we consider publish-subscribe middlewares, federated applications, and
+fully peer-to-peer systems.
 
+\subsection{Publish-Subscribe Middlewares}
 
-- TCP vs UDP (zero/duplicates/not CRDTs - not idempotent - no consensus)
-- persistent broadcast TCP with total order
-- order of magnitute less efficient
-    - throughput
-    - number of simultaneous connections
-    - load balancing
-- could be used below
-    - too low level
-    - random/control messages
-
-Publish-subscribe middlewares (aka \emph{message brokers} assist the
-development of decentralized applications by decoupling publishers and
-subscribers at the end points.
-Examples of \emph{pubsub} systems include \emph{XMPP}, \emph{ActivityPub}, and
-\emph{gossipsub}.%
-\footnote{
-    \url{http://xmpp.org/}\\
-    \url{https://www.w3.org/TR/activitypub/}\\
-    \url{https://docs.libp2p.io/concepts/publish-subscribe/}
-}
-
+Decentralized topic-based publish-subscribe middlewares, such as
+    \emph{XMPP}~\cite{pubsub.xmpp},
+    \emph{ActivityPub}~\cite{pubsub.activitypub}, and
+    \emph{gossipsub}~\cite{pubsub.gossipsub},
+assist the development of networked applications by decoupling publishers from
+subscribers.
+%
 A key aspect of \emph{pubsubs} is that, although the end points communicate
 without knowledge of each other, the brokers or servers in between them still
 have a special role in the network.
-As examples, they might do authentication and validation of posts, and
-ultimately serve the queues (aka topics or feeds) that connect multiple
-producers and consumers.
-However, queues are location based and hence are not abstract enough to be
-fully decentralized.
+For instance, they might do authentication and validation of posts, and
+ultimately serve the queues that connect producers to consumers.
+%
+Some pubsubs use gossip dissemination in unstructured peer-to-peer networks and
+do not rely on server
+roles~\cite{pubsub.tera,pubsub.rappel,pubsub.stan,pubsub.vitis,pubsub.gossipsub,pubsub.rappel}.
+They focus on techniques for scalability and performance, such as throughput,
+simultaneous connections, load balancing, and real-time relaying.
+These techniques are important but not sufficient in permissionless networks
+that have to deal with malicious nodes, particularly
+Sybils~\cite{pubsub.gossipsub2}.
 
-    - not persistent
+Being middlewares, pubsubs typically deal with low-level communication aspects
+between nodes but are agnostic about the applications built on top of it.
+In contrast, the pubsub of \FC integrates with the semantics of chains and
+verifies blocks during connections.
+For instance, the only way to flood the network is spending reputation, which
+takes hours to recharge (rule~\texttt{2} in Figure~\ref{fig.rules}).
+Blocked posts (Figure~\ref{fig.state}) have limited reachability and are not a
+concern either.
+Another advantage of this integration is that the Merkle~DAG structure
+simplifies the synchronization between nodes, provides persistence and prevents
+duplication of messages.
+Full persistence facilitates dealing with long churn periods, and
+de-duplication preserves CmRDTs even if operations are not idempotent.
 
-Increasing the number of servers, such as in federated pubsubs, does not change
-the underlying foundation, because each queue is still independent and has to
-be stated explicitly in client actions.
-This fact breaks the local-first property of peer-to-peer systems since not all
-possible kinds of communication can be done alone in a local instance.
-For instance, subscribing to the same identity in different servers does not
-mean the same thing (i.e., they refer to different feeds).
+\subsection{Federated Applications}
 
-Overall, the missing piece here are rules to merge independent queues, which is
-required, for example, to express
-%public [`N<->N`](chains.md#public-forum-chain) content dissemination.
-Trying to synchronize servers in some way would lead to the exact same issues
-that we are trying to address in Freechains: how to order and relate messages
-across servers, how to deal with excess and SPAM, how to deal with fake news
-and illegal content, etc.
-
-%## Federated Protocols and Applications
-
-In federated protocols, client identities are attached to a single server just
-like in centralized systems, but servers can communicate in a standardized way
-to allow communication across borders.
-%E-mail ([SMTP](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol)) is
-probably the most popular federated protocol, allowing users from one domain to
-exchange messages with users of other domains seamlessly.
-More recently,
-    %[Diaspora](https://en.wikipedia.org/wiki/Diaspora_(social_network)),
-    %[Matrix](https://en.wikipedia.org/wiki/Matrix_(protocol)), and
-    %[Mastodon](https://en.wikipedia.org/wiki/Mastodon_(software))
-filled the domains of social media, chat, and microblogging under federations.
-
-In federated systems, although all content can be managed locally (or recovered
-from servers), identities are not portable.
-It is possible that a server shuts down, or is banned by the rest of the
-federation (or government), or the user becomes unsatisfied with the local
-server policy.
+In federated applications, client identities are attached to a single server
+just like in centralized systems, but servers can communicate in a standardized
+way to allow communication across borders.
+SMTP is probably the most popular federated protocol, allowing users from one
+domain to exchange messages with users of other domains seamlessly.
+More recently, \emph{Diaspora}, \emph{Matrix}, and \emph{Mastodon} (which is
+based on ActivityPub) filled the domains of social media, chat, and
+microblogging under federations~\cite{p2p.ecosystem}.
+%
+As a drawback, identities in federations are not portable and servers may be
+banned or shut down for different reason.
+Also, users may becomes unsatisfied with their local server policies.
 In any of these cases, the user will have to grab her content, move to another
 server, and announce her new identity to followers.
-In peer-to-peer systems like Freechains, the identity is controlled by the user
-itself with public-key authentication, which can be used in any server in the
-same way.
-<!--
-In Freechains users operate on
-    %[public identity chains](chains.md#public-identity-chain)
-to disseminate their content to followers, which are also independent of
-specific servers.
--->
 
-Moderation is also a major concern in federated applications.
+Moderation is also a major concern in federated
+applications~\cite{p2p.ecosystem}.
 As examples, messages crossing server boundaries may diverge from local
 policies, and identities may be target of SPAM.
-Moderation can be applied locally by the user or in servers as a
-one-size-fits-all solution.
-In either case, the messages may still propagate in the network.
-With no granularity for moderating actions or no form of consensus, it is
-difficult to support public forums
-%([`N<->N`](chains.md#public-forum-chain) communication) as discussed in the
-previous section.
-
-These limitations with identities and moderation seem to be acknowledged by
-Matrix and they have plans to become more
-    %[decentralized](https://fosdem.org/2020/schedule/event/dip_p2p_matrix/)
-and to support
-    [moderation](https://matrix.org/docs/guides/moderation)
-more extensively.
+In this context, moderation can be applied locally users or in servers as
+one-size-fits-all solutions.
+In either case, Sybils can still propagate messages in the network.
+With no granularity for moderating actions and no form of consensus, it is
+difficult to make pervasive public forums practical.
+%
+Matrix supports a moderation system%
+\footnote{Matrix moderation: \url{https://matrix.org/docs/guides/moderation}},
+but which is permissioned and applied only after messages disseminate.
 
 As a counterpoint, federated protocols seem to be more appropriate for
 stream-based real-time applications such as chats and streaming with a large
@@ -1196,337 +1177,93 @@ The number of hops and header overhead can be much smaller in client-server
 architectures in comparison to peer-to-peer systems which typically include
 message signing, hash linking, and extra verification rules.
 
-%## Peer-to-Peer Systems
+\subsection{Peer-to-Peer Systems}
 
-In peer-to-peer systems all nodes in the network have the same role, i.e.,
-there are no distinctions between clients and servers.
-The peers communicate directly and cooperate satisfying a protocol to achieve a
-goal, e.g., maintaining a financial public ledger or simply allowing people to
-communicate freely.
-[Bitcoin](https://en.wikipedia.org/wiki/Bitcoin) is probably the most
-successful peer-to-peer network but serves the very specific functionality of a
-digital currency.
-%[Scuttlebutt](https://en.wikipedia.org/wiki/Secure_Scuttlebutt) and
-[Aether](https://github.com/nehbit/aether) cover people's communication for
-friends and groups, respectively.
-%[IPFS](https://en.wikipedia.org/wiki/InterPlanetary_File_System) and
-%[Dat](https://en.wikipedia.org/wiki/Dat_(software)) are more data centric
-systems for hosting large files and applications, respectively.
+Bitcoin~\cite{p2p.bitcoin} is probably the most successful permissionless
+peer-to-peer network but serves the very specific functionality of electronic
+cash.
+IPFS~\cite{p2p.ipfs} and Dat~\cite{p2p.dat} are data-centric systems for
+hosting large files and applications, respectively.
+Scuttlebutt~\cite{p2p.scuttlebutt} and Aether~\cite{p2p.ecosystem} cover
+human-centric communication between friends and groups, respectively.
+Scuttlebutt and Aether have similar goals as \FC, focusing on \Xon and \Xnn
+public communication, respectively.
 
-IPFS is centered around immutable content-addressed data, while Dat around
-mutable pubkey-addressed data.
+Bitcoin~\cite{p2p.bitcoin} adopts CPU \emph{proof-of-work} to achieve consensus, which does not
+solve the centralization issue completely due to the high costs of equipment
+and energy.
+\emph{Proof-of-stake} is a prominent alternative~\cite{p2p.proofs} that
+acknowledges that centralization is inevitable (i.e., the richer gets richer)
+and uses a function of time and wealth to elect nodes to mint new blocks.
+An advantage is that these proof mechanisms are generic and apply to multiple
+domains.
+%
+We chose an intrinsic scarce resource to reach consensus, which is human work
+to create content of quality for the chains themselves.
+We believe that authoring work grows linearly with effort and is not portable
+across chains with different topics.
+This hypothesis supports the intended decentralization.
+%
+Another distinction to generic public ledgers is that they typically require
+permanent connectivity to avoid forks, which opposes our local-first principle.
+This is because a token transaction only makes sense when it is part of the
+longest chain, which is not the case for messages exchanged locally.
+
+IPFS~\cite{p2p.ipfs} is centered around immutable content-addressed data, while
+Dat~\cite{p2p.dat} around mutable pubkey-addressed data.
 IPFS is more suitable to share large and stable content such as movies and
-archives, while Dat is more suitable for dynamic content such as
-%[web apps](https://en.wikipedia.org/wiki/Beaker_(web_browser)).
-Both IPFS and Dat use
-%[DHTs](https://en.wikipedia.org/wiki/Distributed_hash_table)
-as their underlying architecture, which are optimal to serve large and popular
-content, but not for search and discovery.
+archives, while Dat is more suitable for dynamic content such as web apps.
+%
+Both IPFS and Dat use DHTs as their underlying architecture, which are optimal
+to serve large and popular content, but not for search and discovery.
 In both cases, users need to know in advance what they are looking for, such as
 the exact link to a movie or a particular identity in the network.
-DHTs are probably not the best architecture to model decentralized people's
-communication with continuous updates on content with semantic relationships.
-The other systems that we discuss as follows do not use DHTs.
+%
+On the one hand, DHTs are probably not the best architecture to model
+decentralized human communication with continuous feed updates.
+On the other hand, holding large files in Merkle~DAGs replicated across the
+network is also impractical.
+An alternative is to use DHT links in Merkle payloads to benefit from both
+architectures.
 
-Bitcoin provides a very strong property that messages in the network are
-ordered and that this order is the same in all hosts, thus reaching global
-consensus.
-This property is also relevant in the context of people's communication since a
-conversation can be thought as an ordered list of messages.
-Bitcoin uses a proof-of-work consensus algorithm that is immune to attacks such
-as SPAM and forged identities (Sybil attacks), which is also fundamental to be
-prevented in the context of content dissemination.
-However, proof-of-work is very expensive and, in practice, control of the
-network remains in the hands of a few peers, affecting the intended
-decentralization of the system.
-Freechains uses its [reputation system](reps.md) to prevent SPAM and Sybil
-attacks which is a kind of proof or work, but for humans.
-An author has to "work" to post content of quality which is evaluated by other
-humans.
-The main advantage is that the actual work is not arbitrary and contributes
-more directly to the system itself.
-
-From all systems discussed, Scuttlebutt and Aether are those with more
-similarities with Freechains, and focus on `1->N` and `N<->N` public
-communication, respectively.
-
-Scuttlebutt is designed around public identities that follow each other to form
-a graph of connections which is also replicated in the topology of the network
-and data storage.
-For instance, if identity `A` follows identity `B`, then the computer of `A`
-will (1) connect to the computer of `B` directly and (2) store all posts of `B`
+Scuttlebutt~\cite{p2p.scuttlebutt} is designed around public identities that
+follow each other to form a graph of connections which is also replicated in
+the network topology as well as in data storage.
+For instance, if identity $A$ follows identity $B$, it means that the computer
+of $A$ connects to $B$'s in a few hops and also that it stores all of his posts
 locally.
-The relationships are asymmetric, which allows `B` to not follow `A` in the
-given example.
-Freechains is designed around chains (topics), but since chains can owned by a
-%[public identity](chains.md#public-identity-chain), it is possible to provide a
-similar behavior.
-The network topology of Freechains also relies on
-[friend-to-friend](https://en.wikipedia.org/wiki/Friend-to-friend) connections,
-but currently must be built outside the protocol (e.g., scripted by hand).
+This architecture is very similar to \Xon public identity chains in
+Figure~\ref{fig.table}.
+%
+For group \Xnn communication, Scuttlebutt uses the concept of channels, which
+are in fact only hash tags (e.g. \emph{\#sports}).
+Users can tag posts, which appear not only in their feeds but also in virtual
+feeds representing these channels.
+However, users only see channel posts from users they already follow.
+In practice, channels just merge friends posts and filter them by tags.
+In theory, to read all posts of a channel, a user would need to follow all
+users in the network (which also implies storing their feeds).
+Conversely, new users also struggle to integrate in channel communities since
+their posts have no visibility at all.
+As a counterpoint, channels are safe places that do not suffer from abuse.
+%
+In \FC new users require a single like for visibility in the community, which
+relies on the reputation system to prevent abuse.
+Also, a chain stores its own posts only, instead of unrelated posts from its
+subscribers.
 
-For group `N<->N` communication, Scuttlebutt uses the concept of channels,
-%which are actually hash tags, e.g. `#sports`.
-Users can tag posts with channels, which appear not only on their feeds but
-also in "virtual feeds" representing channels.
-However, users only see posts from users they already follow.
-In practice, channels just merge friends posts and filter them by tags, which
-again illustrates how Scuttlebutt is designed around public identities.
-In theory, to read all posts of a channel, a user would need to follow (which
-also implies storing feeds) of all users in the network.
-For this reason, new users may not integrate easily in the community because
-they depend on other users to follow them back, which costs bandwidth, space,
-and extra noise to the follower .
-Without being followed back, new users have no visibility in the system at all.
-As a counterpoint, assuming users behave more or less the same in different
-groups, Scuttlebutt is barely susceptible to abuse.
-Since Freechains is designed around chains (channels), content discovery is
-much easier, since new users become visible with a single like from the
-community.
-In addition, following a chain requires to store posts of that chain only, not
-of their users, which can still be followed individually on their own `1->N`
-public chain.
-
-Aether provides peer-to-peer public communities being more aligned with the
-`N<->N` public communication of Freechains.
-Posts are replicated in the network but are ephemeral in the sense that their
-storage is limited within a time window.
-Aether requires authors to proof-of-work their posts in order to prevent SPAM
-in communities.
-Also, each community relies on continuous elections for moderators to prevent
-abusive behavior.
-Users can also choose their own moderators individually leading to different
-views of the communities.
-*(It is not clear if removed content is still stored locally to reach other nodes).*
-The quality of posts can be distinguished by upvotes and downvotes.
-Aether employs a very pragmatic approach to confront the threats of `N<->N`
-communication, using established techniques such as proof-of-work to combat
-SPAM and post rating to highlight good content, and also an innovative voting
-system to combat abuse.
-Freechains tries to address these threats with (and only with) its reputation
-system.
-Reputation is a scarce resource handled autonomously by the protocol rules and
-has to be used wisely inside each chain to accept new users, combat abuse, and
-highlight content of quality.
-
-%## Freechains
-
-As described in the [landing page](../README.md), Freechains has two particular
-features:
-
-- Multiple flavors of public and private communication (`1->N`, `1<-N`, `N<->N`, `1<-`)
-- Per-topic reputation system for healthiness
-
-%Freechains is designed around a [minimum API](../README.md#basics):
-    a `join` command to follow chains of groups and individuals,
-    a `post` command to publish content into a chain (optionally with end-to-end encryption),
-    a `get` command to read posts of a chain, and
-    a `traverse` command to iterate on a chain to discover content.
-%A [public identity chain](chains.md#public-identity-chain) behaves more like
-Scuttlebutt, since only its owner may be allowed to post.
-Following users is also asymmetric, so it's possible to build diverse social
-graphs in the same way as Scuttlebutt.
-%A [public forum chain](chains.md#public-forum-chain) relies on the reputation
-system and behaves more like Aether, since users receive posts from other users
-they do not necessarily follow.
-Freechains also supports [private group chains](...) that circulates messages
-among trusted peers only.
-
-The [reputation system](reps.md) tracks the quality of posts and authors inside
-each chain.
-It aims to (1) combat excess by restricting the number of posts, (2) highlight
-content of quality with likes, and (3) combat SPAM, fake news, and illegal
-content by demanding reputation to post and by removing posts when their
-likes/dislikes ratio is too negative.
-However, it is a system that has never being put into practice, so its
-effectiveness is yet to be proven.
-
-Freechains also has some inherent limitations.
-Posts in public chains are restricted in size (currently 128kb) and each peer
-holds up to 10 posts from new users waiting for approval.
-This is to prevent denial of service by flooding peers with posts without
-reputation.
-For large blobs, users may break messages in parts or use links such as for
-IPFS addresses.
-Peers also must hold the full tree of posts locally to be able to validate them
-and track their reputation.
-This imposes computational and storage costs.
-Although it's possible to limit the validity of posts and prune trees as time
-goes, full persistence is still conceptually at the core of the protocol.
-Validation also requires large headers in posts for the back links and
-signatures.
-All these overheads combined may affect the viability of the system in
-real-time applications such as chats and streaming which would benefit of a
-more "fire and forget" approach.
-A not inherent current limitation is that the protocol does not verify if peers
-are actually validating and storing the actual chains.
-This would allow *freeriders* to abuse the network.
-We believe it's not hard to integrate some kind of proof of storage (e.g., ask
-the contents of some previous post) or integrate peer accountability in the
-reputation system.
-
-%## Other Links:
-
-- Decentralized Social Networks:
-    - https://medium.com/@jaygraber/decentralized-social-networks-e5a7a2603f53
-- IPFS and Dat:
-    - https://medium.com/decentralized-web/comparing-ipfs-and-dat-8f3891d3a603
-- Aether:
-    - https://getaether.net/docs/
-    %- https://www.youtube.com/watch?v=A9zL2csO7t8&t=1105s
-    %- https://getaether.net/docs/faq/voting_and_elections/
-- Matrix:
-    - https://matrix.org/docs/guides/moderation
-    - https://www.youtube.com/watch?v=AlndCl30OyI
-radicle
-gun
-orbitdb
-hypercore
-pijul
-%LDN: https://link.springer.com/chapter/10.1007/978-3-319-58068-5_33
-
-https://ieeexplore.ieee.org/document/5766541
-https://arxiv.org/abs/2001.02962
-
-- automerge
-Thus, CRDTs have some similarity to version control systems like Git, except that they operate on richer data types than text files. CRDTs can sync their state via any communication channel (e.g. via a server, over a peer-to-peer connection, by Bluetooth between local devices, or even on a USB stick).
-
-Bitcoin employs CPU proof-of-work as a solution, but did not solve the
-centralization issue completely because the cost to perform work is not
-equally distributed
-(depends on costs of equipment and energy)
-    - bitcoin demands connectivity to avoid forks
-    - forks ok in freechains since operations are not critical and can be reverted
-    - 50+1 attack easy in first nodes if not all nodes keep participating
-        - freechains requires checkpoints
-
-- related work public forums in scuttlebutt are permissioned (you decide who
-  participates). each user has a completely different view of \#chat. not really
-  public although some intersections
-    - you can see an answer but not a question, or a question w/ no answers
-      even if the best answer exists. no content discovery
-
-\subsection{CRDTs}
-
-\subsection{Consensus}
-
-%## Publish-Subscribe Middlewares
-
-\begin{comment}
+Aether~\cite{p2p.ecosystem} provides peer-to-peer public communities aligned
+with \Xnn public forums of \FC.
+A fundamental difference is that is designed for ephemeral, mutable posts with
+no intention to enforce global consensus across peers.
+Aether employs a very pragmatic approach to mitigate abuse in forums, using
+established techniques such as proof-of-work to combat SPAM and an innovative
+voting system to moderate forums, but which affects local instances only.
+In contrast, \FC relies on its reputation and consensus mechanisms for
+moderation.
 
 \section{Conclusion}
 \label{sec.conclusion}
-
-
-Like \emph{bitcoins}, \reps are scarce, hard to generate, and easy to verify.
-Unlike \emph{bitcoins}, \reps .
-
-
-With this design, we retarget  , the balance between work, profit and consensus also applies 
-
-attack 50+1 but not as
-cite local-first software
-
- (crypto proof \& authoring),
-while verification is cheap
-
-
-requires work but evaluation
-
-
-, but
-are evaluated by other user
-The system also imposes incentives to rate posts and 
-
-Unlike bitcoin
-
-Since likes and dislikes spend reputation, \emph{creps} are scarce resources
-Incentives to post and rate content.
-
-There is a strong association between work, profit and consensus that enables
-Bitcoin as a peer-to-peer cash system.
-
-distinguish SPAM from legitimate
-Another problem CPU
-
-
-
-content.
-
-
-
- (e.g., posts on social media, public conversations
-based on the reputation of users
-in the network.
-
-
-biggest difference:
-work is subjective as is the evaluation by other users
-
-
- with consensus since
-whoever proposes the ordering will choose one of the operations arbitrarily
-
-
- which is similar to the
-example above (\emph{buy X} vs \emph{buy Y})
-
-spent
-
-with work
-
-
-
-this gives consensus with total order, solves double spend, which is equivalent
-to solving X/Y is decided above
-
-we borrow token, scarcity
-
-
- that requires work to 
-Only one purpose
-
-
-- incentive
-- security
-
-- Last-Write-Wins
-
-- just all tokens are the same, no subjective judgment, for example on why token is being transferred
-
-
- and xx timestamps.
-
-
- of the service and , and trust from users to deal
-
-In a decentralized setting, 
-    - spam
-    - abuse
-    - on topic
-    - disconnections
-    - order
-
-Bitcoin
-
-responses would
-
-
-
-
-n user posts 
-
-- discovery
-- also consensus, ensure that participants receive all data in a consistent order
-- bitcoin, discovery even disconnected, consensus, but not quality
-
-
-Regardless of the Internet growth over the years,
-
-\end{comment}
-
-\section{Conclusion}
-The conclusion goes here.
 
 \bibliographystyle{IEEEtran}
 \bibliography{tpd-21}
