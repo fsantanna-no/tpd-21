@@ -125,7 +125,8 @@ subjective judgment that could affect the actual transactions.
 In contrast, our challenge is to use social interactions between humans to
 evaluate content and mitigate abuse.
 
-In this work, we propose a consensus algorithm based on authoring reputation.
+In this work, we propose a permissionless consensus algorithm based on
+authoring reputation.
 Inspired by Bitcoin, authors accumulate tokens named \reps, which serve as
 currency to rate posts in the network.
 Users can rate posts with likes and dislikes, which transfer \reps between
@@ -150,6 +151,13 @@ publish-subscribe content dissemination protocol~\cite{fcs.sbseg20}.
 We also present the prototype of a permissionless version control system that
 relies on consensus to apply automatic merges.
 
+\begin{figure*}
+\centering
+\includegraphics[width=\textwidth]{arrangements.png}
+\caption{The three types of chains and arrangements in \FC.}
+\label{fig.table}
+\end{figure*}
+
 Our main contribution is to make public forums practical with complete
 decentralization.
 The proposed reputation and consensus mechanism depends solely on human work to
@@ -157,27 +165,22 @@ create and moderate content, which distinguishes itself from most systems which
 rely on external resources to reach consensus.
 The general idea of the algorithm can be applied to any public forum system
 that uses DAGs to structure its messages.
-TODO: three-layer CRDTs
-%
+As a derived contribution, the consensus implies a total order among messages,
+which supports operation-based CRDTs~\cite{merkle.crdts} as a backing mechanism
+for collaborative authoring, such as distributed version control systems.
+
 As a main limitation, Merkle~DAGs are ever growing data structures that also
 carry considerable metadata overhead.
-Pruning DAGs require particular solutions that do not solve the fundamental
+Pruning DAGs require particular solutions that do not solve this fundamental
 problem.
-TODO: not realtime, stateless protocol
 %
-Public forums are still social platforms and we do not claim that a reputation
-system enforces ``good'' human behavior.
+Also, the associated metadata and per-block validation of Merkle-DAGs is not
+very efficient for real-time applications such as chats and video calls.
+%
+Finally, since public forums are still social platforms, we do not claim that
+the proposed reputation system enforces ``good'' human behavior in any way.
 Instead, it provides a transparent and quantitative mechanism that helps users
 understand the evolution of the community and act accordingly.
-
-TODO: permissionless expect for first like
-
-\begin{figure*}
-\centering
-\includegraphics[width=\textwidth]{arrangements.png}
-\caption{The three types of chains and arrangements in \FC.}
-\label{fig.table}
-\end{figure*}
 
 In Section~\ref{sec.freechains}, we introduce the basic functionalities of \FC
 to create, rate, and disseminate posts.
@@ -529,6 +532,13 @@ the network.
 \label{fig.merge}
 \end{figure}
 
+\begin{figure*}
+\centering
+\includegraphics[width=\textwidth]{rules.png}
+\caption{Specific reputation rules for public forum chains in \FC.}
+\label{fig.rules}
+\end{figure*}
+
 As a counterpoint, suppose users $a$ and $b$ in Figure~\ref{fig.reps}.A have
 actually abandoned the chain for months and thus \emph{branch-1} is legit.
 In this case, $a$ and $b$ are the ones trying to take over the chain by
@@ -566,17 +576,14 @@ However, this host can no longer verify forks starting past the removed blocks
 and will fail to synchronize.
 In this case, the host needs to delegate trust to other nodes for the first
 verification of these forks.
-TODO: revoke own posts // 3.b-no cost to revoke own post
+A more pragmatic approach, but which requires cooperation among users, is to
+revoke past posts (rule~\texttt{3.b}) which will delete payloads and save some
+space.
+This approach is more feasible in private groups and public identitis chains
+though (Figure~\ref{fig.table}).
 
 \subsection{Public Forum Chains}
 \label{sec.consensus.chains}
-
-\begin{figure*}
-\centering
-\includegraphics[width=\textwidth]{rules.png}
-\caption{Specific reputation rules for public forum chains in \FC.}
-\label{fig.rules}
-\end{figure*}
 
 We integrated the proposed reputation system in the public forums of \FC to
 support content moderation and enforce consensus in the chains.
@@ -606,8 +613,8 @@ The pioneers shape the initial culture of the chain with its first posts and
 likes, while he gradually transfers \reps to other authors, which may also
 transfer to other authors, expanding the community.
 %
-In this regard, the \emph{post} command in sequence, which is signed by the
-single pioneer and indicates the purpose of the chain to future users.
+In this regard, the \emph{post} command in sequence above, which is signed by
+the single pioneer and indicates the purpose of the chain to future users.
 
 Our most basic concern in public forums is to resist Sybils spamming the
 chains.
@@ -627,6 +634,10 @@ new messages, which prevents abuse from malicious users already in the chain.
 %
 Note that the pioneer rule~\texttt{1.a} solves the chicken-and-egg problem
 imposed by rule~\texttt{4.a}.
+%
+Access is permissionless in the sense that in honest chains the actual
+identities behind posts are irrelevant for acceptance, only the quality of
+content.
 
 The next commands illustrate the reputation rules with numbers.
 A new user joins the same public chain as before and posts a message, which is
@@ -938,16 +949,6 @@ line disappears from the file.
 This illustrates how the reputation system enables collaborative permissionless
 editing.
 
-\begin{figure}
-\centering
-\includegraphics[width=0.35\textwidth]{conflict.png}
-\caption{
-    The branches in the DAG are ordered by reputation.
-    The application ...
-}
-\label{fig.conflict}
-\end{figure}
-
 Next, we create a conflict situation in which two authors in different peers
 edit the same line concurrently:
 
@@ -977,6 +978,16 @@ edit the same line concurrently:
  ...
 \end{verbatim}
 }
+
+\begin{figure}
+\centering
+\includegraphics[width=0.35\textwidth]{conflict.png}
+\caption{
+    The branches in the DAG are ordered by reputation.
+    The application ...
+}
+\label{fig.conflict}
+\end{figure}
 
 After they commit the conflicting changes, the peers synchronize in both
 directions and reach the state of Figure~\ref{fig.conflict}.
