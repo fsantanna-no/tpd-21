@@ -193,15 +193,13 @@ In Section~\ref{sec.conclusion}, we conclude this work.
 \section{Freechains}
 \label{sec.freechains}
 
-\FC is an unstructured peer-to-peer topic-based publish-subscribe
-system~\cite{fcs.sbseg20}.
-Each topic, or \emph{chain}, is organized as a \emph{Merkle~DAG}, i.e., a
-directed acyclic graph immune to modifications.
-The chain DAG is disseminated peer by peer in the network with gossiping.
+\FC is an unstructured peer-to-peer topic-based publish-subscribe system, in
+which each topic or \emph{chain} is a replicated
+\emph{Merkle~DAG}~\cite{fcs.sbseg20}.
 This way, as an author posts to a chain, other users subscribed to the same
 chain eventually receive the message.
-\FC supports multiple types of chains with different arrangements of public and
-private communication, which are detailed in Figure~\ref{fig.table}.
+\FC supports multiple arrangements of public and private communication, which
+are detailed in Figure~\ref{fig.table}.
 In this section, we operate a private group to describe the basic behavior of
 chains.
 At the end of the section, we also exemplify a public identity chain.
@@ -211,8 +209,7 @@ reputation and consensus mechanism.
 
 All \FC operations go through a \emph{daemon} (analogous to Bitcoin full nodes)
 which validates posts, links them in the Merkle~DAGs, persists the chains in
-the disk, and communicates with other peers in the network to disseminate the
-graphs.
+the disk, and communicates with other peers to disseminate the graphs.
 The command that follows starts a daemon to serve further operations:
 
 {\footnotesize
@@ -237,13 +234,17 @@ group chain (prefix $\$$), and (iii) posts a message into the chain:
 \end{verbatim}
 }
 
-\begin{figure}
+\begin{figure*}
 \centering
-\includegraphics[width=0.5\textwidth]{family.png}
-\caption{Two DAG configurations. (A) has a single head pointing to the
-genesis block. (B) has a fork with two heads pointing to the genesis block.}
+\includegraphics[width=\textwidth]{family.png}
+\caption{
+    Three DAG configurations.
+    (A) Single head pointing to genesis block.
+    (B) Fork with heads pointing to genesis block.
+    (C) Like pointing to past block, which also merges previous heads.
+}
 \label{fig.family}
-\end{figure}
+\end{figure*}
 
 A private chain requires that all participants use the same shared key to join
 the group.
@@ -259,9 +260,8 @@ As expected from a Merkle~DAG, the hash of a block depends on its payload and
 hash of previous block.
 
 \FC adheres to the \emph{local-first} software principle~\cite{p2p.local},
-allowing networked applications to host their own data and work locally while
-offline.
-Except for synchronization, all other operations in the system only affect the
+allowing networked applications to work locally while offline.
+Except for synchronization, all other operations in the system affect only the
 local replica.
 In particular, joining a chain with the same arguments in another peer results
 in the same genesis state, even if the peers have never met before.
@@ -279,8 +279,8 @@ with the same steps:
 }
 
 Synchronization is explicit, in pairs, and unidirectional.
-The command \emph{recv} asks daemon in \emph{localhost} to connect to daemon in
-\emph{remote-ip} and receive all missing blocks from there:
+The command \emph{recv} asks the daemon in \emph{localhost} to connect to
+daemon in \emph{remote-ip} and receive all missing blocks from there:
 
 {\footnotesize
 \begin{verbatim}
@@ -289,19 +289,21 @@ The command \emph{recv} asks daemon in \emph{localhost} to connect to daemon in
 \end{verbatim}
 }
 
-The complementary command \emph{send} synchronizes the DAGs in the other
+Now, the new peer is in the same state as the original peer in
+Figure~\ref{fig.family}.A.
+The complementary command \emph{send} would synchronize the DAGs in the other
 direction.
-Note that \FC does not construct a network topology or synchronize peers
+Note that \FC does not construct a network topology nor synchronizes peers
 automatically.
 There are no preconfigured peers, no root servers, no peer discovery.
 All connections happen through the \emph{send} and \emph{recv} commands which
 have to specify the peers explicitly.
 In this sense, the protocol only gives basic support for communication in pairs
-of peers and any further automation requires external tools.
+of peers and further automation requires external tools.
 
-The next sequence of commands checks the hash(es) of the block(s) at the head
-of the local DAG (the latest blocks), and then reads the payload of the single
-head found:
+In order to query the state of the replica, the next sequence of commands
+checks the hash(es) of the block(s) at the head of the local DAG (the latest
+blocks), and then reads the payload of the single head found:
 
 {\footnotesize
 \begin{verbatim}
@@ -312,21 +314,19 @@ head found:
 \end{verbatim}
 }
 
-Now, the new peer is in the same state as the original peer in
-Figure~\ref{fig.family}.A.
 However, since the network is inherently concurrent and users are encouraged to
 work locally, typical graphs are not lists, but DAGs with multiple heads.
-As an example, suppose the new peer posts a message "I'm here!" \textbf{before}
-the \emph{recv} above, when the local DAG is still in its genesis state.
+As an example, suppose the new peer posted a message before the \emph{recv}
+above, when the local DAG was still in its genesis state.
 In this case, as illustrated in Figure~\ref{fig.family}.B, the resulting graph
-after the synchronization now contains two blocks with height $1$.
+after the synchronization would now contain two blocks with height $1$.
 %
 Note that forks in the DAG create ambiguity in the order of messages, which is
 the fundamental obstacle to reach consensus.
-In private chains, which we use in this example, we can apply simple methods to
-reach consensus, such as relying on the timestamps of blocks.
-However, in public forums, a malicious user can modify his local time to affect
-new block timestamps and manipulate the order of messages.
+In private chains, we can apply simple methods to reach consensus, such as
+relying on the timestamps of blocks.
+However, in public forums, a malicious user could modify his local time to
+manipulate the order of messages.
 
 To conclude the basic chain operations, users can rate posts with \emph{likes}
 and \emph{dislikes}, which can be consulted later:
@@ -340,14 +340,15 @@ and \emph{dislikes}, which can be consulted later:
 \end{verbatim}
 }
 
+As illustrated in Figure~\ref{fig.family}.C, a like is a regular block with an
+extra link to its target.
 In private groups, likes are unlimited and behave much like typical centralized
 systems.
 In public forums, however, likes are restricted, have to be signed by users,
 and are at the core of the consensus algorithm.
 
 For the sake of completeness, \FC also supports public identity chains (prefix
-$@$), which relies on public-key cryptography to attach an identity to a chain
-and verify the authenticity of posts:
+$@$) with owners attached to public/private keys:
 
 {\footnotesize
 \begin{verbatim}
@@ -355,18 +356,18 @@ and verify the authenticity of posts:
  EB172E.. 96700A..   <- public and private keys
  > freechains '@EB172E..' join
  F4EE21..
- > freechains '@EB172E..' post 'This is Pele' \
+ > freechains '@EB172E..' post 'This is Oprah' \
     --sign='96700A..'
  1_547A2D..
 \end{verbatim}
 }
 
-In the example, a public figure creates a pair of public/private keys and joins
-an identity chain attached to his public key.
-Every post in this chain needs to be signed with the associated private key to
-be accepted in the network.
+In the example, a public figure creates a key pair and joins an identity chain
+attached to her public key.
+Every post in this chain needs to be signed with her private key to be accepted
+in the network.
 
-\FC is less than $1500$ LoC in Kotlin and is publicly
+\FC is around $1500$ LoC in Kotlin and is publicly
 available~\footnote{\url{http://www.freechains.org}}.
 The binary for the JVM is less than $6Mb$ in size and works in Android and most
 desktop systems.
