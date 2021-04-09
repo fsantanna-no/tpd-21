@@ -375,7 +375,8 @@ desktop systems.
 \section{Reputation and Consensus Mechanism}
 \label{sec.consensus}
 
-In the absence of moderation, peer-to-peer public forums are impractical.
+In the absence of moderation, permissionless peer-to-peer public forums are
+impractical.
 At the root of the problem lies Sybil attacks, which use large numbers of fake
 identities to abuse the system.
 For instance, it should take a few seconds to generate thousands of
@@ -388,7 +389,7 @@ forums practical.
 
 Section~\ref{sec.consensus.design} describes the overall reputation and
 consensus mechanism, which can be applied to any public forum system that uses
-DAGs to structure its messages~\cite{33,34,p2p.merkle-crdts}.
+DAGs to structure its messages~\cite{TODO.33,TODO.34,p2p.merkle-crdts}.
 Section~\ref{sec.consensus.chains} describes the concrete rules we implement
 for public forums in \FC.
 
@@ -397,12 +398,12 @@ for public forums in \FC.
 
 In the proposed reputation system, users can spend tokens named \reps to post
 and rate content in the forums:
-a \emph{post} operation initially penalizes authors until it consolidates and
-counts positively;
-a \emph{like} operation is a positive feedback that helps subscribers
-distinguish good content amid excess;
-a \emph{dislike} operation is a negative feedback that revokes content when
-crossing a threshold.
+a \emph{post} initially penalizes authors until it consolidates and counts
+positively;
+a \emph{like} is a positive feedback that helps subscribers distinguish good
+content amid excess;
+a \emph{dislike} is a negative feedback that revokes content when crossing a
+threshold.
 Figure~\ref{fig.general} summarizes the reputation operations and their goals.
 %
 However, without restrictions, posts and likes alone are not satisfactory in
@@ -422,25 +423,21 @@ However, in the context of content publishing, we understand that authoring is
 already an intrinsic human work that we can take advantage.
 Creating new content is hard and takes time, but is comparatively easy to
 verify and rate.
-Therefore, in order to impose scarcity, only content authoring generates \reps,
-while likes and dislikes only transfer \reps between users.
+Therefore, in order to impose scarcity, we determine that only content
+authoring generates \reps, while likes and dislikes just transfer \reps between
+users.
 %but limited by periods of time to prevent excess (e.g., once in a day per user).
 %Additionally,
 %
-Still, scarce posts and likes are not yet enough because they demand consensus
-in the network.
-Now, we need to track the reputation of users to check if they are allowed to
-post new messages or spend likes.
-Since posts and likes are concurrent in the network, we need to figure out how
-to order them consistently across all peers so that they converge to the same
-state.
+Still, scarce posts and likes are not yet sufficient because they demand
+consensus in the network.
 As an example, it is possible that an author with a single unit of \reps
-receives a dislike at the same time he posts a new message in the network.
+receives a dislike at the same time she tries to post a new message in the
+network.
 If accounted before, the dislike blocks the new post, otherwise the post is
 valid.
-Even though it is impossible to determine which action happened first, the
-network as a whole needs to agree on a single order because this decision
-affects all future operations.
+Therefore, we need the same message ordering across all peers to account the
+reputation of users and validate the operations consistently.
 
 \begin{figure}
 \centering
@@ -452,12 +449,12 @@ affects all future operations.
 \label{fig.reps}
 \end{figure}
 
-Our solution is to order posts in the network favoring forks with participants
-that constitute the majority of reputation.
-This way, in order to manipulate consensus, malicious users first need to
-cooperate to gain reputation, which is a non-trivial work and contradicts their
+Our solution is to order posts favoring forks with participants that constitute
+the majority of reputation in the network.
+This way, in order to manipulate accountability, malicious users first need to
+cooperate to gain reputation, which is non-trivial and contradicts their
 intent.
-%
+
 Figure~\ref{fig.reps}.A illustrates the reputation criterion.
 %, still abstractly, since we did not discuss the actual rules for content creation and rating.
 A public forum DAG has a common prefix with signed posts from users $a$, $b$,
@@ -472,7 +469,7 @@ in \emph{branch~2}, only users $a$ and $b$ participate but with less activity.
 Nonetheless, \emph{branch~2} takes priority because, before the forking point,
 $a$ and $b$ have more reputation than $c$, $x$, and $y$ combined.
 %
-User $c$ here represents a malicious user trying to cultivate fake identities
+User $c$ represents here a malicious user trying to cultivate fake identities
 $x$ and $y$ in separate of the network to accumulate \reps.
 However, the whole malicious \emph{branch~1} is vulnerable because users in
 \emph{branch~2} with more previous reputation take the priority and can
@@ -480,32 +477,29 @@ overthrow user $c$.
 
 Figure~\ref{fig.reps}.B indicates the consensus order between blocks in the
 forum.
-All operations in \emph{branch~2} are accounted before any operation in
+All operations in \emph{branch~2} are considered before any operation in
 \emph{branch~1}.
-%
+The consensus ordered list is only a view of the primary forum DAG structure
+for accountability purposes.
 At any point in the consensus timeline, if an operation fails, all remaining
-blocks in the offending branch are removed from the forum DAG.
+blocks in the offending branch are removed from the primary DAG.
 As an example, suppose the last post by $a$ (in gray) is a dislike to user $c$,
 which decreases its reputation.
 Then, it's possible that the last post by $c$ (in red) is rejected together
 with all posts by $y$ and $x$ in sequence.
+%
 Note that in a Merkle~DAG, it is not possible to remove only the block with the
-failing operation.
-We need to remove the whole remaining branch as if it never existed.
+failing operation, instead, we need to remove the whole remaining branch as if
+it never existed.
 %
-Unlike Bitcoin, forks are not only allowed but encouraged due to the
-local-first principle.
-The resulting ordered list is only a view of the primary DAG structure.
-However, the longer a peer remains disconnected, the more conflicting
-operations it may perform, and the higher are the chances of rejection when
-rejoining.
-%
-Note that users in \emph{branch~2} with more reputation may judge
-\emph{branch~1} as malicious and can react even after the fact.
-For instance, users $a$ and $b$ can post extra dislikes in \emph{branch~2} so
-that merging with \emph{branch~1} removes all of its blocks.
+Note also that users in the branch with more reputation may react to attacks
+even after the fact.
+For instance, users $a$ and $b$ can pretend that they did not yet see
+\emph{branch-1} and post extra dislikes to user $c$ from \emph{branch-2} so
+that a further merge with \emph{branch-1} removes all of its blocks.
 
-Some other considerations about merging forks:
+Some other considerations about forks and merges:
+%
 Peers that received branches with less reputation first (\emph{branch~1}) will
 need to reorder all blocks starting at the forking point.
 This might even involve removing content in the end user software.
@@ -517,6 +511,12 @@ just need to put the other branch in sequence and do not need to recompute
 anything.
 This should be the normal behavior and is expected to happen in the majority of
 the network.
+%
+Unlike Bitcoin, forks are not only allowed but encouraged due to the
+local-first software principle.
+However, the longer a peer remains disconnected, the more conflicting
+operations it may perform, and the higher are the chances of rejection when
+rejoining.
 
 \begin{figure}
 \centering
@@ -539,17 +539,16 @@ the network.
 
 As a counterpoint, suppose users $a$ and $b$ in Figure~\ref{fig.reps}.A have
 actually abandoned the chain for months and thus \emph{branch-1} is legit.
-In this case, $a$ and $b$ are the ones trying to take over the chain by
-forging an early \emph{branch-2}, even with knowledge about \emph{branch-1}.
-There is even a third option in which both branches are legit but became
-disconnected for a long period.
-It is impossible to determine.
-Nonetheless, the breach that permits an forged branch to take over a long
-active chain is compromising.
+In this case, $a$ and $b$ might be the ones trying to take over the chain.
+A third possibility is that both branches are legit but became disconnected for
+a long period.
+It is simply impossible to determine.
+Nonetheless, it is unacceptable to permit that a very old branch affects a long
+active chain.
 For this reason, the consensus algorithm includes an extra constraint when
 merging:
-If a branch creates new \reps that reach $50\%$ of its prefix, then the
-algorithm guarantees that this branch takes priority in merges.
+If a branch creates enough \reps to reach $50\%$ of its prefix, then the
+algorithm preserves this branch as first in future merges.
 In the example, suppose that the common prefix accumulates \nreps{50}
 considering users $a$, $b$, and $c$.
 If \emph{branch-1} creates at least $25$ new \reps, then the merge with
@@ -557,28 +556,28 @@ If \emph{branch-1} creates at least $25$ new \reps, then the merge with
 This situation is analogous to a hard fork in Bitcoin.
 %
 Figure~\ref{fig.merge} summarizes the merging algorithm:
-    rule (a) favors the branch with more reputation;
-    rule (b) forces the branch with $50\%+$ \reps of its prefix to go first;
-    rule (c) enforces that previous rules do not conflict.
+    rule (a) favors branches with more reputation;
+    rule (b) preserves branches with $50\%+$ \reps as first;
+    rule (c) enforces that rules (a) and (b) do not conflict.
 
 A fundamental drawback of Merkle~DAGs is that all replicas in the system need
 to store the complete graph in order to synchronize and verify new blocks.
 Tree pruning techniques allow to remove parts of the graph to save
 space~\cite{p2p.prune}.
-The rule (b) in the consensus algorithm allows to prune the chain DAG, at least
-for lightweight clients in resource-constrained devices.
-A branch that reaches the threshold of $50\%+$ \reps is freezed in the ordered
-list and becomes safe to remove along with all of its past back to the genesis
-block.
-However, this host can no longer verify forks starting past the removed blocks
-and will fail to synchronize.
-In this case, the host needs to delegate trust to other nodes for the first
-verification of these forks.
+The rule (b) in the consensus algorithm allows to prune the chain DAG when
+crossing the $50\%+$ threshold, at least for lightweight clients in
+resource-constrained devices.
+%A branch that reaches the threshold of $50\%+$ \reps is freezed in the ordered
+%list and becomes safe to remove along with all of its past back to the genesis
+%block.
+However, these devices can no longer verify older forks and need to delegate
+trust to more powerful peers.
+%
 A more pragmatic approach, but which requires cooperation among users, is to
 revoke past posts (rule~\texttt{3.b}) which will delete payloads and save some
 space.
-This approach is more feasible in private groups and public identitis chains
-though (Figure~\ref{fig.table}).
+This approach is more feasible in private groups and public identitis chains,
+tough.
 
 \subsection{Public Forum Chains}
 \label{sec.consensus.chains}
@@ -608,7 +607,7 @@ The \emph{join} command in rule~\texttt{1.a} bootstraps a public chain,
 assigning \nreps{30} equally distributed to the pioneers referred in the public
 keys.
 The pioneers shape the initial culture of the chain with its first posts and
-likes, while he gradually transfers \reps to other authors, which may also
+likes, while they gradually transfers \reps to other authors, which may also
 transfer to other authors, expanding the community.
 %
 In this regard, the \emph{post} command in sequence above, which is signed by
