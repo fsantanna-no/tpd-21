@@ -45,20 +45,20 @@ uses mining to
 
 \IEEEtitleabstractindextext{%
 \begin{abstract}
-Content publishing in public Internet forums and social media suffers from
-excess and abuse, such as low quality posts and fake news.
+Content publishing in public Internet forums suffers from excess and abuse,
+such as SPAM and fake news.
 Centralized platforms employ filtering algorithms and anti-abuse policies, but
 impose full trust from users.
-We propose a publish-subscribe peer-to-peer protocol to model public content
+We propose a publish-subscribe peer-to-peer protocol to model content
 dissemination without centralized control.
-The protocol mitigates abuse a reputation system that moderates content and, at
-the same time, delivers network consensus.
+The protocol prevents Sybil attacks with a reputation system that moderates
+content and, at the same time, delivers network consensus.
 We trace a parallel with Bitcoin:
     posts create reputation (vs proof-of-work),
     likes and dislikes transfer reputation (vs transactions),
     and aggregate reputation determines consensus (vs longest chain).
-The reputation system depends solely on human work to create and rate content,
-preventing abuse while imposing consensus on a peer-to-peer setting.
+The reputation system and resulting consensus depends exclusively on human work
+to create and rate content.
 We prototype a simple permissionless version control system that relies on
 reputation consensus to resolve conflicts automatically.
 \end{abstract}
@@ -75,7 +75,7 @@ bitcoin, crdts, distributed consensus, peer-to-peer, publish-subscribe, reputati
 \label{sec.introduction}
 
 \IEEEPARstart{C}{ontent} publishing in public Internet forums and social media
-platforms is increasingly more centralized in the hands of a few
+platforms is increasingly more centralized in a few
 companies~\cite{internet.fixing,p2p.osn}.
 %
 On the one hand, these companies offer free storage, friendly user interfaces,
@@ -86,49 +86,49 @@ obstruct portability with proprietary standards.
 %
 Peer-to-peer alternatives~\cite{p2p.survey} eliminate intermediaries and push
 to end users the responsibility to manage data and connectivity.
-However, due to decentralization of authority and network infrastructure, some
-new challenges arise to deal with malicious users and enforce overall state
-consistency.
+However, due to the decentralization of authority and network infrastructure,
+some new challenges arise to deal with malicious users and to enforce overall
+state consistency.
 
 In an ideal Internet forum, all messages or posts
 (i)   reach even temporarily disconnected users;
 (ii)  are delivered in a consistent order;
 (iii) are respectful and on topic.
 In a centralized system, items (i) and (ii) are trivially achieved assuming
-availability and delivery order in the service, while for item (iii) users have
-to trust the service to moderate content.
+availability and delivery order in the service, while for item (iii), users
+have to trust the service to moderate content.
 In a decentralized setting, however, none of these demands are easily
 accomplished.
-A common approach in gossiping protocols is to replicate the whole conversation
-in all peers and disseminate it proactively until all users receive
-it~\cite{p2p.survey}.
+A common approach in gossiping protocols is to proactively replicate and
+disseminate conversations in peers until they reach all
+users~\cite{p2p.survey}.
 However, this approach does not guarantee consensus since posts can be received
-in conflicting orders in different peers.
-As an example, antagonistic messages such as \emph{"X is final"} vs
-\emph{"Y is final"} might be sent concurrently, preventing the network to
-determine as a group its intention as \emph{X} or \emph{Y}~\cite{p2p.intention}.
+in conflicting orders in different peers~\cite{p2p.intention}.
+%As an example, antagonistic messages such as \emph{"X is final"} vs
+%\emph{"Y is final"} might be sent concurrently, preventing the network to
+%determine as a group its intention as \emph{X} or \emph{Y}.
 
 Bitcoin~\cite{p2p.bitcoin} proposes a permissionless consensus protocol founded
 on scarce virtual assets, the \emph{bitcoin tokens}.
 %
 The only way to create new bitcoins is to work towards consensus in the network
-by proposing a total order among all transactions in the system.
+by proposing a total order among transactions in the system.
 %
 This way, Bitcoin prevents double spending~\cite{p2p.bitcoin}, which is
-analogous to conflicting messages in public discussions:
-    deciding between \emph{X} and \emph{Y} as a group is the same as
-    transferring bitcoins to \emph{X} and \emph{Y} with insufficient funds for
-    both.
+analogous to the problem of conflicting messages in public discussions.
+    %deciding between \emph{X} and \emph{Y} as a group is the same as
+    %transferring bitcoins to \emph{X} and \emph{Y} with insufficient funds for
+    %both.
 %
-However, Bitcoin just blindly transfers bitcoins between users, with no
-subjective judgment that could affect the actual transactions.
+However, Bitcoin just supports transfers between users, with no subjective
+judgment that could affect the actual transactions.
 In contrast, our challenge is to use social interactions between humans to
 evaluate content and mitigate abuse.
 
 In this work, we propose a permissionless consensus algorithm based on
 authoring reputation.
 Inspired by Bitcoin, authors accumulate tokens named \reps, which serve as
-currency to rate posts in the network.
+currency to rate posts in the forums.
 Users can rate posts with likes and dislikes, which transfer \reps between
 them.
 Work is manifested as new posts which, if accepted by others, reward authors
@@ -140,16 +140,16 @@ on human creativity and judgement, which match our target domain of content
 publishing.
 Posts and likes are linked as blocks in a Merkle~DAG that persists the whole
 conversation and is disseminated in the network with gossiping.
-To reach consensus, the DAG is sequenced as a linked list that orders branches
-with more reputed authors first (i.e., branches with more work).
-The list is then verified for conflicting operations, such as likes with
-insufficient \reps, which is equivalent to double spending in Bitcoin.
-In this case, the branch that causes the conflict, which is always the one with
-less work, is removed from the DAG and the linked list is recalculated.
+To reach consensus, the DAG is ordered by branches with more reputed authors,
+which worked more in the forum.
+The resulting list is then verified for conflicting operations, such as likes
+with insufficient \reps, which is equivalent to double spending in Bitcoin.
+In this case, the branch that causes the conflict is removed from the DAG.
+%
 We integrated the proposed consensus algorithm into Freechains, a peer-to-peer
 publish-subscribe content dissemination protocol~\cite{fcs.sbseg20}.
-We also present the prototype of a permissionless version control system that
-relies on consensus to apply automatic merges.
+We also prototyped of a permissionless version control system that relies on
+consensus to apply automatic merges.
 
 \begin{figure*}
 \centering
@@ -160,36 +160,33 @@ relies on consensus to apply automatic merges.
 
 Our main contribution is to make public forums practical with complete
 decentralization.
-The proposed reputation and consensus mechanism depends solely on human work to
-create and moderate content, which distinguishes itself from most systems which
-rely on external resources to reach consensus.
+The proposed reputation and consensus mechanism depends exclusively on human
+work, contrasting with most systems that rely on extrinsic resources, such as
+CPU power.
 The general idea of the algorithm can be applied to any public forum system
 that uses DAGs to structure its messages.
 As a derived contribution, the consensus implies a total order among messages,
-which supports operation-based CRDTs~\cite{merkle.crdts} as a backing mechanism
-for collaborative authoring, such as distributed version control systems.
+which backs the design of CRDTs~\cite{p2p.merkle-crdts} for collaborative
+authoring platforms, such as distributed version control systems.
 
 As a main limitation, Merkle~DAGs are ever growing data structures that also
 carry considerable metadata overhead.
-Pruning DAGs require particular solutions that do not solve this fundamental
-problem.
+In addition, the required per-block validation is a bottleneck for real-time
+applications, such as chats and video calls.
 %
-Also, the associated metadata and per-block validation of Merkle-DAGs is not
-very efficient for real-time applications such as chats and video calls.
-%
-Finally, since public forums are still social platforms, we do not claim that
-the proposed reputation system enforces ``good'' human behavior in any way.
+Finally, we do not claim that the proposed reputation system enforces ``good''
+human behavior in any way.
 Instead, it provides a transparent and quantitative mechanism that helps users
-understand the evolution of the community and act accordingly.
+understand the evolution of forums and act accordingly.
 
 In Section~\ref{sec.freechains}, we introduce the basic functionalities of \FC
 to create, rate, and disseminate posts.
 In Section~\ref{sec.consensus}, we describe the general reputation and
-consensus mechanism, and how it integrates with public forums in \FC.
+consensus mechanism, and show how it integrates with public forums in \FC.
 In Section~\ref{sec.crdts}, we discuss the correspondences with CRDTs and
-present the version control system prototype.
-In Section~\ref{sec.related}, compare our protocol and consensus mechanism with
-other publish-subscribe middlewares, federated applications, and fully
+prototype a simple version control system.
+In Section~\ref{sec.related}, we compare our protocol and consensus mechanism
+with other publish-subscribe middlewares, federated applications, and fully
 peer-to-peer systems.
 In Section~\ref{sec.conclusion}, we conclude this work.
 
