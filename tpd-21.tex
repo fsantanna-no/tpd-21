@@ -59,12 +59,12 @@ We trace a parallel with Bitcoin:
     and aggregate reputation determines consensus (vs longest chain).
 The reputation system and resulting consensus depends exclusively on human work
 to create and rate content.
-We prototype a simple permissionless version control system that relies on
-reputation consensus to resolve conflicts automatically.
+We prototype a simple permissionless distributed version control system that
+relies on reputation consensus to resolve conflicts automatically.
 \end{abstract}
 
 \begin{IEEEkeywords}
-bitcoin, crdts, distributed consensus, peer-to-peer, publish-subscribe, reputation system, version control system
+bitcoin, crdt, dvcs, distributed consensus, peer-to-peer, publish-subscribe, reputation system
 \end{IEEEkeywords}}
 
 \maketitle
@@ -148,8 +148,8 @@ In this case, the branch that causes the conflict is removed from the DAG.
 %
 We integrated the proposed consensus algorithm into Freechains, a peer-to-peer
 publish-subscribe content dissemination protocol~\cite{fcs.sbseg20}.
-We also prototyped of a permissionless version control system that relies on
-consensus to apply automatic merges.
+We also prototyped of a permissionless distributed version control system
+(\emph{DVCS}) that relies on consensus to apply automatic merges.
 
 \begin{figure*}
 \centering
@@ -166,8 +166,8 @@ CPU power.
 The general idea of the algorithm can be applied to any public forum system
 that uses DAGs to structure its messages.
 As a derived contribution, the consensus implies a total order among messages,
-which backs the design of CRDTs~\cite{p2p.merkle-crdts} for collaborative
-authoring platforms, such as distributed version control systems.
+which backs the use of CRDTs~\cite{p2p.merkle-crdts} in distributed
+collaborative authoring platforms, such as a DVCS.
 
 As a main limitation, Merkle~DAGs are ever growing data structures that also
 carry considerable metadata overhead.
@@ -184,7 +184,7 @@ to create, rate, and disseminate posts.
 In Section~\ref{sec.consensus}, we describe the general reputation and
 consensus mechanism, and show how it integrates with public forums in \FC.
 In Section~\ref{sec.crdts}, we discuss the correspondences with CRDTs and
-prototype a simple version control system.
+prototype a simple DVCS.
 In Section~\ref{sec.related}, we compare our protocol and consensus mechanism
 with other publish-subscribe middlewares, federated applications, and fully
 peer-to-peer systems.
@@ -606,14 +606,14 @@ the pioneer in a public chain (prefix $\#$):
 The \emph{join} command in rule~\texttt{1.a} bootstraps a public chain,
 assigning \nreps{30} equally distributed to the pioneers referred in the public
 keys.
-The pioneers shape the initial culture of the chain with its first posts and
+The pioneers shape the initial culture of the chain with their first posts and
 likes, while they gradually transfers \reps to other authors, which may also
 transfer to other authors, expanding the community.
 %
 In this regard, the \emph{post} command in sequence above, which is signed by
-the single pioneer and indicates the purpose of the chain to future users.
+the single pioneer, indicates the purpose of the chain for future users.
 
-Our most basic concern in public forums is to resist Sybils spamming the
+The most basic concern in public forums is to resist Sybils spamming the
 chains.
 Fully peer-to-peer systems cannot rely on identity logins or CAPTCHAs due
 to the lack of a central authority.
@@ -622,33 +622,31 @@ already in the community vouch for new users, or (ii) imposing economic costs
 for new posts, such as proof of work.
 
 We propose a mix between trust graphs and economic costs.
-Rule~\texttt{4.a} imposes that authors require at least \onerep to post, while
-rule~\texttt{2} imposes a cost of \onerep for each new post.
-To vouch for new users, rule~\texttt{3.a} allows that existing users like and
-unblock newbies' posts, but also at the cost of \onerep.
-These rules impose costs not only for welcoming new users, but also for posting
-new messages, which prevents abuse from malicious users already in the chain.
+%
+Rule~\texttt{4.a} imposes that authors require at least \onerep to post,
+effectively blocking Sybil actions.
+To vouch for new users, rule~\texttt{3.a} allows that an existing user likes a
+newbie's post to unblock it, but at the cost of \onerep.
+This cost prevents that malicious members unblock new users indiscriminately,
+which would be a breach for Sybils.
+For the same reason, rule~\texttt{2} imposes a temporary cost of \onerep for
+each new post.
 %
 Note that the pioneer rule~\texttt{1.a} solves the chicken-and-egg problem
 imposed by rule~\texttt{4.a}.
-%
-Access is permissionless in the sense that in honest chains the actual
-identities behind posts are irrelevant for acceptance, only the quality of
-content.
 
-The next commands illustrate the reputation rules with numbers.
-A new user joins the same public chain as before and posts a message, which is
-welcomed with a like signed by the pioneer:
+In the next sequence of commands, a new user joins the same public chain and
+posts a message, which is welcomed with a like signed by the pioneer:
 
 {\footnotesize
 \begin{verbatim}
  > freechains crypto pubpvt 'new-author-password'
  503AB5.. 41DDF1..
  > freechains '#forum' join '4B56AD..'
- 10AE3E..  <-- same pioneer as before
+ 10AE3E..     <-- same pioneer as before
  > freechains '#forum' post 'Im a newbie...' \
     --sign='41DDF1..'
- 2_C3A40F..
+ 2_C3A40F..   <-- blocked post
  > freechains '#forum' like '2_C3A40F..' \
     --sign='DA3B5F..'
  3_59F3E1..
@@ -657,6 +655,21 @@ welcomed with a like signed by the pioneer:
 
 Note that chains with the same name but different pioneers are incompatible
 because the hash of genesis blocks also depend on the pioneers' public keys.
+
+Figure~\ref{fig.forum} illustrates the chain DAG up to the like operation.
+The pioneer starts with \nreps{30} (rule~\texttt{1.a}) and posts the initial
+message.
+%
+New posts penalize authors with \nreps{-1} during at most 12 hours
+(rule~\texttt{2}), which depends on the activity succeeding (and including) the
+new post.
+The more activity from reputed authors, the less time the discount persists.
+In the example, since the post is from the pioneer controlling all \reps in the
+chain, the penalty falls immediately and she remains with \nreps{30}.
+This mechanism limits the excess of posts in chains dynamically.
+For instance, in slow technical mailing lists, it is more expensive to post
+messages in sequence.
+However, in chats with active users, the penalty can decrease to zero.
 
 \begin{figure}
 \centering
@@ -667,32 +680,14 @@ because the hash of genesis blocks also depend on the pioneers' public keys.
 \label{fig.forum}
 \end{figure}
 
-Figure~\ref{fig.forum} illustrates the chain DAG up to the like operation.
-The pioneer starts with \nreps{30} (rule~\texttt{1.a}) and posts an initial
-message.
-%
-A new post penalizes its author with \nreps{-1} (rule~\texttt{2}) which is
-restored after at most 12 hours.
-This period depends on the activity that comes after the new post (including
-it).
-The more activity from reputed authors, the less time the discount persists.
-In the example, since the post is from the pioneer, which currently controls
-all \reps in the chain, the penalty falls immediately and the pioneer remains
-with \nreps{30}.
-This mechanism limits the excess of posts in a chain dynamically.
-For instance, in a slow technical mailing list, it is more expensive to post
-messages in sequence.
-However, in a chat with the majority of users participating, the penalty for
-new posts can be reduced to zero.
-%
-Back to the figure, a new user with \nreps{0} tries to post a message
-(hash~\texttt{C3A40F..}), which is initially blocked (rule~\texttt{4.a}), as
-the red background highlights.
-Then, the pioneer likes the blocked message, which reduces himself to
-\nreps{29} and increases new user to \onerep (rule~\texttt{3.a}).
-Once again, the penalty expires immediately since the like that follows the new
-post is from the pioneer still with all \reps in the chain.
-%
+Back to Figure~\ref{fig.forum}, a new user with \nreps{0} tries to post a
+message (hash~\texttt{C3A40F..}) and is blocked (rule~\texttt{4.a}), as the red
+background highlights.
+Then, the pioneer likes the blocked message, decreasing herself to \nreps{29}
+and increasing new user to \onerep (rule~\texttt{3.a}).
+Note that the newbie post is not penalized because it is followed by the
+pioneer, which still controls all \reps in the chain (rule~\texttt{2}).
+
 \begin{comment}
 At the end, the pioneer has \nreps{28} and the new user remains with \nreps{0}
 but with his post accepted.
@@ -703,19 +698,21 @@ recovered (rule~\texttt{2}):
     the pioneer goes to \nreps{29} and the new user to \onerep, which sum up to
     the pioneer's original \nreps{30}.
 \end{comment}
-%
+
 With no additional rules to generate \reps, the initial \nreps{30} would
 constitute the whole ``chain economy'' forever.
-For this reason, rule~\texttt{1.b} awards authors 24 hours after each new post
-with \onerep.
+For this reason, rule~\texttt{1.b} awards authors of new posts with \onerep,
+but only after 24 hours.
 This rule stimulates content creation and grows the economy of chains.
-The 24-hour period allows other users to judge the post before awarding its
-author, and also regulates the growth speed of the chain.
-Therefore, after the commands above complete 1 day, the pioneer accumulates
-\nreps{30} and the new user \nreps{2}, growing the economy in \nreps{2} as
-result of the two consolidated posts.
+The 24-hour period gives sufficient time for other users to judge the post
+before awarding the author.
+It also regulates the growth speed of the chain.
+In Figure~\ref{fig.forum}, after 1 day, the pioneer now accumulates \nreps{30}
+and the new user \nreps{2}, growing the economy in \nreps{2} as result of the
+two consolidated posts.
 Note that rule~\texttt{1.b} awards at most one post at a time.
-New posts during the 24-hour period will not awards extra \reps to the author.
+Hence, new posts during the 24-hour period will not award extra \reps to the
+author.
 Note also that rule~\texttt{4.b} limits authors to at most \nreps{30}, which
 provides incentives to spend likes and thus decentralize the network.
 
@@ -723,7 +720,12 @@ Likes and dislikes (rules \texttt{3.a} and \texttt{3.b}) serve three purposes
 in the chains:
     (i) welcoming new users,
     (ii) measuring the quality of posts, and
-    (iii) censoring abuse (SPAM, fake news, illegal content).
+    (iii) censoring abuse (SPAM, fake news, illegal content, etc).
+%
+Access to chains is permissionless in the sense that the actual identities
+behind posts are irrelevant for acceptance.
+Instead, it is the quality of content that is verified and accounted in the
+system.
 %
 The reputation of a given post is the difference between its likes and
 dislikes, which can be used in end-user software for filtering and highlighting
@@ -731,19 +733,20 @@ purposes.
 %
 The quality of posts is subjective and is up to users to judge then with likes,
 dislikes, or simply abstaining.
+%
 On the one hand, since \reps are finite, users need to ponder to avoid
 indiscriminate expenditure.
 On the other hand, since \reps are limited to at most \nreps{30} per author
 (rule~\texttt{4.b}), users also have incentives to rate content.
-Hence, the scarcity and limits work together towards the quality of the chains.
+Hence, the upper and lower limits work together towards the quality of the
+chains.
 %
 Note that a dislike shrinks the chain economy since it removes \reps from both
 the origin and target.
 As detailed next, the actual contents of a post may become hidden if it has at
-least 3 dislikes and the number of dislikes is higher than the number of likes
-(rule~\texttt{3}).
+least 3 dislikes, and more dislikes than likes (rule~\texttt{3}).
 However, considering that \reps are scarce, dislikes should be more directed to
-combat abuse, but not much to eliminate divergence of opinion.
+combat abuse, but not much to eliminate divergences of opinion.
 
 \begin{figure}
 \centering
@@ -759,10 +762,10 @@ combat abuse, but not much to eliminate divergence of opinion.
 
 A post has three possible states: \emph{BLOCKED}, \emph{ACCEPTED}, or
 \emph{HIDDEN}.
-Figure~\ref{fig.state} specifies the transitions between the states.
+Figure~\ref{fig.state} specifies the transitions between states.
 %
-If the author has reputation, its new post is immediately \emph{ACCEPTED} in
-the chain.
+If the author has reputation, a new post is immediately \emph{ACCEPTED} in the
+chain.
 Otherwise, it is \emph{BLOCKED} and requires a like from another user.
 Blocked posts are not considered part of the chain DAG in the sense that new
 posts do not link back to it.
@@ -771,93 +774,90 @@ Peers are not required to hold blocked posts and neither retransmit them to
 other peers.
 However, if blocked posts do not reach other users, they will never have the
 chance to be welcomed with a like.
-A reasonable policy for blocked posts is to hold them in a temporary bag and
-retransmit them for some visibility in the network.
+A reasonable policy is to hold blocked posts in a temporary bag and retransmit
+them for some visibility in the network.
 Rule~\texttt{4.c} limits the size of posts to at most \emph{128Kb} to prevent
 DDoS attacks using gigantic blocked posts.
 %
 Once accepted, a post becomes part of the chain and can never be removed
-again since Merkle~DAGs are immutable by design.
+again, since Merkle~DAGs are immutable by design.
 %Note that blocked posts that become accepted are always succeeded by a
 %\emph{like} (Figure~\ref{fig.forum}).
 %
-If the number of dislikes of a post exceeds the threshold (rule~\texttt{3}),
-its payload becomes \emph{HIDDEN} and is not retransmitted to other peers.
-% and should be removed from local storage.
-Since the Merkle~DAG depends only on its hash, removing the actual payload is
-harmless.
-Also, the DAG itself contains the dislikes that prove the hidden state to other
-peers.
-Later, if the post receives new likes and changes its state, it means that the
-payload is still known somewhere and peers can request it when synchronizing
-again.
+If the number of dislikes exceeds the threshold (rule~\texttt{3}), the block
+becomes \emph{HIDDEN} and its payload is not retransmitted to other peers.
+The hash of the block depends only on the hash of the payload, so it is safe to
+remove the actual payload as long as you can prove its hidden state.
+Later, if the post receives new likes and changes its state again, it means
+that the payload is still known somewhere and peers can request it when
+synchronizing again.
 
 \section{Correspondence with CRDTs}
 \label{sec.crdts}
 
-Conflict-free replicated data types (CRDTs) are data structures that can be
-updated concurrently with the guarantee that they converge to the same state on
-synchronization, despite arbitrary failures~\cite{p2p.crdts}.
-%
-CRDTs serve as a robust foundation to model data in networked local-first
-applications~\cite{p2p.local}.
+Conflict-free replicated data types (CRDTs)~\cite{p2p.crdts} serve as a robust
+foundation to model shared data with concurrent updates in networked
+local-first applications~\cite{p2p.local}.
 
-Considering \FC operating as a transport layer for networked applications, the
-Merkle~DAG chains are trivially CRDTs because the DAG itself is the
-CRDT~\cite{p2p.merkle-crdts}.
-More specifically, they are state-based CRDTs (CvRDTs) because, on
-synchronization, the missing parts of the self-verifiable DAGs are exchanged to
-converge to the same state.
+At the transport layer, a Merkle~DAG chain is itself a trivial state-based CRDT
+(CvRDT) because, on synchronization, the missing parts of its self-verifiable
+DAG are exchanged to converge to the same state~\cite{p2p.merkle-crdts}.
 %
 At the application layer, however, DAGs are not CRDTs because branches are
 delivered to peers in different orders, and thus can lead to different states
 when processed.
-An interesting approach~\cite{p2p.merkle-crdts} is to require blocks in the
-DAGs to represent commutative operations.
-Commutative operations, combined with Merkle's exactly-once delivery guarantee,
-lead to operation-based CRDTs (CmRDTs) at the application layer.
-CmRDTs have the advantage that it only needs to store the operations to
-reconstruct any version of the data, instead of storing each complete version
-of the data as required in CvRDTs.
 %
-Our proposed consensus algorithm goes one step further and transforms a DAG
-into a totally-ordered set, which leads to a CRDT that does not require
+An interesting approach is to require blocks in the DAGs to represent
+commutative operations, which lead to operation-based CRDTs (CmRDTs), now at
+the application layer~\cite{p2p.merkle-crdts}.
+%
+CmRDTs only requires to store the update operations in order to reconstruct any
+version of the data.
+In contrast, CvRDTs would require to store each complete version of the data
+for the same purpose.
+%
+Our proposed consensus algorithm goes one step further and transforms a chain
+DAG into a totally-ordered set, which leads to a CRDT that does not require
 commutative operations.
 
-Next, we illustrate the three-layered CRDT framework through an example of a
-simple permissionless peer-to-peer Version Control System implemented on top
-of public chains.
+These mechanisms lead to three-layered CRDT framework:
+    a CvRDT at the transport layer,
+    a CmRDT relying on commutative operations at the application layer, and
+    a CmRDT with arbitrary operations after consensus is applied.
+Next, we illustrate this framework through an example of a simple
+permissionless DVCS implemented on top of public chains.
 
-\subsection{A P2P VCS with Automatic Merge}
+\subsection{A DVCS with Automatic Merge}
 
-We built a simple peer-to-peer Version Control System with the following
-operations and respective \FC operations in parenthesis:
+We built a simple DVCS with the operations as follows:
 %
 \begin{itemize}
     \setlength{\itemindent}{-8pt}
     \item initialize a repository (\texttt{join})
     \item commit local changes to repository (\texttt{post})
-    \item checkout repository changes to local (\texttt{traverse/payload})
+    \item checkout repository to local (\texttt{traverse/payload})
     \item synchronize with remote peer (\texttt{send/recv})
     \item rate commits with likes \& dislikes (\texttt{like/dislike})
 \end{itemize}
 %
-The system executes under public chains, which means that repositories are
-permissionless and adhere to the reputation and consensus mechanism of \FC.
+The associated \FC commands appear in parenthesis.
+%
+The system relies on public forum chains, which means that repositories are
+permissionless and adhere to the reputation and consensus mechanism.
 The main innovations in this system are that
-    (i)  users can rate commits which can thus be rejected,  and
-    (ii) checkouts merge commits automatically based on consensus.
+    (i)  users can rate commits to reject them, and
+    (ii) checkout operations merge commits automatically based on consensus.
 
-Suppose we want to model a Wiki with public forums in \FC.
-Each article is a chain behaving as its own VCS, holding the full edition
-history.
-Articles can link to other articles referring to other chains.
+As a concrete example, we model a Wiki article as a chain behaving as a VCS to
+hold its full edition history.
+An article can refer to other articles using hyperlinks to other chains.
 
-We use the \FC operations directly, except for \emph{commit} and
-\emph{checkout}, which require multiple operations.
-As an example, we join a public chain with the name of the file we want to
-track and multiple pioneers.
-We then edit the file and commit it:
+Most VCS operations, except \emph{commit} and \emph{checkout}, map directly to
+single \FC operations.
+For instance, to create a repository, we simply join a public chain with the
+name of the file we want to track.
+In the example that follows, we create a repository with multiple pioneers, and
+then edit and commit the file multiple times:
 
 {\footnotesize
 \begin{verbatim}
@@ -881,18 +881,20 @@ The \emph{commit} operation expands as follows:
 \end{verbatim}
 }
 
-A commit first checks out the remote version held in the chain to an output
-file \texttt{p2p.remote}.
-Then, it diffs the remote against the local version to generate the file
-\texttt{p2p.patch} with our changes.
-Finally, the commit posts the signed patch file into the chain.
+It first makes a temporary checkout to file \texttt{p2p.remote}.
+Then, it diffs the remote and the local versions with our changes to file
+\texttt{p2p.patch}.
+Finally, the commit operation posts the signed patch file back into the chain.
+Of course, the chain name and signature are parameters in the actual
+implementation.
 
-Much time later, another reputed author synchronizes with us, checks out the
-file, then edits and commits it back:
+Much time later, the other pioneer synchronizes with us, checks out the file,
+and then edits and commits it back:
 
 {\footnotesize
 \begin{verbatim}
  > freechains #p2p.md recv '<our-ip>'
+ 2/2    <-- two commits above
  > freechains-vcs #p2p.md checkout p2p.md
  > echo "Peer-to-Peer does not scale!" >> p2p.md
  > freechains-vcs #p2p.md commit --sign=320B59..
@@ -910,22 +912,22 @@ the genesis block:
      freechains #p2p.md payload $blk > p2p.patch
      patch p2p.md p2p.patch
      if [ $? != 0 ]; then
-       echo $blk  # hash of failing patch
+       echo $blk  <-- hash of failing patch
        break
      fi
    done
 \end{verbatim}
 }
 
-The \texttt{traverse} operation returns all hashes since the genesis block
-respecting the consensus order.
+The \texttt{traverse} operation of \FC returns all hashes since the genesis
+block respecting the consensus order.
 The loop reads each of the payloads representing the patches and apply them in
-order to recreate the current version of the file in the chain.
-If the patch application fails, the command exhibits the hash of the block in
-the screen.
+order to recreate the newest version of the file in the repository.
+If the patch fails, the command exhibits the hash of the block in the screen
+and terminates.
 
-Since the last edition is clearly wrong, other users in the network will
-dislike its commit until it becomes \emph{HIDDEN} in the chain (as described in
+Since the last commit above is clearly wrong, other users in the network will
+dislike it until the block becomes \emph{HIDDEN} in the chain (as described in
 Figure~\ref{fig.state}):
 
 {\footnotesize
@@ -941,18 +943,18 @@ Figure~\ref{fig.state}):
 \end{verbatim}
 }
 
-This way, the checkout operation above applies an empty patch and the offending
-line disappears from the file.
-This illustrates how the reputation system enables collaborative permissionless
-editing.
+This way, the checkout operation above will apply an empty patch associated
+with the hidden block, removing the offending from the file.
+This mechanism illustrates how the reputation system enables collaborative
+permissionless editing.
 
-Next, we create a conflict situation in which two authors in different peers
-edit the same line concurrently:
+Next, we create a conflicting situation in which two authors edit and commit
+the same line of the file concurrently:
 
 {\footnotesize
 \begin{verbatim}
  # PEER A (more reputation):
- > sed -i 's/peer/Peer/g' p2p.md  # fix typo
+ > sed -i 's/peer/Peer/g' p2p.md    <-- fix typo
  > freechains-vcs #p2p.md commit --sign=699299..
  27_A..
 
@@ -967,94 +969,90 @@ edit the same line concurrently:
  > freechains #p2p.md send '<our-ip>'
  1 / 1
  > freechains-vcs #p2p.md checkout p2p.md
- 1 out of 1 hunk FAILED -- saving rejects to file p2p.md.rej
+ 1 hunk FAILED -- saving rejects to file p2p.md.rej
  27_B..
  > cat p2p.md
- Peer-to-Peer networking is...
+ Peer-to-Peer networking is...      <-- typo fixed
  The [USENET](#usenet.md), ...
  ...
 \end{verbatim}
 }
+
+After they commit the conflicting changes, the peers synchronize in both
+directions and reach the state of Figure~\ref{fig.conflict}.
+When we checkout the file, the patches are applied respecting the consensus
+order.
+As a result, although the conflict exists, we see that the first branch is
+applied, but not the second, leaving the file in the longest possible
+consistent state.
+%
+Because of the \texttt{break} in the checkout operation above, note that once a
+conflict is found, no further patches apply in any of the remaining branches.
+%
+We chose to adopt a \emph{first write wins} resolution to favor work in the
+branches with more reputation.
+Nonetheless, the failing patch branch is not totally ignored, since the
+checkout saves the conflict file and indicates the block causing it.
+%
+We believe the optimistic choice that does not reject both patches is the most
+advantageous, because it keeps the file in an usable state while still showing
+that there is a conflict to resolve.
+For instance, the authors can later decide to dislike one of the two commits to
+settle the file (possibly inverting their reputation) and remove the warning.
 
 \begin{figure}
 \centering
 \includegraphics[width=0.35\textwidth]{conflict.png}
 \caption{
     The branches in the DAG are ordered by reputation.
-    The application ...
+    Only the first patch is applied successfully (first write wins).
 }
 \label{fig.conflict}
 \end{figure}
 
-After they commit the conflicting changes, the peers synchronize in both
-directions and reach the state of Figure~\ref{fig.conflict}.
-Then, we checkout the file which applies the patches respecting the consensus
-order.
-As a result, although the conflict exists, we see that the first branch is
-still applied, leaving the file in the longest possible consistent state.
-%
-Because of the \texttt{break} in the checkout operation above, note that once a
-conflict is found, no further patches apply in any of the remaining branches.
-%
-We chose to adopt a \emph{first write wins} resolution to preserve further work
-in the branches with more reputation.
-However, the failing patch branch is not totally ignored, since the checkout
-saves the conflict file and indicates the block causing it.
-%
-We believe this optimistic choice is the most advantageous, because it keeps
-the file in an usable state while showing that there is a conflict to solve.
-For instance, the authors can later decide to dislike one of the two commits to
-settle the file (possibly inverting their reputation) and remove the warning.
+\subsection{Discussion}
 
 In summary, the proposed reputation and consensus mechanism empowers a simple
-P2P VCS with cooperative authoring and automatic conflict resolution.
-It only requires \emph{diff \& patch} and the basic API of \FC with no extra
-manipulation of the internal structure of the DAG.
+DVCS with cooperative authoring and automatic conflict resolution.
+It only requires \emph{diff \& patch} and the basic API of \FC with no access
+to the internal structure of DAGs.
 
-We apply the three-layered CRDT framework discussed in the beginning of this
-section as follows:
+We apply the three-layered CRDT framework as follows:
 In the first layer, the whole file commit history of small patches is
 transported as a DAG between the peers with the basic commands of \FC.
-Eventually, all peers reach to same state with the full commit history.
-However, in order to recreate the file, the peers need to interpret the DAG,
-which requires a commutative operation in the second layer because of branches.
-The \emph{patch} tool is mostly commutative, except when branches edit the same
-lines of a file.
-Hence, in these situations we resort to the third layer which determines a
-total order between the patches, which we apply sequentially until a conflict
-occurs.
+%Eventually, all peers reach same state with the full commit history.
+At this layer, the DAG is just raw data with no attached semantics.
+However, in order to recreate the file, peers need to interpret the DAG as
+small editions, which requires a commutative operation in the second layer.
+The \emph{patch} tool is mostly commutative, except when branches modify the
+same lines.
+Hence, in these situations we resort to the total order in the third layer,
+which we apply sequentially to patches until a conflict occurs.
 The final state of the file is guaranteed to be consistent, i.e., the result of
 a sequence of correct patch applications.
-
-\begin{comment}
 
 Applications that rely only on commutative operations do not require to
 traverse the DAG in the same order.
 This is the case of most social apps with threaded conversations, in which
-branches typically do not interfere with each other (e.g., chats, forums, and
-social media posts).
+branches typically do not interfere with each other.
+For instance, it is not problematic to rely on block timestamps to display
+messages in chats, forums, and social media posts.
 This is also the general case for notifications in these applications, such as
-status updates, engagements, sensor readings, etc.
+status updates and social engagements.
+
+Towards distributed collaborative applications, we can employ richer CRDT data
+models other than raw text.
+As an example, \emph{Automerge}~\cite{p2p.automerge} is a CRDT to manipulate
+JSON objects, which provides non-trivial datasets with robust merging policies.
+
+\begin{comment}
 
 where else can we use this?
     - reddit
-- branch contamination
-    - conflict and further commits
-- three levels
-    - transport
-        - no semantics
-    - consensus
-        - reputation semantics, much richer than merkle, application can take adv as Git example
-        - permanent partition
-        - but both working and even communicating (inefficient though)
-    - application
-        - no guarantees
-        - also reordering
 
 - Users can fork or recreate the chain.
   Unlike bitcoin, the value is not on the size, but the cohesion is users.
 - Safe for niche topics and minority groups                                     
-- Permission less not in the sense that anyone can participate, but more in the sense that content not identity must be verified
 - Fulfill the expectations of part of the community                             
 - Part from the principle that the pioneers want it to decentralize, otherwise would create a public identity chain fig2
 
@@ -1065,35 +1063,28 @@ where else can we use this?
 
 - users that work twice, bots
 
-Terminar com "@!xxx" dizendo que vale reps mas que owner pode "intervene"
-
 - summary
     - parallel w/ bitcoin
         - ponte entre reputacao -> sybil -> consenso
     - no problem w/ forks
-
-We reach a similar solution to Bitcoin but adapted to our domain
-- we need consensus to make the reputation system work
-- we need reputation system to reach consensus
-- same virutous cycle as bitcoin
-
-The more CPU work is done, the stronger becomes the proposal, the more peers
-follow it, the more tokens are mined.
-There is a strong association between work, profit and consensus that enables
-Bitcoin as a peer-to-peer cash system.
-
-- reputation system to rate messages
-    - positively (to distinguish from excess), or
-    - negatively (to block SPAM, fake news, illegal content)
-- some sort of scarcity (work)
-    - you like you loose
-    - you work you get
-    - otherwise sybil, "likes" abuse
-    - incentives for continuous, good quality posts
-- consensus to ???
-
-Like \emph{bitcoins}, \reps are scarce, hard to generate, and easy to verify.
-Unlike \emph{bitcoins}, \reps .
+    We reach a similar solution to Bitcoin but adapted to our domain
+    - we need consensus to make the reputation system work
+    - we need reputation system to reach consensus
+    - same virutous cycle as bitcoin
+    - The more CPU work is done, the stronger becomes the proposal, the more peers
+        follow it, the more tokens are mined.
+        There is a strong association between work, profit and consensus that enables
+        Bitcoin as a peer-to-peer cash system.
+    - reputation system to rate messages
+        - positively (to distinguish from excess), or
+        - negatively (to block SPAM, fake news, illegal content)
+    - some sort of scarcity (work)
+        - you like you loose
+        - you work you get
+        - otherwise sybil, "likes" abuse
+        - incentives for continuous, good quality posts
+    - Like \emph{bitcoins}, \reps are scarce, hard to generate, and easy to verify.
+      Unlike \emph{bitcoins}, \reps .
 
 \end{comment}
 
@@ -1105,124 +1096,113 @@ Unlike \emph{bitcoins}, \reps .
 % Consensus
 
 Many other systems have been proposed for distributed content
-dissemination~\cite{p2p.ecosystem}.
-Here we consider publish-subscribe middlewares, federated applications, and
-fully peer-to-peer systems.
+dissemination~\cite{p2p.survey,p2p.ecosystem}.
+Here we consider publish-subscribe protocols, federated applications, and fully
+peer-to-peer systems.
 
-\subsection{Publish-Subscribe Middlewares}
+\subsection{Publish-Subscribe Protocols}
 
-Decentralized topic-based publish-subscribe middlewares, such as
+Decentralized topic-based publish-subscribe protocols, such as
     \emph{XMPP}~\cite{pubsub.xmpp},
     \emph{ActivityPub}~\cite{pubsub.activitypub}, and
     \emph{gossipsub}~\cite{pubsub.gossipsub},
-assist the development of networked applications by decoupling publishers from
-subscribers.
+decouples publishers from subscribers in the network.
 %
-A key aspect of \emph{pubsubs} is that, although the end points communicate
-without knowledge of each other, the brokers or servers in between them still
-have a special role in the network.
-For instance, they might do authentication and validation of posts, and
-ultimately serve the queues that connect producers to consumers.
+A key limitation of \emph{pubsubs} is that the brokers or servers that mediate
+communication still have a special role in the network.
+They serve the communication queues and may, as examples, authenticate and
+validate posts.
 %
-Some pubsubs use gossip dissemination in unstructured peer-to-peer networks and
-do not rely on server
-roles~\cite{pubsub.tera,pubsub.rappel,pubsub.stan,pubsub.vitis,pubsub.gossipsub,pubsub.rappel}.
-They focus on techniques for scalability and performance, such as throughput,
-simultaneous connections, load balancing, and real-time relaying.
-These techniques are important but not sufficient in permissionless networks
-that have to deal with malicious nodes, particularly
+Nonetheless, some pubsubs do not rely on server roles and, instead, use gossip
+dissemination in unstructured peer-to-peer networks~\cite{pubsub.tera,pubsub.rappel,pubsub.stan,pubsub.vitis,pubsub.gossipsub,pubsub.rappel}.
+Most of these protocols focus on techniques to achieve scalability and
+performance, such as throughput, simultaneous connections, load balancing, and
+real-time relaying.
+However, these techniques alone are not sufficient to operate permissionless
+networks that have to deal with malicious nodes, particularly
 Sybils~\cite{pubsub.gossipsub2}.
 
-Being middlewares, pubsubs typically deal with low-level communication aspects
-between nodes but are agnostic about the applications built on top of it.
+As generic protocols, pubsubs are typically unaware of the applications built
+on top of them.
 In contrast, the pubsub of \FC integrates with the semantics of chains and
 verifies blocks during connections.
-For instance, the only way to flood the network is spending reputation, which
-takes hours to recharge (rule~\texttt{2} in Figure~\ref{fig.rules}).
+For instance, to flood the network with posts, malicious nodes need to spend
+reputation, which takes hours to recharge (rule~\texttt{2} in
+Figure~\ref{fig.rules}).
 Blocked posts (Figure~\ref{fig.state}) have limited reachability and are not a
 concern either.
-Another advantage of this integration is that the Merkle~DAG structure
-simplifies the synchronization between nodes, provides persistence and prevents
-duplication of messages.
+Another advantage of a tight integration is that the Merkle~DAG structure
+simplifies the synchronization between nodes, provides persistence, and
+prevents duplication of messages.
 Full persistence facilitates dealing with long churn periods, and
-de-duplication preserves CmRDTs even if operations are not idempotent.
+de-duplication tolerates CmRDTs with operations that are not idempotent.
 
 \subsection{Federated Applications}
 
-In federated applications, client identities are attached to a single server
-just like in centralized systems, but servers can communicate in a standardized
-way to allow communication across borders.
-SMTP is probably the most popular federated protocol, allowing users from one
-domain to exchange messages with users of other domains seamlessly.
-More recently, \emph{Diaspora}, \emph{Matrix}, and \emph{Mastodon} (which is
-based on ActivityPub) filled the domains of social media, chat, and
-microblogging under federations~\cite{p2p.ecosystem}.
-%
-As a drawback, identities in federations are not portable and servers may be
-banned or shut down for different reason.
-Also, users may becomes unsatisfied with their local server policies.
-In any of these cases, the user will have to grab her content, move to another
-server, and announce her new identity to followers.
+E-mail is the most popular federated application, allowing users from one
+domain to seamlessly exchange messages with users of other domains.
+More recently, \emph{Diaspora}, \emph{Matrix}, and \emph{Mastodon} filled the
+domains of social media, chat, and microblogging~\cite{p2p.ecosystem}.
+
+As a drawback, identities in federations are not portable across domains, which
+may become a problem when servers shutdown or users become unsatisfied.
+In any of these cases, users have to grab their content, move to another
+server, and announce a new identity to followers.
 
 Moderation is also a major concern in federated
 applications~\cite{p2p.ecosystem}.
-As examples, messages crossing server boundaries may diverge from local
-policies, and identities may be target of SPAM.
-In this context, moderation can be applied locally users or in servers as
-one-size-fits-all solutions.
-In either case, Sybils can still propagate messages in the network.
-With no granularity for moderating actions and no form of consensus, it is
-difficult to make pervasive public forums practical.
+As an example, messages crossing domain boundaries may be subject to different
+policies that might affect delivery.
+With no coordinated consensus, it is difficult to make pervasive public forums
+practical in federated applications.
 %
 Matrix supports a moderation system%
 \footnote{Matrix moderation: \url{https://matrix.org/docs/guides/moderation}},
-but which is permissioned and applied only after messages disseminate.
+but which is permissioned and applied only after messages have already been
+disseminated in the network.
 
 As a counterpoint, federated protocols seem to be more appropriate for
-stream-based real-time applications such as chats and streaming with a large
-number of small messages.
+stream-based real-time applications such as large chats rooms.
 The number of hops and header overhead can be much smaller in client-server
-architectures in comparison to peer-to-peer systems which typically include
-message signing, hash linking, and extra verification rules.
+architectures compared to peer-to-peer systems, which typically include message
+signing, hash linking, and extra verification rules.
 
 \subsection{Peer-to-Peer Systems}
 
 Bitcoin~\cite{p2p.bitcoin} is probably the most successful permissionless
-peer-to-peer network but serves the very specific functionality of electronic
-cash.
+network but serves specifically for electronic cash.
 IPFS~\cite{p2p.ipfs} and Dat~\cite{p2p.dat} are data-centric systems for
 hosting large files and applications, respectively.
-Scuttlebutt~\cite{p2p.scuttlebutt} and Aether~\cite{p2p.ecosystem} cover
-human-centric communication between friends and groups, respectively.
-Scuttlebutt and Aether have similar goals as \FC, focusing on \Xon and \Xnn
-public communication, respectively.
+Scuttlebutt~\cite{p2p.scuttlebutt} and Aether~\cite{p2p.ecosystem} are closer
+to \FC and cover human-centric \Xon and \Xnn public communication, respectively.
 
-Bitcoin~\cite{p2p.bitcoin} adopts CPU \emph{proof-of-work} to achieve consensus, which does not
-solve the centralization issue completely due to the high costs of equipment
-and energy.
+Bitcoin adopts CPU \emph{proof-of-work} to achieve consensus, which does not
+solve the centralization issue given the high costs of equipment and energy.
 \emph{Proof-of-stake} is a prominent alternative~\cite{p2p.proofs} that
 acknowledges that centralization is inevitable (i.e., the richer gets richer)
 and uses a function of time and wealth to elect nodes to mint new blocks.
-An advantage is that these proof mechanisms are generic and apply to multiple
-domains.
+As an advantage, these proof mechanisms are generic and apply to multiple
+domains, since they depend on an extrinsic scarce resource.
 %
-We chose an intrinsic scarce resource to reach consensus, which is human work
-to create content of quality for the chains themselves.
-We believe that authoring work grows linearly with effort and is not portable
+In contrast, we chose an intrinsic resource, which is authoring content for the
+chains themselves.
+We believe that human work grows linearly with effort and is not portable
 across chains with different topics.
 This hypothesis supports the intended decentralization.
 %
-Another distinction to generic public ledgers is that they typically require
-permanent connectivity to avoid forks, which opposes our local-first principle.
-This is because a token transaction only makes sense when it is part of the
-longest chain, which is not the case for messages exchanged locally.
+Another distinction is that generic public ledgers typically require permanent
+connectivity to avoid forks, which opposes our local-first principle.
+This is because a token transaction only has value as part of the longest
+chain.
+This is not the case for a local message communication, which has value in
+itself.
 
 IPFS~\cite{p2p.ipfs} is centered around immutable content-addressed data, while
 Dat~\cite{p2p.dat} around mutable pubkey-addressed data.
 IPFS is more suitable to share large and stable content such as movies and
 archives, while Dat is more suitable for dynamic content such as web apps.
 %
-Both IPFS and Dat use DHTs as their underlying architecture, which are optimal
+Both IPFS and Dat use DHTs as their underlying architectures, which are optimal
 to serve large and popular content, but not for search and discovery.
 In both cases, users need to know in advance what they are looking for, such as
 the exact link to a movie or a particular identity in the network.
@@ -1235,24 +1215,24 @@ An alternative is to use DHT links in Merkle payloads to benefit from both
 architectures.
 
 Scuttlebutt~\cite{p2p.scuttlebutt} is designed around public identities that
-follow each other to form a graph of connections which is also replicated in
-the network topology as well as in data storage.
+follow each other to form a graph of connections.
+This graph is replicated in the network topology as well as in data storage.
 For instance, if identity $A$ follows identity $B$, it means that the computer
 of $A$ connects to $B$'s in a few hops and also that it stores all of his posts
 locally.
-This architecture is very similar to \Xon public identity chains in
+This architecture is very similar to \Xon public identity chains of \FC in
 Figure~\ref{fig.table}.
 %
 For group \Xnn communication, Scuttlebutt uses the concept of channels, which
-are in fact only hash tags (e.g. \emph{\#sports}).
+are in fact nothing more than hash tags (e.g. \emph{\#sports}).
 Users can tag posts, which appear not only in their feeds but also in virtual
 feeds representing these channels.
 However, users only see channel posts from users they already follow.
-In practice, channels just merge friends posts and filter them by tags.
+In practice, channels simply merge friends posts and filter them by tags.
 In theory, to read all posts of a channel, a user would need to follow all
 users in the network (which also implies storing their feeds).
-Conversely, new users also struggle to integrate in channel communities since
-their posts have no visibility at all.
+A limitation of this model is that new users struggle to integrate in channel
+communities because their posts have no visibility at all.
 As a counterpoint, channels are safe places that do not suffer from abuse.
 %
 In \FC new users require a single like for visibility in the community, which
@@ -1265,7 +1245,7 @@ with \Xnn public forums of \FC.
 A fundamental difference is that is designed for ephemeral, mutable posts with
 no intention to enforce global consensus across peers.
 Aether employs a very pragmatic approach to mitigate abuse in forums, using
-established techniques such as proof-of-work to combat SPAM and an innovative
+established techniques, such as proof-of-work to combat SPAM, and an innovative
 voting system to moderate forums, but which affects local instances only.
 In contrast, \FC relies on its reputation and consensus mechanisms for
 moderation.
