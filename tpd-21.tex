@@ -304,8 +304,8 @@ after the synchronization would now contain two blocks with height $1$.
 %
 Note that forks in the DAG create ambiguity in the order of messages, which is
 the fundamental obstacle to reach consensus.
-In private chains, we can apply simple methods to reach consensus, such as
-relying on the timestamps of blocks.
+In private chains, we can apply simple methods, such as relying on the
+timestamps of blocks.
 However, in public forums, a malicious user could modify his local time to
 manipulate the order of messages.
 
@@ -400,8 +400,12 @@ non-trivial work immune to automation.
 \end{figure}
 
 Bitcoin employs CPU proof-of-work to mitigate Sybil attacks.
-However, in the context of content publishing, we understand that authoring is
-already an intrinsic human work that we can take advantage.
+However, CPU or alternative extrinsic resources are not evenly distributed
+among humans, specially considering that most communications use
+battery-powered devices.
+%
+In the context of content publishing, we understand that authoring ability is
+already an intrinsic human resource that we can take advantage.
 Creating new content is hard and takes time, but is comparatively easy to
 verify and rate.
 Therefore, in order to impose scarcity, we determine that only content
@@ -790,12 +794,13 @@ Our proposed consensus algorithm goes one step further and transforms a chain
 DAG into a totally-ordered set, which leads to a CRDT that does not require
 commutative operations.
 
-These mechanisms lead to three-layered CRDT framework:
+These mechanisms lead to three-layered CRDT scheme to build distributed
+applications:
     a CvRDT at the transport layer,
     a CmRDT relying on commutative operations at the application layer, and
-    a CmRDT with arbitrary operations after consensus is applied.
-Next, we illustrate this framework through an example of a simple
-permissionless DVCS implemented on top of public chains.
+    a CRDT with arbitrary operations after consensus is applied.
+Next, we illustrate this scheme through an example of a simple permissionless
+DVCS implemented on top of public chains.
 
 \subsection{A DVCS with Automatic Merge}
 
@@ -987,7 +992,7 @@ DVCS with cooperative authoring and automatic conflict resolution.
 It only requires \emph{diff \& patch} and the basic API of \FC with no access
 to the internal structure of DAGs.
 
-We apply the three-layered CRDT framework as follows:
+We apply the three-layered CRDT scheme as follows:
 In the first layer, the whole file commit history of small patches is
 transported as a DAG between the peers with the basic commands of \FC.
 %Eventually, all peers reach same state with the full commit history.
@@ -1180,6 +1185,38 @@ moderation.
 \section{Conclusion}
 \label{sec.conclusion}
 
+We propose a new permissionless consensus algorithm for content dissemination
+in peer-to-peer networks.
+The main insight of the algorithm is to use the human authoring ability as a
+scarce resource to determine consensus.
+This contrasts with extrinsic resources, such as CPU power, which are
+dispendious and not evenly distributed among people.% willing to communicate.
+
+Consensus is backed by a reputation system in which users can rate posts with
+likes and dislikes, which transfer reputation between them.
+The only way to forge reputation is authoring new content, which is subject to
+judgement by other users.
+This way, reputation generation is expensive, while verification is cheap.
+
+The reputation and consensus mechanism is integrated into \FC, a peer-to-peer
+protocol that offers permissionless public forums that are immune to Sybil
+attacks.
+The protocol replicates Merkle~DAGs that represent causal relationships between
+messages in the network.
+The consensus algorithm transforms DAGs into totally-ordered sets, which
+eliminates conflicts analogous to double spending in Bitcoin.
+The mechanism can be applied to any system that uses DAGs to structure its
+messages.
+
+We also conceptualize a three-layered CRDT scheme to build collaborative
+applications:
+    (i)   the Merkle~DAG as a CvRDT at the transport layer,
+    (ii)  commutative updates as a CmRDT at the application layer,
+    (iii) arbitrary operations as a CRDT after consensus is applied.
+%
+On top of this scheme, we built a simple distributed version control system
+that resolves commit conflicts automatically.
+
 \begin{comment}
 
 where else can we use this?
@@ -1245,6 +1282,7 @@ uses mining to
 \bibliographystyle{IEEEtran}
 \bibliography{tpd-21}
 
+\begin{comment}
 \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{chico}}]{Francisco Sant'Anna}
 received his PhD degree in Computer Science from PUC-Rio, Brazil in
 2013.
@@ -1253,5 +1291,6 @@ University, Brazil.
 His research interests include Programming Languages and Concurrent \&
 Distributed Systems.
 \end{IEEEbiography}
+\end{comment}
 
 \end{document}
