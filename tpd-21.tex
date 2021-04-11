@@ -45,7 +45,7 @@ relies on reputation consensus to resolve conflicts automatically.
 \end{abstract}
 
 \begin{IEEEkeywords}
-bitcoin, crdt, dvcs, distributed consensus, peer-to-peer, publish-subscribe, reputation system
+Bitcoin, CRDT, distributed consensus, peer-to-peer, publish-subscribe, reputation system, version control system
 \end{IEEEkeywords}}
 
 \maketitle
@@ -67,9 +67,9 @@ obstruct portability with proprietary standards.
 %
 Peer-to-peer alternatives~\cite{p2p.survey} eliminate intermediaries and push
 to end users the responsibility to manage data and connectivity.
-However, due to the decentralization of authority and network infrastructure,
-some new challenges arise to deal with malicious users and to enforce overall
-state consistency.
+However, due to decentralization of authority and infrastructure, new
+challenges arise to enforce overall state consistency while dealing with
+malicious users.
 
 In an ideal Internet forum, all messages or posts
 (i)   reach even temporarily disconnected users;
@@ -84,7 +84,7 @@ A common approach in gossiping protocols is to proactively replicate and
 disseminate conversations in peers until they reach all
 users~\cite{p2p.survey}.
 However, this approach does not guarantee consensus since posts can be received
-in conflicting orders in different peers~\cite{p2p.intention}.
+in conflicting orders~\cite{p2p.intention}.
 %As an example, antagonistic messages such as \emph{"X is final"} vs
 %\emph{"Y is final"} might be sent concurrently, preventing the network to
 %determine as a group its intention as \emph{X} or \emph{Y}.
@@ -96,15 +96,15 @@ The only way to create new bitcoins is to work towards consensus in the network
 by proposing a total order among transactions in the system.
 %
 This way, Bitcoin prevents double spending~\cite{p2p.bitcoin}, which is
-analogous to the problem of conflicting messages in public discussions.
+analogous to conflicting message delivery in public discussions.
     %deciding between \emph{X} and \emph{Y} as a group is the same as
     %transferring bitcoins to \emph{X} and \emph{Y} with insufficient funds for
     %both.
 %
 However, Bitcoin just supports transfers between users, with no subjective
 judgment that could affect the actual transactions.
-In contrast, our challenge is to use social interactions between humans to
-evaluate content and mitigate abuse.
+In contrast, our goal is to use social interactions between humans to evaluate
+content and mitigate abuse at the same time.
 
 In this work, we propose a permissionless consensus algorithm based on
 authoring reputation.
@@ -122,15 +122,15 @@ publishing.
 Posts and likes are linked as blocks in a Merkle~DAG that persists the whole
 conversation and is disseminated in the network with gossiping.
 To reach consensus, the DAG is ordered by branches with more reputed authors,
-which worked more in the forum.
+which contributed with more work to the forum.
 The resulting list is then verified for conflicting operations, such as likes
 with insufficient \reps, which is equivalent to double spending in Bitcoin.
 In this case, the branch that causes the conflict is removed from the DAG.
 %
 We integrated the proposed consensus algorithm into Freechains, a peer-to-peer
 publish-subscribe content dissemination protocol~\cite{fcs.sbseg20}.
-We also prototyped of a permissionless distributed version control system
-(\emph{DVCS}) that relies on consensus to apply automatic merges.
+We also prototyped a permissionless distributed version control system (DVCS)
+that relies on consensus to apply automatic merges.
 
 \begin{figure*}
 \centering
@@ -139,35 +139,35 @@ We also prototyped of a permissionless distributed version control system
 \label{fig.table}
 \end{figure*}
 
-Our main contribution is to make public forums practical with complete
-decentralization.
+Our main contribution is to make public forums with complete decentralization
+viable in practice.
 The proposed reputation and consensus mechanism depends exclusively on human
 work, contrasting with most systems that rely on extrinsic resources, such as
 CPU power.
-The general idea of the algorithm can be applied to any public forum system
-that uses DAGs to structure its messages.
+The general idea of the algorithm can be applied to any system that uses DAGs
+to structure its messages.
 As a derived contribution, the consensus implies a total order among messages,
-which backs the use of CRDTs~\cite{p2p.merkle-crdts} in distributed
-collaborative authoring platforms, such as a DVCS.
+which backs the use of CRDTs~\cite{p2p.merkle-crdts} in collaborative authoring
+platforms, such as a DVCS.
 
 As a main limitation, Merkle~DAGs are ever growing data structures that also
 carry considerable metadata overhead.
-In addition, the required per-block validation is a bottleneck for real-time
-applications, such as chats and video calls.
+In addition, the required per-block validation may become a bottleneck for
+real-time applications, such as chats and video calls.
 %
 Finally, we do not claim that the proposed reputation system enforces ``good''
 human behavior in any way.
 Instead, it provides a transparent and quantitative mechanism that helps users
-understand the evolution of forums and act accordingly.
+understand the progress of forums and act accordingly.
 
 In Section~\ref{sec.freechains}, we introduce the basic functionalities of \FC
 to create, rate, and disseminate posts.
 In Section~\ref{sec.consensus}, we describe the general reputation and
 consensus mechanism, and show how it integrates with public forums in \FC.
-In Section~\ref{sec.crdts}, we discuss the correspondences with CRDTs and
+In Section~\ref{sec.crdts}, we discuss the some correspondences with CRDTs and
 prototype a simple DVCS.
-In Section~\ref{sec.related}, we compare our protocol and consensus mechanism
-with other publish-subscribe middlewares, federated applications, and fully
+In Section~\ref{sec.related}, we compare our system with other
+publish-subscribe protocols, federated applications, and fully
 peer-to-peer systems.
 In Section~\ref{sec.conclusion}, we conclude this work.
 
@@ -206,7 +206,7 @@ group chain (prefix $\$$), and (iii) posts a message into the chain:
 
 {\footnotesize
 \begin{verbatim}
- > freechains crypto shared 'strong-password' # (i)
+ > freechains key shared 'strong-password' # (i)
  A6135D..   <- returned shared key
  > freechains '$family' join 'A6135D..'       # (ii)
  42209B..   <- hash of chain
@@ -222,7 +222,7 @@ group chain (prefix $\$$), and (iii) posts a message into the chain:
     Three DAG configurations.
     (A) Single head pointing to genesis block.
     (B) Fork with heads pointing to genesis block.
-    (C) Like pointing to past block, which also merges previous heads.
+    (C) Like pointing to previous heads and also to its target.
 }
 \label{fig.family}
 \end{figure*}
@@ -252,7 +252,7 @@ with the same steps:
 {\footnotesize
 \begin{verbatim}
  > freechains-daemon start '/var/freechains/'
- > freechains crypto shared 'strong-password'
+ > freechains key shared 'strong-password'
  A6135D..
  > freechains '$family' join 'A6135D..'
  42209B..
@@ -303,7 +303,7 @@ In this case, as illustrated in Figure~\ref{fig.family}.B, the resulting graph
 after the synchronization would now contain two blocks with height $1$.
 %
 Note that forks in the DAG create ambiguity in the order of messages, which is
-the fundamental obstacle to reach consensus.
+a fundamental obstacle to reach consensus.
 In private chains, we can apply simple methods, such as relying on the
 timestamps of blocks.
 However, in public forums, a malicious user could modify his local time to
@@ -317,7 +317,7 @@ and \emph{dislikes}, which can be consulted later:
  > freechains '$family' like '1_EF5DE3..'
  2_BF3319..
  > freechains '$family' reps '1_EF5DE3..'
- 1  # post received 1 like
+ 1  <-- post received 1 like
 \end{verbatim}
 }
 
@@ -326,14 +326,14 @@ extra link to its target.
 In private groups, likes are unlimited and behave much like typical centralized
 systems.
 In public forums, however, likes are restricted, have to be signed by users,
-and are at the core of the consensus algorithm.
+and are at the core of our proposed consensus algorithm.
 
 For the sake of completeness, \FC also supports public identity chains (prefix
 $@$) with owners attached to public/private keys:
 
 {\footnotesize
 \begin{verbatim}
- > freechains crypto pubpvt 'other-password'
+ > freechains key pubpvt 'other-password'
  EB172E.. 96700A..   <- public and private keys
  > freechains '@EB172E..' join
  F4EE21..
@@ -345,11 +345,11 @@ $@$) with owners attached to public/private keys:
 
 In the example, a public figure creates a key pair and joins an identity chain
 attached to her public key.
-Every post in this chain needs to be signed with her private key to be accepted
+Every post in the chain needs to be signed with her private key to be accepted
 in the network.
 
-\FC is around $1500$ LoC in Kotlin and is publicly
-available~\footnote{\url{http://www.freechains.org}}.
+\FC is around $1500$ LoC in Kotlin and is publicly available%
+\footnote{\url{http://www.freechains.org}}.
 The binary for the JVM is less than $6Mb$ in size and works in Android and most
 desktop systems.
 
@@ -578,7 +578,7 @@ the pioneer in a public chain (prefix $\#$):
 
 {\footnotesize
 \begin{verbatim}
- > freechains crypto pubpvt 'pioneer-password'
+ > freechains key pubpvt 'pioneer-password'
  4B56AD.. DA3B5F..
  > freechains '#forum' join '4B56AD..'
  10AE3E..
@@ -625,7 +625,7 @@ posts a message, which is welcomed with a like signed by the pioneer:
 
 {\footnotesize
 \begin{verbatim}
- > freechains crypto pubpvt 'new-author-password'
+ > freechains key pubpvt 'new-author-password'
  503AB5.. 41DDF1..
  > freechains '#forum' join '4B56AD..'
  10AE3E..     <-- same pioneer as before
