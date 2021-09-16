@@ -16,6 +16,8 @@
 \newcommand{\Xoo} {$1{\leftrightarrow}1$\xspace}
 \newcommand{\Xo}  {$1{\hookleftarrow}$\xspace}
 
+\renewcommand{\theenumi}{\alph{enumi}}
+
 \begin{document}
 
 \title{
@@ -505,9 +507,9 @@ rejoining.
 \includegraphics[width=0.49\textwidth]{merge.png}
 \caption{
     Merging rules:
-    (a) The branch with more reputation in the common prefix is ordered first.
-    (b) A branch with 50\% or more reputation then its prefix is ordered first.
-    (c) The merge fails if rules (a) and (b) conflict.
+    (a) local branch is ordered first if it has more posts than the weekly
+        average in the common prefix;
+    (b) and (c) the branch with more reputation is ordered first.
 }
 \label{fig.merge}
 \end{figure}
@@ -533,21 +535,33 @@ It is simply impossible to judge with confidence which is the case.
 Nevertheless, it is unacceptable that a very old branch affects a long active
 chain.
 For this reason, the consensus algorithm includes an extra constraint when
-merging:
-If a branch creates enough \reps to reach $50\%$ of its prefix, then the
-algorithm orders this branch first in future merges.
-In the example, suppose that the common prefix accumulates \nreps{50}
-considering users $a$, $b$, and $c$.
-If \emph{branch-1} creates at least $25$ new \reps, then the merge with
-\emph{branch-2} will fail and the chains will never synchronize again.
-This situation is analogous to a hard fork in Bitcoin.
-More than a simple numeric dispute, this may represent a social conflict in
-which reconciling the branches is no longer possible.
+merging: long-lasting branches do not merge, creating *hard forks* in the
+network.
+A hard fork occurs when a local branch contains at least 7 days of activity
+considering the average of the last 28 days in the common prefix.
+As an example, if the common prefix has 100 posts in the last 28 days, the
+weekly average is 25 posts.
+Hence, if the local branch contains more than 25 new posts, it must be ordered
+first, even if the remote branch has more reputation, which creates a hard
+fork.
+This situation is analogous to a hard fork in Bitcoin and the branches will
+never synchronize again.
+More than simply numeric disputes, hard forks represent social conflicts in
+which reconciling branches is no longer possible.
 %
-Figure~\ref{fig.merge} summarizes the merging algorithm:
-    rule (a) favors branches with more reputation;
-    rule (b) favors branches with $50\%+$ \reps;
-    rule (c) enforces that rules (a) and (b) do not conflict.
+Figure~\ref{fig.merge} summarizes how to merge a branch from a remote machine
+\emph{j} into a branch from a local machine \emph{i}.
+The first rule to apply determines the merging result:
+\begin{enumerate}
+    \item \emph{i} is ordered first if it has more posts than the weekly
+          average in the common prefix, regardless of \emph{j}.
+    \item \emph{i} is ordered first if it has more reputation in the common
+          prefix.
+    \item \emph{j} is ordered first if it has more reputation in the common
+          prefix.
+    \item otherwise, branches are ordered by lexicographical order of the block
+          hashes after the common prefix (not shown in the figure).
+\end{enumerate}
 
 A fundamental drawback of Merkle~DAGs is that all replicas in the system need
 to store the complete graph in order to synchronize and verify new blocks.
@@ -802,7 +816,6 @@ operations.
 Next, we illustrate this three-layered CRDT scheme through an example of a
 simple permissionless DVCS implemented on top of public chains.
 
-\newpage
 \subsection{A DVCS with Automatic Merge}
 
 We built a simple DVCS with the functionalities as follows:
