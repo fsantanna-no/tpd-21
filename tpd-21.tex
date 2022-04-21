@@ -21,7 +21,7 @@
 \begin{document}
 
 \title{
-    Peer-to-Peer Consensus via Authoring Reputation
+    Peer-to-Peer Permissionless Consensus via Authoring Reputation
 }
 
 \author{
@@ -30,26 +30,34 @@
 
 \IEEEtitleabstractindextext{%
 \begin{abstract}
-Content publishing in public Internet forums suffers from excess and abuse,
-such as SPAM and fake news.
+Public Internet forums suffer from excess and abuse, such as SPAM and fake
+news.
 Centralized platforms employ filtering algorithms and anti-abuse policies, but
 impose full trust from users.
-We propose a publish-subscribe peer-to-peer protocol to model content
-dissemination without centralized control.
-The protocol prevents Sybil attacks with a reputation system that moderates
-content and, at the same time, delivers network consensus.
-We trace a parallel with Bitcoin:
-    posts create reputation (vs proof-of-work),
+%
+As a decentralized alternative, we propose a peer-to-peer permissionless
+publish-subscribe protocol to model content dissemination.
+Our main contribution is a reputation system that moderates content and, at the
+same time, delivers network consensus.
+We can trace a parallel with Bitcoin:
+    new posts create reputation (vs proof-of-work),
     likes and dislikes transfer reputation (vs transactions),
     and aggregate reputation determines consensus (vs longest chain).
+%
 The reputation and consensus mechanism depends exclusively on the human
-authoring ability.
-We prototype a simple permissionless distributed version control system that,
-based on consensus, resolves conflicts automatically.
+authoring ability, which is slow and scarce, thus suitable as a means to
+establish consensus.
+Human creativity contrasts with pure economic resources (e.g., proof-of-work/
+stake), which do not appraise social interactions and also tend to concentrate
+over time.
+%
+As an application example, we prototype a simple permissionless distributed
+version control system that, based on consensus, resolves conflicts
+automatically.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Bitcoin, blockchain, CRDT, distributed consensus, peer-to-peer, reputation system, version control system
+Bitcoin, blockchain, CRDT, distributed consensus, peer-to-peer, publish-subscribe, reputation system, VCS
 \end{IEEEkeywords}}
 
 \maketitle
@@ -58,6 +66,31 @@ Bitcoin, blockchain, CRDT, distributed consensus, peer-to-peer, reputation syste
 
 \section{Introduction}
 \label{sec.introduction}
+
+\begin{comment}
+unopinionated
+For instance, users can be arbitrarily censored or even removed from the
+platform with no justifications.
+In addition, because authored content token, forkeable, diversity
+
+- permissionless
+- social consensus vs economic consensus
+    - participation, linear, topped
+- forkeable, not unique, diversity
+The protocol prevents Sybil attacks with a reputation system
+ that moderates
+content and, at the same time, delivers network consensus.
+
+
+- consensus is still important
+but no need to be unique / winner takes all
+thats why other xxx are not a solution
+
+- example is relevant
+    - collaborative
+    - social consensus
+    - eventual consistency (not the whole graph)
+\end{comment}
 
 \IEEEPARstart{C}{ontent} publishing in public Internet forums and social media
 platforms is increasingly more centralized in a few
