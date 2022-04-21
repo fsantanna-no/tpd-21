@@ -49,7 +49,7 @@ based on consensus, resolves conflicts automatically.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Bitcoin, CRDT, distributed consensus, peer-to-peer, publish-subscribe, reputation system, version control system
+Bitcoin, blockchain, CRDT, distributed consensus, peer-to-peer, reputation system, version control system
 \end{IEEEkeywords}}
 
 \maketitle
@@ -135,12 +135,12 @@ publish-subscribe content dissemination protocol~\cite{fcs.sbseg20}.
 We also prototyped a permissionless distributed version control system (DVCS)
 that relies on consensus to apply automatic merges.
 
-\begin{figure*}
+\begin{table*}
 \centering
 \includegraphics[width=\textwidth]{arrangements.png}
 \caption{The three types of chains and arrangements in \FC.}
 \label{fig.table}
-\end{figure*}
+\end{table*}
 
 Our main contribution is to make decentralized public forums viable in
 practice.
@@ -183,7 +183,7 @@ which each topic or \emph{chain} is a replicated
 %This way, as an author posts to a chain, other users subscribed to the same
 %chain eventually receive the message.
 \FC supports multiple arrangements of public and private communications, which
-are detailed in Figure~\ref{fig.table}.
+are detailed in Table~\ref{fig.table}.
 In this section, we operate a private group to describe the basic behavior of
 chains without consensus.
 At the end of this section, we also exemplify a public identity chain.
@@ -249,7 +249,7 @@ Except for synchronization, all other operations in the system affect only the
 local replica.
 In particular, joining a chain with the same arguments in another peer results
 in the same genesis state, even if the peers have never met before.
-Hence, before synchronizing, others peers have to initialize the example chain
+Hence, before synchronizing, other peers have to initialize the example chain
 with the same steps:
 
 {\footnotesize
@@ -366,7 +366,7 @@ desktop systems.
 In the absence of moderation, permissionless peer-to-peer public forums are
 impractical, mostly because of Sybil attacks.
 For instance, it should take a few seconds to generate thousands of fake
-identities and SPAM million of messages into the system.
+identities and SPAM millions of messages into the system.
 %Hence, without moderation, there are no limits on the number and size of posts
 %and no reasonable policy to distinguish quality.
 For this reason, we propose a reputation system that works together with a
@@ -390,17 +390,17 @@ a \emph{like} is a positive feedback that helps subscribers distinguish good
 content amid excess;
 a \emph{dislike} is a negative feedback that revokes content when crossing a
 threshold.
-Figure~\ref{fig.general} summarizes the reputation operations and their goals.
+Table~\ref{fig.general} summarizes the reputation operations and their goals.
 To prevent Sybils, users with no \reps cannot perform these operations.
 Therefore, \reps must be subject to some sort of scarcity that demands
 non-trivial work immune to automation.
 
-\begin{figure}
+\begin{table}
 \centering
 \includegraphics[width=0.49\textwidth]{general.png}
 \caption{General reputation operations in public forums.}
 \label{fig.general}
-\end{figure}
+\end{table}
 
 Bitcoin employs CPU proof-of-work to mitigate Sybil attacks.
 However, CPU or alternative extrinsic resources are not evenly distributed
@@ -408,7 +408,7 @@ among humans, specially considering that most communications now use
 battery-powered devices.
 %
 In the context of public forums, we understand that the human authoring ability
-is already an intrinsic resource that we can take advantage.
+is already an intrinsic resource that we can take advantage of.
 Creating new content is hard and takes time, but is comparatively easy to
 verify and rate.
 Therefore, in order to impose scarcity, we determine that only content
@@ -456,7 +456,7 @@ in \emph{branch~2}, only users $a$ and $b$ participate but with less activity.
 Nonetheless, \emph{branch~2} would be ordered first because, before the forking
 point, $a$ and $b$ have more reputation than $c$, $x$, and $y$ combined.
 %
-User $c$ represents here a malicious user trying to cultivate the fake
+User $c$ here represents a malicious user trying to cultivate the fake
 identities $x$ and $y$ in separate of the network to accumulate \reps.
 %However, the whole malicious \emph{branch~1} is vulnerable because users in
 %\emph{branch~2} with more previous reputation take the priority and can
@@ -514,7 +514,7 @@ rejoining.
 \label{fig.merge}
 \end{figure}
 
-\begin{figure*}
+\begin{table*}
 \centering
 \includegraphics[width=\textwidth]{rules.png}
 \caption{
@@ -523,7 +523,7 @@ rejoining.
     (e.g., \nreps{30}).
 }
 \label{fig.rules}
-\end{figure*}
+\end{table*}
 
 As a counterpoint to the consensus order in Figure~\ref{fig.reps}.B, maybe
 users $a$ and $b$ have abandoned the chain for months, and thus \emph{branch-1}
@@ -586,7 +586,7 @@ tough.
 
 We integrated the proposed reputation system in the public forums of \FC to
 support content moderation and enforce consensus in the chains.
-Figure~\ref{fig.rules} details the concrete rules which are discussed as
+Table~\ref{fig.rules} details the concrete rules which are discussed as
 follows.
 Authors have to sign their posts in order to be accounted by the reputation
 system and operate in the chains.
@@ -1074,7 +1074,7 @@ In contrast, the pubsub of \FC is integrated with the semantics of chains and
 already verifies blocks during connections.
 For instance, to flood the network with posts, malicious nodes need to spend
 reputation, which takes hours to recharge (rule~\texttt{2} in
-Figure~\ref{fig.rules}).
+Table~\ref{fig.rules}).
 Blocked posts (Figure~\ref{fig.state}) are not a concern either, because they
 have limited reachability.
 Another advantage of a tighter integration is that Merkle~DAGs simplify
@@ -1168,7 +1168,7 @@ For instance, if identity $A$ follows identity $B$, it means that the computer
 of $A$ connects to $B$'s in a few hops and also that it stores all of his posts
 locally.
 This architecture is similar to \Xon public identity chains of \FC in
-Figure~\ref{fig.table}.
+Table~\ref{fig.table}.
 %
 For group \Xnn communication, Scuttlebutt uses the concept of channels, which
 are in fact nothing more than hash tags (e.g. \emph{\#sports}).
