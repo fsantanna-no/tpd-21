@@ -8,7 +8,8 @@ We also identified three main areas that demanded a major review, since they
 appeared in comments from all reviewers with variations:
 
 1. Make the paper scope/contributions/limitations more clear/explicit.
-   We needed to rewrite parts of the Abstract, Introduction, and Conclusion.
+   We rewrote parts of the Abstract, and most of the Introduction and
+   Conclusion.
    Follows the reviewer comments related to this area:
     - "abstract is very lightweight", "does not address the novelty", "is
       lacking a full rounded overview of the paper by not including some of the
@@ -32,8 +33,12 @@ appeared in comments from all reviewers with variations:
    economic resources (proof-of-work/stake) to reinforce our contributions.
    In the Introduction, we added an early discussion about the existing support
    for either multi-user/single-node or single-user/multi-node consensus.
-   We discuss why multi-user/multi-node consensus is import and set it as our
-   goal.
+   We discuss why multi-user/multi-node consensus is important and set it as
+   our research goal. We then discuss the limitations of Bitcoin proof-of-work
+   in the context of content publishing. Finally, we discuss our proposal
+   considering the limitations of existing work and highlight the key insight
+   of using human work as a scarce resource. We also motivate the DVCS
+   application example with TODO...
    In the Conclusion, we...
    We also respond individually to each of these comments below.
 
@@ -91,18 +96,9 @@ OK.
 >    However, the following design does not reflect the characteristics of the
 >    publish-subscribe system.
 
-- TODO
-- explicar topic-based pub-sub
-- tentar fazer mais mencoes ao pub-sub
-- como aparece na pratica no protocolo
-
-In software architecture, publish–subscribe is a messaging pattern where
-senders of messages, called publishers, do not program the messages to be sent
-directly to specific receivers, called subscribers, but instead categorize
-published messages into classes without knowledge of which subscribers, if any,
-there may be. Similarly, subscribers express interest in one or more classes
-and only receive messages that are of interest, without knowledge of which
-publishers, if any, there are.
+Agreed. We removed all mentions of "publish-subscribe" from the abstract and
+introduction, leaving them to a brief description of the protocol in Section 2
+and to related work, but with less focus.
 
 > 3. Authors should use pseudo-code or flowcharts to describe the system
      design. The use of commands can be designated as supplemental material.
@@ -111,6 +107,7 @@ We opted for one-line commands because they are real and provide a concrete
 perception of the protocol.
 We believe that using pseudo-code would not simplify the presentation while
 adding a distracting extra abstraction.
+We added a remark about this choice in Section 2: "TODO"
 
 > 4. Authors should illustrate the contents in Figure 1, Figure 3, and Figure 6
      by tables.
