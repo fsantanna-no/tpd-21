@@ -4,9 +4,8 @@ view.
 
 For each comment in the reviews, we modified the text accordingly and also
 provide a detailed feedback below.
-
 We also identified three main areas that demanded a major review, since they
-appeared in comments from all reviewers with variations.
+appeared in comments from all reviewers with variations:
 
 1. Make the paper scope/contributions/limitations more clear/explicit.
    We needed to rewrite parts of the Abstract, Introduction, and Conclusion.
@@ -27,8 +26,14 @@ appeared in comments from all reviewers with variations.
       the novelty of the proposed model"
     - "the author should clearly identify the novelty and the motivation of his
       work in the introduction comparing it to existing work"
-   In the Abstract, we ...
-   In the Introduction, we ...
+   In the Abstract, we are now more explicit about our main contribution as "a
+   reputation system that moderates content and, at the same time, delivers
+   network consensus". We also compare human authoring ability with plain
+   economic resources (proof-of-work/stake) to reinforce our contributions.
+   In the Introduction, we added an early discussion about the existing support
+   for either multi-user/single-node or single-user/multi-node consensus.
+   We discuss why multi-user/multi-node consensus is import and set it as our
+   goal.
    In the Conclusion, we...
    We also respond individually to each of these comments below.
 
@@ -63,6 +68,11 @@ appeared in comments from all reviewers with variations.
     - Is the manuscript technically sound?
       2/3 reviewers chose option "Appears to be - but didn't check completely"
       1/3 chose option "Yes"
+
+TODO: more focus on forks introduction
+
+The first version of the paper was submitted more than 1 year ago.
+In the meantime, we made a small but important modification in the consensus,
 
 Next, we go through each comment individually and respond to each of them.
 
@@ -157,7 +167,9 @@ TODO
 >         Which companies? Adding an example here would make it easier for the
 >         reader to connect with the paper.
 
-- network effects
+In the beginning of the Introduction, we mentioned how Facebook and Twitter
+benefit from network effects and avoid open protocols to lock their users.
+
 - winner takes all
 - app vs protocol
 - single timeline

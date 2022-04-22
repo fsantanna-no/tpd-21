@@ -47,7 +47,7 @@ We can trace a parallel with Bitcoin:
 The reputation and consensus mechanism depends exclusively on the human
 authoring ability, which is slow and scarce, thus suitable as a means to
 establish consensus.
-Human creativity contrasts with pure economic resources (e.g., proof-of-work/
+Human creativity contrasts with plain economic resources (e.g., proof-of-work/
 stake), which do not appraise social interactions and also tend to concentrate
 over time.
 %
@@ -67,44 +67,19 @@ Bitcoin, blockchain, CRDT, distributed consensus, peer-to-peer, publish-subscrib
 \section{Introduction}
 \label{sec.introduction}
 
-\begin{comment}
-unopinionated
-For instance, users can be arbitrarily censored or even removed from the
-platform with no justifications.
-In addition, because authored content token, forkeable, diversity
-
-- permissionless
-- social consensus vs economic consensus
-    - participation, linear, topped
-- forkeable, not unique, diversity
-The protocol prevents Sybil attacks with a reputation system
- that moderates
-content and, at the same time, delivers network consensus.
-
-
-- consensus is still important
-but no need to be unique / winner takes all
-thats why other xxx are not a solution
-
-- example is relevant
-    - collaborative
-    - social consensus
-    - eventual consistency (not the whole graph)
-\end{comment}
-
 \IEEEPARstart{C}{ontent} publishing in public Internet forums and social media
 platforms is increasingly more centralized in a few
 companies~\cite{internet.fixing,p2p.osn}.
-%
+Companies such as Facebook and Twitter benefit from network effects and avoid
+open protocols to lock their users in proprietary platforms.
 On the one hand, these companies offer free storage, friendly user interfaces,
 and robust access.
-On the other hand, they concentrate more power than required to operate, since
-they collect and control our data, ``algorithmize'' our consumption, and yet
-obstruct portability with proprietary standards.
+On the other hand, they concentrate more power than required to operate by
+collecting our data and ``algorithmizing'' our consumption.
 %
 Peer-to-peer alternatives~\cite{p2p.survey} eliminate intermediaries and push
 to end users the responsibility to manage data and connectivity.
-However, due to decentralization of authority and infrastructure, new
+However, due to the decentralization of authority and infrastructure, new
 challenges arise to enforce overall state consistency while dealing with
 malicious users.
 
@@ -126,47 +101,91 @@ in conflicting orders~\cite{p2p.intention}.
 %\emph{"Y is final"} might be sent concurrently, preventing the network to
 %determine as a group its intention as \emph{X} or \emph{Y}.
 
-Bitcoin~\cite{p2p.bitcoin} proposes a permissionless consensus protocol founded
-on scarce virtual assets, the \emph{bitcoin tokens}.
+Consensus is particularly challenging to the point that decentralized content
+publishing protocols partially abdicate of it.
+For instance, it is typically either possible to have multi-user/single-node or
+single-user/multi-node consensus:
 %
-The only way to create new bitcoins is to work towards consensus in the network
-by proposing a total order among transactions in the system.
+On the one hand, in a federated network~\cite{p2p.ecosystem}, multiple users
+can reach consensus within a single trusted server (e.g., in an open forum),
+but not globally across multiple servers.
 %
-This way, Bitcoin prevents double spending~\cite{p2p.bitcoin}, which is
-analogous to conflicting message delivery in public discussions.
-    %deciding between \emph{X} and \emph{Y} as a group is the same as
-    %transferring bitcoins to \emph{X} and \emph{Y} with insufficient funds for
-    %both.
+On the other hand, in a protocol like Scuttlebutt~\cite{p2p.scuttlebutt}, a
+single user can arbitrate global consensus on it own content (e.g., its public
+timeline), but multiple users cannot reach consensus even in a local machine.
+%(e.g., in an open forum).
 %
-However, Bitcoin just supports transfers between users, with no subjective
-judgment that could affect the actual transactions.
-In contrast, our goal is to use social interactions between humans to evaluate
-content and mitigate abuse at the same time.
+Our goal is then to provide multi-user/multi-node consensus (just
+\emph{consensus} from now on) in the context of decentralized content
+publishing.
+%
+Consensus is fundamental in collaborative applications, such as open discussion
+forums, chat rooms, and trading services (e.g., delivery \& auction).
+%Otherwise, they become impractical due to excess and abuse (e.g., SPAM and
+%illegal content).
+At the very core, consensus is key to eradicate Sybil attacks which are the
+fundamental threat to decentralized collaborative applications: without
+consensus, it is not possible, \emph{at the protocol level}, to distinguish
+between correct and malicious users and posts.
 
-In this work, we propose a permissionless consensus algorithm based on
-authoring reputation.
-Inspired by Bitcoin, authors accumulate tokens named \reps, which serve as
-currency to rate posts in the forums.
-Users can rate posts with likes and dislikes, which transfer \reps between
-them.
+Bitcoin~\cite{p2p.bitcoin} is the first protocol to deliver consensus and
+resist Sybils in a permissionless setting.
+The key insight of Bitcoins is to rely on a scarce resource, the
+\emph{proof-of-work}, to establish consensus.
+The protocol maintains a single dispendious timeline consisting of linked
+blocks with transactions, which represent the consensus.
+Alternative timelines need to spend more resources to substitute the consensus.
+The protocol is resistant to Sybils because the only way to write to the
+timeline is either by spending resources with proof-of-work or by paying taxes
+to make transactions.
+%
+However, Bitcoin and its descendants have many drawbacks in the context of
+content publishing:
+    (i)   they enforce a unique timeline since forks decrease their value and
+          immunity to attacks;
+    (ii)  they lean towards concentration of power due to economy of scale
+          effects; and
+    (iii) they impose an external economic cost to use the protocol.
+These issues threaten our original decentralization goals.
+In particular, a unique timeline implies that all Internet content should be
+subject to the same consensus rules, which neglects all subjectivity that is
+inherent to social content.
+For instance, high quality posts from minority groups may be suppressed in
+favor of more popular content.
+
+In this work, we adapt Bitcoin's idea of a scarce resource to reach consensus 
+in the context of a content publishing protocol.
+The key insight is to recognize the actual published contents as the scarce
+resources themselves, since they require human work not only to be produced,
+but also to be validated.
+%
+Users can create multiple forums of interest, each counting as an independent
+timeline with its own subjective etiquette.
 Work is manifested as new posts which, if accepted by others, reward authors
-with \reps.
-This way, like Bitcoin, token generation is expensive, while verification is
-cheap and made by multiple users.
+with tokens named \reps, which in turn serve as a means to rate other posts
+with likes and dislikes.
+This way, token generation is expensive, while verification is cheap and made
+by multiple users (similarly to Bitcoin).
+%
+Within each forum timeline, posts form a causal graph that does not imply a
+total order of events.
+Therefore, to reach consensus, in the case of incomparable causal
+relationships, we propose that posts from authors with more reputation are
+ordered first (akin to Bitcoin's longest chain).
+The resulting order is then verified for conflicting operations, such as likes
+with insufficient \reps (like double spending in Bitcoin).
+%
+We integrated the proposed consensus algorithm into \FC, a practical
+peer-to-peer content dissemination protocol~\cite{fcs.sbseg20}.
+
+As an application example, we also prototyped a permissionless distributed
+version control system (DVCS) that relies on consensus to apply automatic
+merges.
+
+which contributed with more work to the forum.
+
 However, to match our target domain of content publishing, token generation and
 verification are subjective, based on human creativity and judgement.
-Posts and likes are linked as blocks in a Merkle~DAG that persists the whole
-conversation and is disseminated in the network with gossiping.
-To reach consensus, the DAG is ordered by branches with more reputed authors,
-which contributed with more work to the forum.
-The resulting order is then verified for conflicting operations, such as likes
-with insufficient \reps, which is equivalent to double spending in Bitcoin.
-%In this case, the branch that causes the conflict is removed from the DAG.
-%
-We integrated the proposed consensus algorithm into \FC, a peer-to-peer
-publish-subscribe content dissemination protocol~\cite{fcs.sbseg20}.
-We also prototyped a permissionless distributed version control system (DVCS)
-that relies on consensus to apply automatic merges.
 
 \begin{table*}
 \centering
@@ -206,6 +225,68 @@ In Section~\ref{sec.related}, we compare our system with other
 publish-subscribe protocols, federated applications, and fully
 peer-to-peer systems.
 In Section~\ref{sec.conclusion}, we conclude this work.
+
+\begin{comment}
+unopinionated
+For instance, users can be arbitrarily censored or even removed from the
+platform with no justifications.
+In addition, because authored content token, forkeable, diversity
+
+- permissionless
+- social consensus vs economic consensus
+    - participation, linear, topped
+- forkeable, not unique, diversity
+The protocol prevents Sybil attacks with a reputation system
+ that moderates
+content and, at the same time, delivers network consensus.
+
+
+- consensus is still important
+but no need to be unique / winner takes all
+thats why other xxx are not a solution
+
+- example is relevant
+    - collaborative
+    - social consensus
+    - eventual consistency (not the whole graph)
+    - CRDTs promising but not sufficient
+
+If this decision is left to 
+At the application level (e.g., end-user filters), does not eliminate traffic
+The technologies that enable this are “self-certifying protocols”, based on cryptographic signatures and hashes.
+self-certifying protocols that all or nothing
+
+goal
+    - same usability/friendlyness of decentralized protocols
+    - reach consensus
+    - remove economic costs
+
+Scuttlebutt embraces subjectivity...
+No notion of public forums, only independent user timelines
+
+The only way to create new bitcoins is to work towards consensus in the network
+by proposing a total order among transactions in the system.
+%
+This way, Bitcoin prevents double spending~\cite{p2p.bitcoin}, which is
+analogous to conflicting message delivery in public discussions.
+    %deciding between \emph{X} and \emph{Y} as a group is the same as
+    %transferring bitcoins to \emph{X} and \emph{Y} with insufficient funds for
+    %both.
+%
+However, Bitcoin just supports transfers between users, with no subjective
+judgment that could affect the actual transactions.
+In contrast, our goal is to use social interactions between humans to evaluate
+content and mitigate abuse at the same time.
+
+In summary
+more traditional tokenless decentralized protocols
+
+cant directly buy reputation
+    - subject to judgement
+
+token-less protocols
+value is on the contents
+\end{comment}
 
 \section{\FC}
 \label{sec.freechains}
