@@ -8,9 +8,12 @@ We also identified three main areas that demanded a major review, since they
 appeared in comments from all reviewers with variations:
 
 1. Make the paper scope/contributions/limitations more clear/explicit.
+
    We rewrote parts of the Abstract, and most of the Introduction and
    Conclusion.
+
    Follows the reviewer comments related to this area:
+
     - "abstract is very lightweight", "does not address the novelty", "is
       lacking a full rounded overview of the paper by not including some of the
       findings"
@@ -27,10 +30,12 @@ appeared in comments from all reviewers with variations:
       the novelty of the proposed model"
     - "the author should clearly identify the novelty and the motivation of his
       work in the introduction comparing it to existing work"
+
    In the Abstract, we are now more explicit about our main contribution as "a
    reputation system that moderates content and, at the same time, delivers
    network consensus". We also compare human authoring ability with plain
    economic resources (proof-of-work/stake) to reinforce our contributions.
+
    In the Introduction, we added an early discussion about the existing support
    for either multi-user/single-node or single-user/multi-node consensus.
    We discuss why multi-user/multi-node consensus is important and set it as
@@ -38,7 +43,9 @@ appeared in comments from all reviewers with variations:
    in the context of content publishing. Finally, we discuss our proposal
    considering the limitations of existing work and highlight the key insight
    of using human work as a scarce resource. We also motivate the DVCS
-   application example with TODO...
+   application example as a collaborative application that requires explicit
+   human interactions. We also removed the excess of details on the mechanisms.
+
    In the Conclusion, we...
    We also respond individually to each of these comments below.
 
@@ -74,12 +81,11 @@ appeared in comments from all reviewers with variations:
       2/3 reviewers chose option "Appears to be - but didn't check completely"
       1/3 chose option "Yes"
 
-TODO: more focus on forks introduction
-
 The first version of the paper was submitted more than 1 year ago.
 In the meantime, we made a small but important modification in the consensus,
+TODO: more focus on forks introduction
 
-Next, we go through each comment individually and respond to each of them.
+Next, we go through all the comments and respond individually to each of them.
 
 -------------------------------------------------------------------------------
 
@@ -107,7 +113,9 @@ We opted for one-line commands because they are real and provide a concrete
 perception of the protocol.
 We believe that using pseudo-code would not simplify the presentation while
 adding a distracting extra abstraction.
-We added a remark about this choice in Section 2: "TODO"
+We added a remark about this choice at the beginning of Section 2: "We use the
+actual command-line tool provided by the protocol to guide the discussion
+through concrete examples."
 
 > 4. Authors should illustrate the contents in Figure 1, Figure 3, and Figure 6
      by tables.
@@ -135,10 +143,15 @@ TODO
 > 1. The abstract is very lightweight, presenting only a very brief description
      of what the paper will be addressing. It does not clearly explain the
      application of Bitcoin, and does not address the novelty.
-     The abstract is lacking a full rounded  overview of the paper by not
+     The abstract is lacking a full rounded overview of the paper by not
      including some of the findings.
 
-TODO
+Answered above:
+
+   In the Abstract, we are now more explicit about our main contribution as "a
+   reputation system that moderates content and, at the same time, delivers
+   network consensus". We also compare human authoring ability with plain
+   economic resources (proof-of-work/stake) to reinforce our contributions.
 
 > 2. Similarly, the conclusion does not talk to the protocol’s novelty or
      innovation, nor does it provide context in terms of implications or real
@@ -155,7 +168,17 @@ TODO
      currently. The author needs to start the paper strong to really pull the
      reader in and convince about the novelty of the proposed model.
 
-TODO
+Answered above:
+
+   In the Introduction, we added an early discussion about the existing support
+   for either multi-user/single-node or single-user/multi-node consensus.
+   We discuss why multi-user/multi-node consensus is important and set it as
+   our research goal. We then discuss the limitations of Bitcoin proof-of-work
+   in the context of content publishing. Finally, we discuss our proposal
+   considering the limitations of existing work and highlight the key insight
+   of using human work as a scarce resource. We also motivate the DVCS
+   application example as a collaborative application that requires explicit
+   human interactions. We also removed the excess of details on the mechanisms.
 
 ## Some specific comments:
 
@@ -164,25 +187,19 @@ TODO
 >         Which companies? Adding an example here would make it easier for the
 >         reader to connect with the paper.
 
-In the beginning of the Introduction, we mentioned how Facebook and Twitter
-benefit from network effects and avoid open protocols to lock their users.
-
-- winner takes all
-- app vs protocol
-- single timeline
-
-We mentioned the
-such as Facebook
-
-- single "truth" likes/retweets/followers/timeline is unique
-    - all portable across groups of interest
-
-- combat all-
+In the beginning of the Introduction, we now mention how Facebook and Twitter
+benefit from network effects and avoid open protocols, which lock their users
+in the platform.
 
 > Page 1: ‘DAG’ is not introduced as a full term the first time it is used.
 
-- TODO: remove from intro?
-- TODO: explain Merkle-DAG?
+The concept of a Merkle DAG now only appears in Section 2 with a reference and
+an explanation in sequence:
+
+"...each topic or chain is a replicated Merkle Directed Acyclic Graph [22]...
+The DAG represents the causal relationships between the messages, whose
+cryptographic links ensure persistence and self-certification of the whole
+chain."
 
 > Page 2: What is labelled as Figure 1 is actually a table. This should be
 >         updated. Same with Figure 6.
@@ -194,7 +211,12 @@ We renamed them all as tables (also Figure 3).
 >   section, and just structuring the beginning so that it is clear what the
 >   intention of the section is, readability will be greatly improved.
 
-TODO
+We are now clear about the intention of the section and point to the figure
+with the resulting metadata:
+
+"The main goal of this section is to explain how the basic protocol operations,
+such as publishing posts and synchronizing peers, result in chain DAGs like
+that of the Figure 1.C (to be discussed)."
 
 > - At the moment, Section 1 mentions that Freechains will be used to integrate
 >   the protocol, but Section 2 does not shape this within the bigger context
@@ -207,7 +229,20 @@ TODO
 > - Figure 2(C), it is not clear how the ‘likes’ are stored. The figure
 >   indicates two arrows, but how is this recorded and stored in the chain?
 
-- colocar block as JSON?
+We now add a sample JSON to illustrate the internal structure of a block:
+
+"As illustrated in Figure 1.C, a like is a regular block with an extra link to
+its target. Every new block points to the previous heads, establishing a
+logical timeline in the chain.  The JSON that follows corresponds to the block
+"2_DDA222.." with the like operation:"
+
+    {
+        "id":    "2_DDA222..",  // block hash id
+        "backs": ["1_EF5..","1_A22.."] // back links
+        "time":  1650722072223, // creation timestamp
+        "data":  "E95DBF.."     // hash of the payload
+        "like":  "1_EF5DE3.."   // like link (optional)
+    }
 
 > - Section 3.1: The solution proposed at the top of page 4 should be extended
 >   a bit. It is unclear at the moment how malicious users cooperating in the
