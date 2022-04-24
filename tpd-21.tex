@@ -222,6 +222,13 @@ peer-to-peer systems.
 In Section~\ref{sec.conclusion}, we conclude this work.
 
 \begin{comment}
+As a derived contribution, the consensus implies a total order among messages,
+which backs the use of CRDTs~\cite{p2p.merkle-crdts} in collaborative authoring
+platforms.
+
+https://twitter.com/francesc/status/794647418222448640?lang=en
+
+
 - CONCLUSION
 Our main contribution is to make decentralized public forums viable in
 practice.
@@ -230,13 +237,6 @@ work, contrasting with most systems that rely on extrinsic resources, such as
 CPU power.
 The general idea of the algorithm can be applied to any system that structures
 its messages as DAGs.
-As a derived contribution, the consensus implies a total order among messages,
-which backs the use of CRDTs~\cite{p2p.merkle-crdts} in collaborative authoring
-platforms.
-
-    - CRDTs promising but not sufficient
-https://twitter.com/francesc/status/794647418222448640?lang=en
-
 
 which contributed with more work to the forum.
 
@@ -929,10 +929,10 @@ chains.
 %
 Note that a dislike shrinks the chain economy since it removes \reps from both
 the origin and target.
-As detailed next, the actual contents of a post may become hidden if it has at
+As detailed next, the actual contents of a post may be revoked if it has at
 least 3 dislikes, and more dislikes than likes (rule~\texttt{3}).
-However, considering that \reps are scarce, dislikes should be more directed to
-combat abuse, but not to eliminate divergences of opinion.
+However, considering that \reps are scarce, dislikes should be encouraged to
+combat abusive behavior, but not to eliminate divergences of opinion.
 
 \begin{figure}
 \centering
@@ -940,8 +940,8 @@ combat abuse, but not to eliminate divergences of opinion.
 \caption{
     State machine of posts:
     \emph{BLOCKED} posts are not linked in the DAG.
-    The payload of \emph{HIDDEN} posts are not retransmitted.
     \emph{ACCEPTED} posts are linked and retransmitted.
+    The payload of \emph{HIDDEN} posts are not retransmitted.
 }
 \label{fig.state}
 \end{figure}
@@ -952,12 +952,12 @@ Figure~\ref{fig.state} specifies the transitions between states.
 %
 If the author has reputation, a new post is immediately \emph{ACCEPTED} in the
 chain.
+%
 Otherwise, it is \emph{BLOCKED} and requires a like from another user.
 Blocked posts are not considered part of the chain DAG in the sense that new
 posts do not link back to it.
-%
-Peers are not required to hold blocked posts and neither retransmit them to
-other peers.
+In addition, peers are not required to hold blocked posts and neither
+retransmit them to other peers.
 However, if blocked posts are not disseminated, new users will never have the
 chance to be welcomed with a like.
 A reasonable policy is to hold blocked posts in a temporary bag and retransmit
@@ -977,8 +977,8 @@ Note that a block hash depends only on its payload hash, so it is safe to
 remove the actual payload as long as one can prove its hidden state.
 Later, if the post receives new likes, it means that the payload is still known
 somewhere and peers can request it when synchronizing again.
-
-TODO: reforcar remocao de conteudo
+We consider that revoking posts is fundamental in the context of content
+publishing, and thus, an important contribution of this work.
 
 \section{Correspondences with CRDTs}
 \label{sec.crdts}
@@ -986,8 +986,14 @@ TODO: reforcar remocao de conteudo
 Conflict-free replicated data types (CRDTs)~\cite{p2p.crdts} serve as a robust
 foundation to model concurrent updates in collaborative local-first
 applications~\cite{p2p.local}.
+However, CRDTs are not a panacea and often require human intervention to solve
+general conflicts, such as merge conflicts in version control systems (VCSs).
 %
-We now discuss a three-layered CRDT scheme to build distributed applications:
+Our observation is that, since the proposed consensus algorithm already relies
+on human interactions, we can use it to resolve conflicts automatically.
+
+We propose a three-layered CRDT scheme to build distributed collaborative
+applications:
     state-based CRDTs at transport layer (CvRDTs),
     operation-based CRDTs at application layer (CmRDTs), and
     CRDTs with arbitrary operations after consensus is applied.
@@ -1010,22 +1016,22 @@ totally-ordered set, which leads to a CRDT that does not require commutative
 operations.
 
 Next, we illustrate this three-layered CRDT scheme through an example of a
-simple permissionless DVCS implemented on top of public chains.
+simple permissionless distributed VCS (DVCS) implemented on top of public
+chains.
 
-\subsection{A DVCS with Automatic Merge}
+\subsection{A DVCS with Automatic Merges}
 
-We built a simple DVCS with the functionalities as follows:
+We built a simple DVCS with the functionalities (and associated \FC
+operations) as follows:
 %
 \begin{itemize}
     \setlength{\itemindent}{-8pt}
     \item initialize a repository (\texttt{\scriptsize{join}})
     \item commit local changes to repository (\texttt{\scriptsize{post}})
-    \item checkout repository changes to local (\texttt{\scriptsize{traverse/payload}})
+    \item checkout repository changes to local (\texttt{\scriptsize{consensus/get}})
     \item synchronize with remote peer (\texttt{\scriptsize{send/recv}})
     \item rate and revoke commits (\texttt{\scriptsize{like/dislike}})
 \end{itemize}
-%
-The associated \FC commands appear in parenthesis.
 %
 The system relies on public forum chains, which means that repositories are
 permissionless and adhere to the reputation and consensus mechanism.
@@ -1035,7 +1041,8 @@ The main innovations in this system are that
 
 As a concrete example, we model a Wiki article as a chain behaving as a VCS
 holding its full edition history.
-An article can refer to other articles using hyperlinks to other chains.
+We assume that and article could refer to other articles using hyperlinks to
+other chains to model a complete Wiki platform.
 
 Most VCS operations, except \emph{commit} and \emph{checkout}, map directly to
 single \FC commands.
@@ -1070,9 +1077,12 @@ A commit first makes a checkout from the repository into temporary file
 \texttt{p2p.remote}.
 Then, it compares this version against our local changes, saving the diffs
 into file \texttt{p2p.patch}.
+A patch contains the minimal set of changes to apply back into the repository
+and represents a CmRDT operation in our model.
 Finally, the commit posts the patch file back into the chain.
-Of course, the chain name and signature are parameters in the actual
-implementation of \emph{commit}.
+Evidently, the chain name and signature (\texttt{\#p2p.md} and
+\texttt{--sign=...}) are parameters in the actual implementation of
+\emph{commit}.
 The checkout operation is expanded further.
 
 Much time later, the other pioneer synchronizes with us, checks out the file,
@@ -1096,8 +1106,8 @@ The operation expands as follows:
 {\footnotesize
 \begin{verbatim}
  > rm p2p.md && touch p2p.md
- > for blk in `freechains #p2p.md traverse` do
-     freechains #p2p.md payload $blk > p2p.patch
+ > for blk in `freechains #p2p.md consensus` do
+     freechains #p2p.md get payload $blk > p2p.patch
      patch p2p.md p2p.patch
      if [ $? != 0 ]; then
        echo $blk  <-- hash of failing patch
@@ -1107,7 +1117,7 @@ The operation expands as follows:
 \end{verbatim}
 }
 
-The \texttt{traverse} operation of \FC returns all hashes since the genesis
+The \texttt{consensus} operation of \FC returns all hashes since the genesis
 block, respecting the consensus order.
 The loop reads each of the payloads representing the patches and apply them in
 order to recreate the file.

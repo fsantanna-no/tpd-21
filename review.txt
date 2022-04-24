@@ -388,12 +388,23 @@ We now link the consensus mechanism with CRDTs in the Introduction:
 empower conflict-free replicated data types (CRDTs) when they encounter
 conflicting operations."
 
-In Section 4, we TODO...
+In Section 4, are now more specific about the correspondence:
+
+"However, CRDTs are not a panacea and often require human intervention to solve
+general conflicts, such as merge conflicts in version control systems (VCSs).
+Our observation is that, since the proposed consensus algorithm already relies
+on human interactions, we can use it to resolve conflicts automatically."
 
 > - Section 4.1 document the merge process with patching, but the principle of
 >   patching is not sufficiently addressed.
 
-TODO
+We explained what a patch is and how it relates with CRDTs:
+
+"A commit first makes a checkout from the repository into temporary file
+`p2p.remote`. Then, it compares this version against our local changes, saving
+the diffs into file `p2p.patch`. A patch contains the minimal set of changes to
+apply back into the repository and represents a CmRDT operation in our model.
+Finally, the commit posts the patch file back into the chain."
 
 > - Section 5 only provides a very basic related work section. This section
 >   needs to be further developed to truly show how this system differs from
