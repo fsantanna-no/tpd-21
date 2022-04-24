@@ -398,13 +398,17 @@ on human interactions, we can use it to resolve conflicts automatically."
 > - Section 4.1 document the merge process with patching, but the principle of
 >   patching is not sufficiently addressed.
 
-We explained what a patch is and how it relates with CRDTs:
+We now explain what a patch is and how it relates to CRDTs:
 
 "A commit first makes a checkout from the repository into temporary file
 `p2p.remote`. Then, it compares this version against our local changes, saving
 the diffs into file `p2p.patch`. A patch contains the minimal set of changes to
 apply back into the repository and represents a CmRDT operation in our model.
-Finally, the commit posts the patch file back into the chain."
+Finally, the commit posts the patch file back into the chain.
+...
+A `checkout` recreates the latest version of the file in the repository by
+applying all patches since the genesis block. Recall that each patch represents
+a CmRDT operation to recreate the final state of the data."
 
 > - Section 5 only provides a very basic related work section. This section
 >   needs to be further developed to truly show how this system differs from
