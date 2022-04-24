@@ -127,7 +127,6 @@ We renamed them all as tables.
      order in the ordering algorithm shown in Figure 4.A? Does the prototype
      system have sufficient performance to support real Internet forums?
 
-DIFICIL
 TODO
 
 > 6. The organization of the paper can be improved.
@@ -417,9 +416,6 @@ TODO
 
 > There are minor language and spelling issues to address:
 > - Page 2: of-fline -> off-line
-
-TODO
-
 > - Page 2: “...others peers have to...” others -> other
 > - Section 3: “million of messages” -> “millions of messages”
 > - Section 3.1: “can take advantage” -> “can take advantage of”
