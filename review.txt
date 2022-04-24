@@ -46,11 +46,11 @@ appeared in comments from all reviewers with variations:
    application example as a collaborative application that requires explicit
    human interactions. We also removed the excess of details on the mechanisms.
 
-   In the Conclusion, we...
+   In the Conclusion, we TODO...
    We also respond individually to each of these comments below.
 
 2. Improve related work.
-   We...
+   We TODO...
    Follows the reviewer comments related to this area:
     - "section 5 only provides a very basic related work section", "needs to be
       further developed to truly show how this system differs from and approves
@@ -64,7 +64,7 @@ appeared in comments from all reviewers with variations:
       1/3 chose option "References are sufficient and appropriate"
 
 3. Show more discussion/evidence/evaluation about the protocol.
-   We...
+   We TODO...
    Follows the reviewer comments related to this area:
     - "this paper lacks analysis or experiments to prove the correctness of the
       design"
@@ -83,7 +83,7 @@ appeared in comments from all reviewers with variations:
 
 The first version of the paper was submitted more than 1 year ago.
 In the meantime, we made a small but important modification in the consensus,
-TODO: more focus on forks introduction
+TODO: more focus on forks introduction, change in the consensus algorithm
 
 Next, we go through all the comments and respond individually to each of them.
 
@@ -211,12 +211,15 @@ We renamed them all as tables (also Figure 3).
 >   section, and just structuring the beginning so that it is clear what the
 >   intention of the section is, readability will be greatly improved.
 
-We are now clear about the intention of the section and point to the figure
+We are now clear about the intention of the section and refer to the figure
 with the resulting metadata:
 
-"The main goal of this section is to explain how the basic protocol operations,
-such as publishing posts and synchronizing peers, result in chain DAGs like
-that of the Figure 1.C (to be discussed)."
+"The goals of this section are twofold:
+    (i)  to explain how the basic protocol operations, such as publishing posts
+         and synchronizing peers, result in chain DAGs like that of the
+         Figure 1.C; and
+    (ii) to conclude that permissionless decentralized protocols require some
+         form o Sybil resistance."
 
 > - At the moment, Section 1 mentions that Freechains will be used to integrate
 >   the protocol, but Section 2 does not shape this within the bigger context
@@ -224,7 +227,25 @@ that of the Figure 1.C (to be discussed)."
 >   the reader a bit in terms of why Freechains and how it contributes to the
 >   bigger goal of the paper.
 
-TODO
+The item (ii) above connects Freechains with the rest of the paper.
+We conclude the section as follows:
+
+"Note that the basic operations of Freechains to (i) create decentralized
+identities, (ii) publish content-addressable data, (iii) maintain Merkle DAGs,
+and (iv) synchronize peers are typical of other peer-to-peer publishing systems
+(e.g., Scuttlebutt and Bitcoin).  Without restrictions, any number of users at
+any number or peers might inadvertently or maliciously post any kind of content
+and rate posts any number of times, thus threatening the value of the protocol.
+In addition, self-verifying Merkle DAGs are fundamental in a permissionless
+setting, which prevent peers to apply local filtering rules, such as moderating
+malicious content. As discussed in the Introdution, Sybil resistance through
+consensus is a key requirement to combat abuse.
+Scuttlebutt only supports personal feeds (Freechains' public identity chains),
+covering single-user/multi-node consensus, which is not quite permissionless.
+Bitcoin maintains a single public ledger (Freechains' public forum chains),
+and hence, require a consensus mechanism to combat Sybils.  In the next
+section, we discuss the consensus mechanism of Freechains to support public
+forums."
 
 > - Figure 2(C), it is not clear how the ‘likes’ are stored. The figure
 >   indicates two arrows, but how is this recorded and stored in the chain?
@@ -250,12 +271,26 @@ logical timeline in the chain.  The JSON that follows corresponds to the block
 >   user’s post. The problem and solution seem a bit disconnected at the moment
 >   - somebody disliking a post does not necessarily means malicious intent.
 
-TODO
+Agreed. We now state the problem as follows:
+
+"Nonetheless, scarce operations are not yet sufficient because they demand
+consensus to establish an order in time across the network. As an example,
+consider a malicious author with a single unit of reps trying to post an
+arbitrary number of new messages in parallel using multiple peers. According to
+the Expense rule of Table 1, only one of these messages should be accepted.
+However, without consensus, it is not possible to globally determine which
+message to accept, since each peer would supposedly accept the first message it
+sees. Therefore, we need the same message ordering across peers to validate
+operations consistently."
 
 > - Figure 4(a): adding the reputation score in the figure will make this more
 >   reader friendly and make the examples in the text more self-explanatory.
 
-TODO
+We added the scores to the figure and updated the text:
+
+"Let's assume that within the prefix, users a and b have contributed with
+better content and have more reputation combined than c has alone (i.e.,
+8+5>3)."
 
 > - Section 3.1: “If a branch creates enough reps to reach 50% of its prefix”.
 >   50% of what? This sentence needs a bit more context. “If a branch creates
@@ -270,9 +305,27 @@ TODO
 >   branches will split totally, that would be ordered as prefix, then branch 1
 >   and separately, prefix and then branch 2. This is not the same scenario.
 
-TODO
-- algo has changed, now by time
-- explicar mesmo assim
+We simplified the merge algorithm and it is now based on accumulated time and
+not reputation. We believe that time is easier to understand and better
+represent the users intentions:
+
+"Nevertheless, it is unacceptable that a very old branch affects a long active
+chain. For this reason, the consensus algorithm includes an extra constraint
+when merging: long-lasting branches do not merge, creating hard forks in the
+network. A hard fork occurs when a local branch contains at least 7 days of
+activity considering the average of the last 28 days in the common prefix. As
+an example, if the common prefix has 100 posts in the last 28 days, the weekly
+average is 25 posts. Hence, if the local branch contains more than 25 new
+posts, it must be ordered first, even if the remote branch has more reputation,
+which creates a hard fork. This situation is analogous to a hard fork in
+Bitcoin and the branches will never synchronize again. More than simply numeric
+disputes, hard forks represent social conflicts in which reconciling branches
+is no longer possible. Figure 3 summarizes how to merge a branch from a remote
+machine j into a branch from a local machine i..."
+
+The criteria changed from reps to time, but the underlying goal is the same,
+that some merges over time are impossible and should create a hard fork in the
+network.
 
 > - Section 3.2: More details about the pioneers needed. How many pioneers?
     From the discussion it seems that there would be multiple pioneers, but
@@ -326,9 +379,6 @@ TODO
 > - Section 3.1: “User c represents here a malicious user trying to cultivate
 >   the fake identities x and y in separate of the network to accumulate reps.”
 >   Sentence missing some words.
-
-TODO
-
 > - Figure 6: tranfer -> transfer
 
 OK.

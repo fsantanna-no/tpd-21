@@ -542,8 +542,8 @@ identities and SPAM millions of messages into the system.
 %Hence, without moderation, there are no limits on the number and size of posts
 %and no reasonable policy to distinguish quality.
 For this reason, we propose a reputation system that works together with a
-consensus algorithm to mitigate Sybil attacks and make peer-to-peer public
-forums practical.
+consensus algorithm to eradicate Sybil and make peer-to-peer public forums
+practical.
 
 Section~\ref{sec.consensus.design} describes the overall reputation and
 consensus mechanism, which can be applied to any public forum system that uses
@@ -558,7 +558,7 @@ In the proposed reputation system, users can spend tokens named \reps to post
 and rate content in the forums:
 a \emph{post} initially penalizes authors until it consolidates and counts
 positively;
-a \emph{like} is a positive feedback that helps subscribers distinguish good
+a \emph{like} is a positive feedback that helps subscribers to distinguish good
 content amid excess;
 a \emph{dislike} is a negative feedback that revokes content when crossing a
 threshold.
@@ -576,8 +576,8 @@ non-trivial work immune to automation.
 
 Bitcoin employs CPU proof-of-work to mitigate Sybil attacks.
 However, CPU or alternative extrinsic resources are not evenly distributed
-among humans, specially considering that most communications now use
-battery-powered devices.
+among humans and/or machines, specially considering that most communications
+now use battery-powered devices.
 %
 In the context of public forums, we understand that the human authoring ability
 is already an intrinsic resource that we can take advantage of.
@@ -590,12 +590,14 @@ users.
 %Additionally,
 %
 Nonetheless, scarce operations are not yet sufficient because they demand
-consensus in the network.
-As an example, it is possible that an author with a single unit of \reps
-receives a dislike at the same time she tries to post a new message in the
-network.
-If accounted before, the dislike invalidates the new post, otherwise the post
-is validated.
+consensus to establish an order in time across the network.
+As an example, consider a malicious author with a single unit of \reps trying
+to post an arbitrary number of new messages in parallel using multiple peers.
+According to the \emph{Expense} rule of Table~\ref{fig.general}, only one of
+these messages should be accepted.
+However, without consensus, it is not possible to globally determine which
+message to accept, since each peer would supposedly accept the first message it
+sees.
 Therefore, we need the same message ordering across peers to validate
 operations consistently.
 
@@ -609,17 +611,27 @@ operations consistently.
 \label{fig.reps}
 \end{figure}
 
-Our solution is to order posts favoring forks with users that constitute the
-majority of reputation in the network.
-This way, in order to manipulate the forum, malicious users first need to
-cooperate, which requires authoring work and contradicts their intent.
+Our solution is to favor forks with posts from users that consititute the
+majority of the reputation in the network.
+These forks have more associated work from active users and are analogous to
+longest chains in Bitcoin.
+More importantly, the operations in these forks have already been verified by
+reputed users, which expect that these operations are not reordered and do not
+require further recalculations.
+Going back to the malicious user example, from all peers he tried to post, only
+the message in the fork with more combined work would be accepted, and all
+Sybil messages would be rejected.
+This way, in order to misuse a public forum, a malicious user first needs to
+cooperate in the same magnitude, which requires authoring work that contradicts
+his original intent.
 
 Figure~\ref{fig.reps}.A illustrates the consensus criteria.
 %, still abstractly, since we did not discuss the actual rules for content creation and rating.
 A public forum DAG has a common prefix with signed posts from users $a$, $b$,
 and $c$.
 Let's assume that within the prefix, users $a$ and $b$ have contributed with
-better content and have more reputation combined than $c$ has alone.
+better content and have more reputation combined than $c$ has alone (i.e.,
+$8+5>3$).
 %
 After the prefix, the forum forks in two branches:
 in \emph{branch~1}, only user $c$ remains active and we see that new users $x$
@@ -628,7 +640,7 @@ in \emph{branch~2}, only users $a$ and $b$ participate but with less activity.
 Nonetheless, \emph{branch~2} would be ordered first because, before the forking
 point, $a$ and $b$ have more reputation than $c$, $x$, and $y$ combined.
 %
-User $c$ here represents a malicious user trying to cultivate the fake
+User $c$ here might represent a malicious user trying to cultivate fake
 identities $x$ and $y$ in separate of the network to accumulate \reps.
 %However, the whole malicious \emph{branch~1} is vulnerable because users in
 %\emph{branch~2} with more previous reputation take the priority and can
@@ -656,7 +668,7 @@ For instance, users $a$ and $b$ can pretend that they did not yet see
 \emph{branch-1} and post extra dislikes to user $c$ from \emph{branch-2} so
 that a further merge removes all blocks of \emph{branch-1} from the DAG.
 
-Some other considerations about forks and merges:
+There are some other relevant considerations about forks and merges:
 %
 Peers that first received branches with less reputation will need to reorder
 all blocks starting at the forking point.
@@ -707,7 +719,7 @@ It is simply impossible to judge with confidence which is the case.
 Nevertheless, it is unacceptable that a very old branch affects a long active
 chain.
 For this reason, the consensus algorithm includes an extra constraint when
-merging: long-lasting branches do not merge, creating *hard forks* in the
+merging: long-lasting branches do not merge, creating \emph{hard forks} in the
 network.
 A hard fork occurs when a local branch contains at least 7 days of activity
 considering the average of the last 28 days in the common prefix.
@@ -739,12 +751,8 @@ A fundamental drawback of Merkle~DAGs is that all replicas in the system need
 to store the complete graph in order to synchronize and verify new blocks.
 Tree pruning techniques allow to remove parts of the graph to save
 space~\cite{p2p.prune}.
-The rule (b) in the consensus algorithm also allows to prune the chain DAG when
-crossing the $50\%+$ threshold, at least for lightweight clients in
-resource-constrained devices.
-%A branch that reaches the threshold of $50\%+$ \reps is freezed in the ordered
-%list and becomes safe to remove along with all of its past back to the genesis
-%block.
+The hard fork threshold in the consensus algorithm also allows to prune the
+chain DAGs, at least for lightweight clients in resource-constrained devices.
 However, these devices can no longer verify older forks and need to delegate
 trust to more powerful peers.
 %
