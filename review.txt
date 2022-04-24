@@ -46,8 +46,6 @@ appeared in comments from all reviewers with variations:
    application example as a collaborative application that requires explicit
    human interactions. We also removed the excess of details on the mechanisms.
 
-    TODO: remove payload
-
    In the Conclusion, we TODO...
    We also respond individually to each of these comments below.
 
@@ -435,7 +433,7 @@ OK.
 > - There are some references that are incomplete, specifically [1], [7], [14].
 >   Reference [16] is incorrectly capitalised.
 
-TODO
+OK.
 
 > - The reference list is overall a bit unbalanced, with not enough recent
 >   academic citations.
@@ -451,7 +449,17 @@ TODO
 > - The author should clearly identify the novelty and the motivation of his
 >   work in the introduction comparing it to existing work.
 
-TODO
+Answered above:
+
+   In the Introduction, we added an early discussion about the existing support
+   for either multi-user/single-node or single-user/multi-node consensus.
+   We discuss why multi-user/multi-node consensus is important and set it as
+   our research goal. We then discuss the limitations of Bitcoin proof-of-work
+   in the context of content publishing. Finally, we discuss our proposal
+   considering the limitations of existing work and highlight the key insight
+   of using human work as a scarce resource. We also motivate the DVCS
+   application example as a collaborative application that requires explicit
+   human interactions. We also removed the excess of details on the mechanisms.
 
 > - What is the complexity of the proposed algorithm?
 
@@ -466,3 +474,5 @@ TODO
 
 > - An experimental or simulation results with comparison to existing works is
 >   missing in this paper.
+
+TODO
