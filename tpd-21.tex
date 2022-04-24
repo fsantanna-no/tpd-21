@@ -130,8 +130,8 @@ between correct and malicious users and posts.
 
 Bitcoin~\cite{p2p.bitcoin} is the first protocol to deliver consensus and
 resist Sybils in a permissionless setting.
-The key insight of Bitcoins is to rely on a scarce resource, the
-\emph{proof-of-work}, to establish consensus.
+The key insight of Bitcoins is to rely on a scarce resource---the
+\emph{proof-of-work}---to establish consensus.
 The protocol maintains a single dispendious timeline consisting of linked
 blocks with transactions, which represent the consensus.
 Alternative timelines need to spend more resources to substitute the consensus.
@@ -152,6 +152,9 @@ subject to the same consensus rules, which neglects all subjectivity that is
 inherent to social content.
 For instance, high quality posts from minority groups may be suppressed in
 favor of more popular content.
+Another limitation of cryptocurrencies in general is that it is not possible
+to revoke content in the middle of the blockchain, which is inadmissible
+considering the possibility of illegal content (e.g., hate speech).
 
 In this work, we adapt Bitcoin's idea of a scarce resource to reach consensus 
 in the context of a content publishing protocol.
@@ -165,19 +168,26 @@ Work is manifested as new posts which, if approved by others, reward authors
 with tokens named \reps, which in turn serve as a means to rate other posts
 with likes and dislikes.
 This way, token generation is expensive, while verification is cheap and made
-by multiple users (similarly to Bitcoin).
+by multiple users (akin to Bitcoin's proof-of-work).
 %
 Within each forum timeline, posts form a causal graph that does not imply a
 total order of events.
-Therefore, to reach consensus, in the case of incomparable causal
-relationships, we propose that posts from authors with more reputation are
-ordered first (akin to Bitcoin's longest chain).
+Therefore, to reach consensus, in the case of non-causal relationships, we
+propose that posts from authors with more reputation are ordered first (akin to
+Bitcoin's longest chain).
 The resulting order is then verified for conflicting operations, such as likes
-with insufficient \reps (like double spending in Bitcoin).
+with insufficient \reps (akin to Bitcoin's double spending).
+%
+To deal with illegal content, we rely on the same rating mechanism, which
+revokes block payloads crossing a negative threshold: peers are forced,
+\emph{at the protocol level}, to remove the payload and only forward the block
+metadata associated with it.
 %
 We integrated the proposed consensus algorithm into \FC, a practical
 peer-to-peer content dissemination protocol~\cite{fcs.sbseg20}.
 %
+TODO: performance of the algorithm and overhead of the blockchain
+
 As an application example, we prototyped a permissionless distributed version
 control system (DVCS) that relies on consensus to apply automatic merges.
 A DVCS is relevant because
@@ -185,13 +195,15 @@ A DVCS is relevant because
     (ii)  with commits that need evaluation from users, and
     (iii) with merges that require human intervention, which we propose to
           automate.
+%
+As a derived contribution, we also discuss how a consensus mechanism can
+empower conflict-free replicated data types (CRDTs)~\cite{p2p.merkle-crdts}
+when they encounter conflicting operations.
 
 As a limitation, the forum graphs are ever growing data structures that carry
 considerable metadata overhead.
 In addition, they require per-block validations that may become a bottleneck
 for real-time applications.
-%
-TODO: evaluation
 %
 Finally, we do not claim that the proposed reputation system enforces ``good''
 human behavior in any way.
@@ -203,7 +215,7 @@ to create, rate, and disseminate posts.
 In Section~\ref{sec.consensus}, we describe the general reputation and
 consensus mechanism, and show how it integrates with public forums in \FC.
 In Section~\ref{sec.crdts}, we discuss some correspondences with
-CRDTs~\cite{p2p.merkle-crdts}, and prototype a simple DVCS.
+CRDTs, and prototype a simple DVCS.
 In Section~\ref{sec.related}, we compare our system with other
 publish-subscribe protocols, federated applications, and fully
 peer-to-peer systems.
@@ -703,8 +715,9 @@ rejoining.
 \includegraphics[width=\textwidth]{rules.png}
 \caption{
     Specific reputation rules for public forum chains in \FC.
-    The constants are arbitrary but could be chain parameters
-    (e.g., \nreps{30}).
+    The chosen constants ($30~reps$, $24h$, etc) are arbitrary and target
+    typical Internet forums with moderate traffic.
+    A future revision of the protocol could support them as chain parameters.
 }
 \label{fig.rules}
 \end{table*}
@@ -786,19 +799,19 @@ the pioneer in a public chain (prefix~$\#$):
 }
 
 The \emph{join} command in rule~\texttt{1.a} bootstraps a public chain,
-assigning \nreps{30} equally distributed to the pioneers referred in the public
-keys.
-The pioneers shape the initial culture of the chain with their first posts and
+assigning \nreps{30} equally distributed between an arbitrary number of
+pioneers indicated through their public keys.
+The pioneers shape the initial culture of the chain with the first posts and
 likes, while they gradually transfer \reps to other authors, which also
 transfer to other authors, expanding the community.
 %
-The \emph{post} command in sequence is signed by the single pioneer and
-indicates the purpose of the chain for future users.
+The \emph{post} command in sequence is signed by the single pioneer (in this
+example) and indicates the purpose of the chain for future users.
 
-The most basic concern in public forums is to resist Sybils spamming the
+The most basic concern in public forums is to resist Sybils abusing the
 chains.
-Fully peer-to-peer systems cannot rely on identity logins or CAPTCHAs due
-to the lack of a central authority.
+Fully peer-to-peer systems cannot rely on identity logins or {\footnotesize
+CAPTCHAs} due to the lack of a central authority.
 Viable alternatives include (i) building social trust graphs, in which users
 already in the community vouch for new users, or (ii) imposing economic costs
 for new posts, such as proof of work.
@@ -815,7 +828,9 @@ For the same reason, rule~\texttt{2} imposes a temporary cost of \onerep for
 each new post.
 %
 Note that the pioneers rule~\texttt{1.a} solves the chicken-and-egg problem
-imposed by rule~\texttt{4.a}.
+imposed by rule~\texttt{4.a}: if new authors start with no \reps, but require
+\reps to operate, it is necessary that some authors have initial \reps to boot
+the chains.
 
 In the next sequence of commands, a new user joins the same public chain and
 posts a message, which is welcomed with a like signed by the pioneer:
@@ -870,8 +885,8 @@ and increasing new user to \onerep (rule~\texttt{3.a}).
 Note that the newbie post is not penalized (rule~\texttt{2}) because it is
 followed by the pioneer like, which still controls all \reps in the chain.
 
-With no additional rules to generate \reps, the initial \nreps{30} would
-constitute the whole ``chain economy'' forever.
+Note that with no additional rules to generate \reps, the initial \nreps{30}
+would constitute the whole ``chain economy'' forever.
 For this reason, rule~\texttt{1.b} awards authors of new posts with \onerep,
 but only after 24 hours.
 This rule stimulates content creation and grows the economy of chains.
@@ -891,10 +906,10 @@ Likes and dislikes (rules \texttt{3.a} and \texttt{3.b}) serve three purposes
 in the chains:
     (i) welcoming new users,
     (ii) measuring the quality of posts, and
-    (iii) censoring abuse (SPAM, fake news, illegal content, etc).
+    (iii) revoking abusive posts (SPAM, fake news, illegal content, etc).
 %
-Access to chains is permissionless in the sense that the actual identities
-behind posts are irrelevant for acceptance.
+Access to chains is permissionless in the sense that the actual peers and
+identities behind posts are irrelevant for acceptance.
 Instead, it is the quality of content that is judged and accounted in the
 system.
 %
@@ -917,7 +932,7 @@ the origin and target.
 As detailed next, the actual contents of a post may become hidden if it has at
 least 3 dislikes, and more dislikes than likes (rule~\texttt{3}).
 However, considering that \reps are scarce, dislikes should be more directed to
-combat abuse, but not much to eliminate divergences of opinion.
+combat abuse, but not to eliminate divergences of opinion.
 
 \begin{figure}
 \centering
@@ -960,9 +975,10 @@ block becomes \emph{HIDDEN} and its payload is not retransmitted to other
 peers.
 Note that a block hash depends only on its payload hash, so it is safe to
 remove the actual payload as long as one can prove its hidden state.
-Later, if the post receives new likes and changes its state again, it means
-that the payload is still known somewhere and peers can request it when
-synchronizing again.
+Later, if the post receives new likes, it means that the payload is still known
+somewhere and peers can request it when synchronizing again.
+
+TODO: reforcar remocao de conteudo
 
 \section{Correspondences with CRDTs}
 \label{sec.crdts}

@@ -46,6 +46,8 @@ appeared in comments from all reviewers with variations:
    application example as a collaborative application that requires explicit
    human interactions. We also removed the excess of details on the mechanisms.
 
+    TODO: remove payload
+
    In the Conclusion, we TODO...
    We also respond individually to each of these comments below.
 
@@ -332,7 +334,14 @@ network.
     then the last sentence of paragraph 2 refers to ‘single pioneer’. This is
     not well written and causing some confusion.
 
-TODO
+The number of pioneers is arbitrary and is specified on the command join.
+We modified the text as follows:
+
+"The join command in rule 1.a bootstraps a public chain, assigning 30 reps
+equally distributed between an arbitrary number of pioneers indicated
+through their public keys ... The post command in sequence is signed by the
+single pioneer (in this example) and indicates the purpose of the chain for
+future users."
 
 > - Figure 6 refers to a discount period. This is not clearly explained in the
 >   text. The time aspect is also a bit ambiguous. During a 24 hour period, a
@@ -343,18 +352,43 @@ TODO
 >   did not come across well and needs a bit further refinement to remove
 >   ambiguity.
 
-TODO
+Even if the rep reward is additional to the initial 30 reps, the question about
+encouraging discussion would still hold.
+The chosen constants (30 reps, 24 hours, etc) are arbitrary and were designed
+with mailing lists in mind.
+For chat applications, these numbers would probably not work well to encourage
+discussion.
+We modified Figure 6 to include the following caption:
+
+"The chosen constants (\nreps{30}, $24h$, $128kb$) are arbitrary and target
+typical Internet forums with moderate traffic. A future revision of the
+protocol could support them as chain parameters."
+
+Also, even though the +1 rep reward is only accounted after 24h, the -1 rep
+discount may be revoked in a very short period depending on the author
+reputation, which allows for free posts in sequence, even if they do not award
+extra reps.
 
 > - Section 3.2 alludes to the chicken and egg problem, but this is not
 >   expanded on. Please do so to ensure that the reader knows exactly what you
 >   are referring to.
 
-TODO
+We modified the text as follows:
+
+"Note that the pioneers rule 1.a solves the chicken-and-egg problem imposed by
+rule 4.a: if new authors start with no reps, but require reps to operate, it is
+necessary that some authors have initial reps to boot the chains."
 
 > - Section 4 could do with a bit of context at the beginning to explain how
 >   CRDTs fit within the bigger scope of the paper.
 
-TODO
+We now link the consensus mechanism with CRDTs in the Introduction:
+
+"As a derived contribution, we also discuss how a consensus mechanism can
+empower conflict-free replicated data types (CRDTs) when they encounter
+conflicting operations."
+
+In Section 4, we TODO...
 
 > - Section 4.1 document the merge process with patching, but the principle of
 >   patching is not sufficiently addressed.
