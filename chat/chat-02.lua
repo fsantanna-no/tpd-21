@@ -20,7 +20,7 @@ function exec (cmd)
     return v
 end
 
-for l in io.lines('x.chat') do
+for l in io.lines('wikimedia.chat') do
     l = string.gsub(l, "'", " ")
     assert(not string.find(l, "'"))
     local y,m,d,hh,mm,ss,user,msg = string.match(l, "(%d%d%d%d)(%d%d)(%d%d) %[(%d%d):(%d%d):(%d%d)%] %<(%a+)%>\t(.*)")
@@ -43,14 +43,14 @@ for l in io.lines('x.chat') do
         do
             local ts = os.time({year=y, month=m, day=d, hour=hh, min=mm, sec=ss})
             local cmd = "freechains-host --port=8401 now "..(ts*1000)
-            --local ret = exec(cmd)
+            local ret = exec(cmd)
             --print(ret)
         end
 
         local hash; do
             local cmd = "freechains --port=8401 chain "..PUB.." post inline '"
             cmd = cmd .. msg .. "' --sign=" .. t.keys.pvt
-            --hash = exec(cmd)
+            hash = exec(cmd)
             --print('#'..hash..'#')
         end
         do
@@ -60,19 +60,19 @@ for l in io.lines('x.chat') do
                 local cmd = "freechains --port=8401 chain "..PUB.." like '"
                 cmd = cmd .. hash .. "' --sign=" .. USERS['Ashlee'].keys.pvt
                 local ret = exec(cmd)
-                --print('XXX', ret)
+                --print('XXX', t.user)
                 t.likes = t.likes + 1
-                t.xxx[#t.xxx+1] = ' 1'
-                t.yyy[#t.yyy+1] = d
+                --t.xxx[#t.xxx+1] = ' 1'
+                --t.yyy[#t.yyy+1] = d
                 --print(t.user)
                 --error("ok")
             else
-                t.xxx[#t.xxx+1] = ' 0'
-                t.yyy[#t.yyy+1] = d
+                --t.xxx[#t.xxx+1] = ' 0'
+                --t.yyy[#t.yyy+1] = d
             end
         end
     end
-    if N == 50 then
+    if N == 500 then
         break
     end
     N = N + 1
@@ -92,8 +92,8 @@ do
     print(#T, 'users')
 end
 
-print(table.concat(USERS.Reedy.xxx, ' '))
-print(table.concat(USERS.Reedy.yyy, ' '))
+--print(table.concat(USERS.Reedy.xxx, ' '))
+--print(table.concat(USERS.Reedy.yyy, ' '))
 
 -- how many users?
 -- how much likes were necessary?
