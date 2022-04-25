@@ -72,7 +72,7 @@ for l in io.lines('wikimedia.chat') do
             end
         end
     end
-    if N == 500 then
+    if N == 2000 then
         break
     end
     N = N + 1
@@ -81,15 +81,18 @@ end
 print(RETS[true], RETS[false])
 
 do
+    local NS = {0,0}
     local T = {}
     for k,v in pairs(USERS) do
         T[#T+1] = v
     end
     table.sort(T, function (v1,v2) return v1.likes>v2.likes end)
     for _,t in ipairs(T) do
+        NS[1] = NS[1] + t.n
+        NS[2] = NS[2] + t.likes
         print(string.format("%12s",t.user), t.likes, t.n)
     end
-    print(#T, 'users')
+    print(#T, 'users', table.unpack(NS))
 end
 
 --print(table.concat(USERS.Reedy.xxx, ' '))
