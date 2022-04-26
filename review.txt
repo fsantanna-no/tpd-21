@@ -106,6 +106,22 @@ Agreed. We removed all mentions of "publish-subscribe" from the abstract and
 introduction, leaving them to a brief description of the protocol in Section 2
 and to related work, but with less focus.
 
+We added a remark in Section 2:
+
+"Note that Freechains does not synchronize peers automatically. There are no
+preconfigured peers, no root servers, no peer discovery. All connections happen
+through the `send` and `recv` commands which have to specify the peers
+explicitly. The protocol only gives basic support for communication in pairs of
+peers and further automation requires external tools. In this sense, Freechains
+is conceptually a pubsub on how users publish and consume content, but it still
+requires underlying network support."
+
+We also emphasize the layer mismatch in Related Work:
+
+"In summary, Freechains and pubsub middlewares operate at different network
+layers, which suggests that Freechains could benefit of the latter to
+administer its interconnections between peers."
+
 > 3. Authors should use pseudo-code or flowcharts to describe the system
      design. The use of commands can be designated as supplemental material.
 

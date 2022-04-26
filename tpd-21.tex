@@ -59,7 +59,8 @@ automatically.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Bitcoin, blockchain, CRDT, distributed consensus, peer-to-peer, publish-subscribe, reputation system, VCS
+Bitcoin, blockchains, CRDT, distributed consensus, peer-to-peer,
+publish-subscribe, reputation system, VCS
 \end{IEEEkeywords}}
 
 \maketitle
@@ -158,7 +159,7 @@ Another limitation of cryptocurrencies in general is that it is not possible
 to revoke content in the middle of the blockchain, which is inadmissible
 considering the possibility of illegal content (e.g., hate speech).
 
-In this work, we adapt Bitcoin's idea of a scarce resource to reach consensus 
+In this work, we adapt Bitcoin's idea of a scarce resource to reach consensus
 in the context of a content publishing protocol.
 The key insight is to recognize the actual published contents as the scarce
 resources themselves, since they require human work not only to be produced,
@@ -173,7 +174,7 @@ This way, token generation is expensive, while verification is cheap and made
 by multiple users (akin to Bitcoin's proof-of-work).
 %
 Within each forum timeline, posts form a causal graph that does not imply a
-total order of events.
+total order of events (akin to Bitcoin's blockchain).
 Therefore, to reach consensus, in the case of non-causal relationships, we
 propose that posts from authors with more reputation are ordered first (akin to
 Bitcoin's longest chain).
@@ -187,8 +188,6 @@ metadata associated with it.
 %
 We integrated the proposed consensus algorithm into \FC, a practical
 peer-to-peer content dissemination protocol~\cite{fcs.sbseg20}.
-%
-TODO: performance of the algorithm and overhead of the blockchain
 
 As an application example, we prototyped a permissionless distributed version
 control system (DVCS) that relies on consensus to apply automatic merges.
@@ -218,9 +217,8 @@ In Section~\ref{sec.consensus}, we describe the general reputation and
 consensus mechanism, and show how it integrates with public forums in \FC.
 In Section~\ref{sec.crdts}, we discuss some correspondences with
 CRDTs, and prototype a simple DVCS.
-In Section~\ref{sec.related}, we compare our system with other
-publish-subscribe protocols, federated applications, and fully
-peer-to-peer systems.
+In Section~\ref{sec.related}, we compare our system with publish-subscribe
+protocols, federated applications, and fully peer-to-peer systems.
 In Section~\ref{sec.conclusion}, we conclude this work.
 
 \begin{comment}
@@ -431,8 +429,10 @@ Note that \FC does not synchronize peers automatically.
 There are no preconfigured peers, no root servers, no peer discovery.
 All connections happen through the \code{send} and \code{recv} commands which
 have to specify the peers explicitly.
-In this sense, the protocol only gives basic support for communication in pairs
-of peers and further automation requires external tools.
+The protocol only gives basic support for communication in pairs of peers and
+further automation requires external tools.
+In this sense, \FC is conceptually a \emph{pubsub} on how users publish and
+consume content, but it still requires underlying network support.
 
 In order to query the state of the replica, the next sequence of commands
 checks the hash(es) of the block(s) at the head of the local DAG (the latest
@@ -1270,7 +1270,7 @@ A key limitation of \emph{pubsubs} is that the brokers that mediate
 communication still have a special role in the network, such as authenticating
 and validating posts.
 %
-Nonetheless, some pubsubs do not rely on server roles and, instead, use
+Nonetheless, some pubsubs do not rely on server roles, and instead, use
 peer-to-peer gossip dissemination~\cite{pubsub.tera,pubsub.rappel,pubsub.stan,pubsub.vitis,pubsub.gossipsub,pubsub.rappel}.
 Most of these protocols focus on techniques to achieve scalability and
 performance, such as throughput, load balancing, and real-time relaying.
@@ -1279,8 +1279,10 @@ However, these techniques alone are not sufficient to operate permissionless
 networks with malicious Sybils~\cite{pubsub.gossipsub2}.
 Being generic protocols, pubsubs are typically unaware of the applications
 built on top of them.
-In contrast, the pubsub of \FC is integrated with the semantics of chains and
-already verifies blocks during connections.
+%
+In contrast, as stated Section~\ref{sec.freechains}, the pubsub of \FC is
+conceptually at the application level and is integrated with the semantics of
+chains, which already verifies blocks at publishing time.
 For instance, to flood the network with posts, malicious peers need to spend
 reputation, which takes hours to recharge (rule~\code{2} in
 Table~\ref{fig.rules}).
@@ -1290,6 +1292,10 @@ Another advantage of a tighter integration is that Merkle~DAGs simplify
 synchronization, provide persistence, and prevent duplication of messages.
 Full persistence resists long churn periods, and de-duplication tolerates
 CmRDTs with operations that are not idempotent.
+
+In summary, \FC and \emph{pubsub} middlewares operate at different network
+layers, which suggests that \FC could benefit of the latter to administer its
+interconnections between peers.
 
 \subsection{Federated Applications}
 
