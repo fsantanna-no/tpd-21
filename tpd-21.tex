@@ -34,11 +34,11 @@
 \begin{abstract}
 Public Internet forums suffer from excess and abuse, such as SPAM and fake
 news.
-Centralized platforms employ filtering algorithms and anti-abuse policies, but
-impose full trust from users.
+Centralized platforms employ filtering and anti-abuse policies, but imply full
+trust from users.
 %
-As a decentralized alternative, we propose a peer-to-peer permissionless
-protocol to model content dissemination.
+We propose a decentralized peer-to-peer permissionless protocol to model
+content dissemination and combat abuse.
 Our main contribution is a reputation system that moderates content and, at the
 same time, delivers network consensus.
 We can trace a parallel with Bitcoin:
@@ -47,15 +47,14 @@ We can trace a parallel with Bitcoin:
     and aggregate reputation determines consensus (vs longest chain).
 %
 The reputation and consensus mechanism depends exclusively on the human
-authoring ability, which is slow and scarce, thus suitable as a means to
-establish consensus.
+authoring ability, which is slow and scarce (\emph{proof-of-authoring}), thus
+suitable as a means to establish consensus.
 Human creativity contrasts with plain economic resources (e.g., proof-of-work/
 stake), which do not appraise social interactions and also tend to concentrate
 over time.
 %
-As an application example, we prototype a simple permissionless distributed
-version control system that, based on consensus, resolves conflicts
-automatically.
+As an application example, we prototype a permissionless distributed version
+control system that, based on consensus, resolves conflicts automatically.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -71,24 +70,22 @@ publish-subscribe, reputation system, VCS
 \label{sec.introduction}
 
 \IEEEPARstart{C}{ontent} publishing in Internet forums and social media
-platforms is increasingly more centralized in a few
-companies~\cite{internet.fixing,p2p.osn}.
-Companies such as Facebook and Twitter benefit from network effects and avoid
-open protocols, which keep their users locked in proprietary platforms.
+platforms is increasingly more centralized in a few companies, (e.g. Facebook
+and Twitter), which benefit from closed protocols and network effects to keep
+users locked in their platforms~\cite{internet.fixing,p2p.osn}.
 On the one hand, these companies offer free storage, friendly user interfaces,
 and robust access.
 On the other hand, they concentrate more power than required to operate by
 collecting users' data and ``algorithmizing'' consumption.
 %
-Peer-to-peer alternatives~\cite{p2p.survey} eliminate intermediaries and push
-to end users the responsibility to manage data and connectivity.
-However, due to the decentralization of authority and infrastructure, new
-challenges arise to enforce overall state consistency while dealing with
-malicious users.
+Peer-to-peer alternatives~\cite{p2p.survey} eliminate intermediaries, but
+strive to enforce overall state consistency while dealing with malicious users,
+given the decentralization of authority and infrastructure.
+% and push to end users the responsibility to manage data and connectivity.
 
 In an ideal Internet forum, all messages or posts
-(i)   reach even temporarily disconnected users;
-(ii)  are delivered in a consistent order;
+(i)   reach all users,
+(ii)  are delivered in a consistent order, and
 (iii) are respectful and on topic.
 In a centralized system, items (i) and (ii) are trivially achieved assuming
 availability and delivery order in the service, while for item (iii), users
@@ -96,32 +93,13 @@ have to trust the service to moderate content.
 In a decentralized setting, however, none of these demands are easily
 accomplished.
 A common approach in gossiping protocols is to proactively replicate and
-disseminate conversations in peers until they reach all
+disseminate posts among peers until they reach all
 users~\cite{p2p.survey}.
 However, this approach does not guarantee consensus since posts can be received
 in conflicting orders~\cite{p2p.intention}.
 %As an example, antagonistic messages such as \emph{"X is final"} vs
 %\emph{"Y is final"} might be sent concurrently, preventing the network to
 %determine as a group its intention as \emph{X} or \emph{Y}.
-
-Consensus is particularly challenging to the point that decentralized content
-publishing protocols partially abdicate of it.
-For instance, it is typically either possible to have
-\emph{multi-user/single-node} or \emph{single-user/multi-node}, but not
-\emph{multi-user/multi-node} consensus:
-%
-On the one hand, in a federated network~\cite{p2p.ecosystem}, multiple users
-can reach consensus within a single trusted server (e.g., in an open forum),
-but not globally across multiple servers.
-%
-On the other hand, in a protocol like Scuttlebutt~\cite{p2p.scuttlebutt}, a
-single user can arbitrate global consensus on its own content (e.g., its public
-timeline), but multiple users cannot reach consensus even in a local machine.
-%(e.g., in an open forum).
-%
-Our goal is then to provide multi-user/multi-node consensus (just
-\emph{consensus}, from now on) in the context of decentralized content
-publishing.
 %
 Consensus is fundamental in collaborative applications, such as open discussion
 forums, chat rooms, and trading services (e.g., delivery \& auction).
@@ -132,20 +110,40 @@ crucial threat to decentralized collaborative applications: without
 consensus, it is not possible, \emph{at the protocol level}, to distinguish
 between correct and malicious users and posts.
 
+Consensus is particularly challenging to the point that decentralized protocols
+partially abdicate of it.
+%For instance, it is typically either possible to have
+%\emph{multi-user/single-node} or \emph{single-user/multi-node}, but not
+%\emph{multi-user/multi-node} consensus:
+%
+On the one hand, federated protocols~\cite{p2p.ecosystem} offer
+\emph{multi-user/single-node consensus}, in which multiple users can exchange
+messages consistenlty within a single trusted server, but not globally across
+multiple servers.
+%
+On the other hand, a protocol like Scuttlebutt~\cite{p2p.scuttlebutt} offers
+\emph{single-user/multi-node consensus}, in which a single user has full
+authority over its own content across machines, but multiple users cannot reach
+consensus even in a local machine.
+%
+Our goal is then to provide \emph{multi-user/multi-node consensus} (just
+\emph{consensus}, from now on) in the context of decentralized content
+publishing.
+
 Bitcoin~\cite{p2p.bitcoin} is the first permissionless protocol to resist
 Sybils through consensus.
-The key insight of Bitcoins is to rely on a scarce resource---the
-\emph{proof-of-work}---to establish consensus.
+Its key insight is to rely on a scarce resource---the \emph{proof-of-work}---to
+establish consensus.
 %The protocol maintains a single dispendious timeline consisting of linked
 %blocks with transactions, which represent the consensus.
 %Alternative timelines need to spend more resources to substitute the consensus.
 The protocol is resistant to Sybils because it is expensive to write to its
-unique timeline (either by proof-of-work or transaction fees).
+unique timeline (either via proof-of-work or transaction fees).
 %
-However, Bitcoin and its descendants have many drawbacks in the context of
-content publishing:
-    (i)   they enforce a unique timeline since forks decrease their value and
-          immunity to attacks;
+However, Bitcoin and cryptocurrencies in general have many drawbacks in the
+context of content publishing:
+    (i)   they enforce a unique timeline to preserve value and immunity to
+          attacks;
     (ii)  they lean towards concentration of power due to economy of scale
           effects; and
     (iii) they impose an external economic cost to use the protocol.
@@ -153,8 +151,8 @@ These issues threaten our original decentralization goals.
 In particular, a unique timeline implies that all Internet content should be
 subject to the same consensus rules, which neglects all subjectivity that is
 inherent to social content.
-For instance, high quality posts from minority groups may be suppressed in
-favor of more popular content.
+%For instance, high quality posts from minority groups may be suppressed in
+%favor of more popular content.
 Another limitation of cryptocurrencies in general is that it is not possible
 to revoke content in the middle of the blockchain, which is inadmissible
 considering the possibility of illegal content (e.g., hate speech).
