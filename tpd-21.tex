@@ -106,15 +106,16 @@ in conflicting orders~\cite{p2p.intention}.
 
 Consensus is particularly challenging to the point that decentralized content
 publishing protocols partially abdicate of it.
-For instance, it is typically either possible to have multi-user/single-node or
-single-user/multi-node consensus:
+For instance, it is typically either possible to have
+\emph{multi-user/single-node} or \emph{single-user/multi-node}, but not
+\emph{multi-user/multi-node} consensus:
 %
 On the one hand, in a federated network~\cite{p2p.ecosystem}, multiple users
 can reach consensus within a single trusted server (e.g., in an open forum),
 but not globally across multiple servers.
 %
 On the other hand, in a protocol like Scuttlebutt~\cite{p2p.scuttlebutt}, a
-single user can arbitrate global consensus on it own content (e.g., its public
+single user can arbitrate global consensus on its own content (e.g., its public
 timeline), but multiple users cannot reach consensus even in a local machine.
 %(e.g., in an open forum).
 %
@@ -131,16 +132,15 @@ crucial threat to decentralized collaborative applications: without
 consensus, it is not possible, \emph{at the protocol level}, to distinguish
 between correct and malicious users and posts.
 
-Bitcoin~\cite{p2p.bitcoin} is the first protocol to deliver consensus and
-resist Sybils in a permissionless setting.
+Bitcoin~\cite{p2p.bitcoin} is the first permissionless protocol to resist
+Sybils through consensus.
 The key insight of Bitcoins is to rely on a scarce resource---the
 \emph{proof-of-work}---to establish consensus.
-The protocol maintains a single dispendious timeline consisting of linked
-blocks with transactions, which represent the consensus.
-Alternative timelines need to spend more resources to substitute the consensus.
-The protocol is resistant to Sybils because the only way to write to the
-timeline is either by spending resources with proof-of-work or by paying taxes
-to make transactions.
+%The protocol maintains a single dispendious timeline consisting of linked
+%blocks with transactions, which represent the consensus.
+%Alternative timelines need to spend more resources to substitute the consensus.
+The protocol is resistant to Sybils because it is expensive to write to its
+unique timeline (either by proof-of-work or transaction fees).
 %
 However, Bitcoin and its descendants have many drawbacks in the context of
 content publishing:
@@ -170,8 +170,9 @@ timeline with its own subjective etiquette.
 Work is manifested as new posts which, if approved by others, reward authors
 with tokens named \reps, which in turn serve as a means to rate other posts
 with likes and dislikes.
-This way, token generation is expensive, while verification is cheap and made
-by multiple users (akin to Bitcoin's proof-of-work).
+With such \emph{proof-of-authoring} mechanism, token generation is expensive,
+while verification is cheap and made by multiple users (akin to Bitcoin's
+proof-of-work).
 %
 Within each forum timeline, posts form a causal graph that does not imply a
 total order of events (akin to Bitcoin's blockchain).
@@ -181,10 +182,10 @@ Bitcoin's longest chain).
 The resulting order is then verified for conflicting operations, such as likes
 with insufficient \reps (akin to Bitcoin's double spending).
 %
-To deal with illegal content, we rely on the same rating mechanism, which
-revokes block payloads crossing a negative threshold: peers are forced,
-\emph{at the protocol level}, to remove the payload and only forward the block
-metadata associated with it.
+To deal with illegal content, we rely on the like/dislike rating mechanism,
+which revokes payloads crossing a negative threshold: peers are forced,
+\emph{at the protocol level}, to remove a payload and only forward its block
+metadata.
 %
 We integrated the proposed consensus algorithm into \FC, a practical
 peer-to-peer content dissemination protocol~\cite{fcs.sbseg20}.
@@ -201,8 +202,14 @@ As a derived contribution, we also discuss how a consensus mechanism can
 empower conflict-free replicated data types (CRDTs)~\cite{p2p.merkle-crdts}
 when they encounter conflicting operations.
 
-As a limitation, the forum graphs are ever growing data structures that carry
-considerable metadata overhead.
+As a main limitation, the forum graphs are ever growing data structures that
+carry considerable metadata overhead.
+The costs to store and validate posts increase over time
+This is a fundamental limitation shared with 
+Over the time, these costs
+We evaluate
+TODO: performance of the algorithm and overhead of the blockchain
+
 In addition, they require per-block validations that may become a bottleneck
 for real-time applications.
 %
@@ -220,6 +227,11 @@ CRDTs, and prototype a simple DVCS.
 In Section~\ref{sec.related}, we compare our system with publish-subscribe
 protocols, federated applications, and fully peer-to-peer systems.
 In Section~\ref{sec.conclusion}, we conclude this work.
+
+TODO: simplificar intro
+TODO: explicitar contribuicoes (proof-of-authoring, remocao de conteudo)
+TODO: payload na chain
+TODO: remocao de conteudo
 
 \begin{comment}
 As a derived contribution, the consensus implies a total order among messages,
@@ -261,7 +273,7 @@ content and, at the same time, delivers network consensus.
 but no need to be unique / winner takes all
 thats why other xxx are not a solution
 
-If this decision is left to 
+If this decision is left to
 At the application level (e.g., end-user filters), does not eliminate traffic
 The technologies that enable this are “self-certifying protocols”, based on cryptographic signatures and hashes.
 self-certifying protocols that all or nothing
@@ -625,16 +637,18 @@ operations consistently.
 \label{fig.reps}
 \end{figure}
 
-Our solution is to favor forks with posts from users that consititute the
+Our solution is to favor forks with posts from users that constitute the
 majority of the reputation in the network.
 These forks have more associated work from active users and are analogous to
 longest chains in Bitcoin.
 More importantly, the operations in these forks have already been verified by
 reputed users, which expect that these operations are not reordered and do not
 require further recalculations.
-Going back to the malicious user example, from all peers he tried to post, only
-the message in the fork with more combined work would be accepted, and all
-Sybil messages would be rejected.
+Technically, given that forums are DAGs, we can adapt a topological sorting
+algorithm to favor reputation when deciding between branches.
+%
+Going back to the malicious user example, only the message in the fork with
+more combined work would be accepted, and all Sybil messages would be rejected.
 This way, in order to misuse a public forum, a malicious user first needs to
 cooperate in the same magnitude, which requires authoring work that contradicts
 his original intent.
@@ -981,6 +995,81 @@ Later, if the post receives new likes, it means that the payload is still known
 somewhere and peers can request it when synchronizing again.
 We consider that revoking posts is fundamental in the context of content
 publishing, and thus, an important contribution of this work.
+
+\subsection{The Consensus Algorithm}
+\label{sec.consensus.algo}
+
+As discussed in Section~\ref{sec.consensus.design}, the consensus algorithm
+needs to be at the core of the protocol to provide the same message ordering
+across peers, and thus, validate publications consistently.
+Conceptually, for every message that needs to be published in a chain, the
+protocol
+    (i) executes the consensus algorithm over its Merkle~DAG,
+
+The algorithm starts at the DAG heads, which are the latest blocks with no
+mutual causal order, and run towards the genesis block.
+
+- complexity
+- recursive, no cache, no memoization, load/unload everything
+
+
+\subsection{Experiments}
+\label{sec.consensus.eval}
+
+In this section, we perform some experiments to evaluate the consensus
+performance and the practicability of the protocol as a whole.
+We took two publicly available forums from the \emph{Internet Archive} and
+simulate their behavior as if they were using \FC:
+%
+    (i)  a chat channel from the Wikimedia Foundation%
+\footnote{ Chat: \url{https://archive.org/download/WikimediaIrcLogs/} }; and
+    (ii) Usenet's \emph{comp.compilers} newsgroup%
+\footnote{ Newsgroup: \url{https://archive.org/download/usenet-comp} }.
+%
+Chats and newsgroups represent typical public forums with
+    (i)  faster interactions with shorter payloads, and
+    (ii) slower interactions with larger payloads.
+
+- lockdown strategy ok?
+
+Discussion:
+- do not scale
+    - restart
+- cannot evaluate behavior
+    - dislike is immediate
+- users are not aware of the policies
+    -
+- no images, videos
+    - 128k enough for memes?
+
+We take existent public forums from the Internet Archive
+
+\begin{comment}
+- Two cases
+    - chat:
+        - 2010-08-25 2012-11-01
+        - 166277 messages
+        - 13726470 bytes w/  metadata (date/time/user+msg)
+        - 8592725 bytes w/o metadata (only msg)
+        - 82/50 bytes/message (w/-w/o metadata)
+        - 651 users
+        - 227 messages per day
+
+    - forum:
+        - 1987-08-17 2012-05-28
+        - 35366 messages
+        - 117458214 bytes w/ metadata (date/time/user/*/+msg)
+        - 3321 bytes/message
+        - 13000 users
+        - 3.8 messages per day
+
+- size in bytes (multiplier vs original)
+- ratio of required likes for newbies
+- number of forks
+    - chat 30s per peer
+    - e-mail 1h per peer
+- time of consensus
+\end{comment}
 
 \section{Correspondences with CRDTs}
 \label{sec.crdts}
@@ -1455,8 +1544,8 @@ where else can we use this?
 
 - Users can fork or recreate the chain.
   Unlike bitcoin, the value is not on the size, but the cohesion is users.
-- Safe for niche topics and minority groups                                     
-- Fulfill the expectations of part of the community                             
+- Safe for niche topics and minority groups
+- Fulfill the expectations of part of the community
 - Part from the principle that the pioneers want it to decentralize, otherwise would create a public identity chain fig2
 
 - INSIGHT
@@ -1492,13 +1581,13 @@ where else can we use this?
 \end{comment}
 
 \begin{comment}
-- content                                                                       
+- content
 - CPU work to create blocks, easy objective verification, 50+1 attack, collapse
 - Human work to create content, easy subjective verification, 50+1 attack,
   community fork (actually encouraged)
 - unique identity based on CPU
 - here based on post quality
-- not CDN: Content delivery network                                             
+- not CDN: Content delivery network
 
 (b) double spend of coins/reps is solved by total ordering all
 Users can like \& dislike posts, which transfer reputation between them.
@@ -1507,7 +1596,7 @@ Reputation is created from news
 Just like Bitcoin reaches consensus with the longest chain
 uses mining to
 
-(excess, SPAM, fake, abuse, illegal)                                            
+(excess, SPAM, fake, abuse, illegal)
 \end{comment}
 
 \bibliographystyle{IEEEtran}

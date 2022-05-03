@@ -6,19 +6,52 @@ freechains-host --port=8401 start /tmp/fc-01
 freechains --port=8401 chains join '$chat' $SHA
 freechains --port=8401 chain '$chat' post inline "Msg 1"
 freechains --port=8401 chain '$chat' consensus
+
+2371
+TIMES=30 | t2=18 | t3=6 | t5=5 | t7=1 (1,0) | t8=0 | tnegs=1=0+1
+SIZES | fz=2372/7/2366/0 | negs=5x5=25 | xpnds=1/0
+
+4500
+TIMES=52 | t2=5 | t3=13 | t5=22 | t7=12 (12,0) | t8=0 | tnegs=12=8+4
+SIZES | fz=4599/39/8807/1 | negs=94x103=9682 | xpnds=1/0
+
+5712
+TIMES=168 | t2=44 | t3=53 | t5=39 | t7=32 (27,5) | t8=0 | tnegs=26=13+13
+SIZES | fz=5713/172/4854/0 | negs=97x116=11252 | xpnds=1/0
+
+7766
+TIMES=304 | t2=58 | t3=25 | t5=85 | t7=135 (113,22) | t8=1 | tnegs=114=84+30
+SIZES | fz=7766/540/5069/0 | negs=94x121=11374 | xpnds=1/0
+
+8815
+TIMES=377 | t2=71 | t3=75 | t5=78 | t7=153 (125,28) | t8=0 | tnegs=125=82+43
+SIZES | fz=8816/849/4572/0 | negs=113x134=15142 | xpnds=1/0
+
+9594
+TIMES=586 | t2=63 | t3=95 | t5=108 | t7=320 (274,46) | t8=0 | tnegs=273=200+73
+SIZES | fz=9595/1179/3637/0 | negs=113x149=16837 | xpnds=1/0
+
+10094
+TIMES=536 | t2=86 | t3=120 | t5=175 | t7=155 (129,26) | t8=0 | tnegs=129=91+38
+SIZES | fz=10676/660/3077/0 | negs=74x88=6512 | xpnds=1/0
+
+10396
+TIMES=692 | t2=70 | t3=74 | t5=122 | t7=426 (347,79) | t8=0 | tnegs=347=243+104
+SIZES | fz=10397/1608/2358/0 | negs=109x149=16241 | xpnds=1/0
+
+11381
+TIMES=787 | t2=108 | t3=129 | t5=184 | t7=366 (290,75) | t8=0 | tnegs=287=180+107
+SIZES | fz=11382/1366/3077/0 | negs=74x88=6512 | xpnds=1/0
+
 ]]
 
-local USERS = {}
+NOW = tonumber(assert(...))
+
+dofile 'common.lua'
+
+local PUB = "'@57B7F4EF65AF1630C64B7A7094E4A01B01C9821622E32ECBB8D7F3B718A367FD'"
 local RETS = {[true]=0,[false]=0}
 local N = 1
-local PUB = "'@57B7F4EF65AF1630C64B7A7094E4A01B01C9821622E32ECBB8D7F3B718A367FD'"
-
-function exec (cmd)
-    local f = io.popen(cmd)
-    local v = f:read("*l")
-    f:close()
-    return v
-end
 
 for l in io.lines('wikimedia.chat') do
     l = string.gsub(l, "'", " ")
@@ -28,49 +61,8 @@ for l in io.lines('wikimedia.chat') do
     if y then
         assert(y and m and d and hh and mm and ss and user and msg)
         --print(y , m , d , hh , mm , ss , user , msg)
-        local t = USERS[user] or { n=0, user=user, keys=nil, likes=0, xxx={}, yyy={} }
-        USERS[user] = t
-        t.n = t.n + 1
-        if not t.keys then
-            local cmd = "freechains --port=8401 keys pubpvt " .. t.user
-            --print(cmd)
-            local v = exec(cmd)
-            local pub,pvt = string.match(v, "([^ ]*) ([^ ]*)")
-            t.keys = { pub=pub, pvt=pvt }
-            --print(t.user, t.keys.pvt)
-        end
-
-        do
-            local ts = os.time({year=y, month=m, day=d, hour=hh, min=mm, sec=ss})
-            local cmd = "freechains-host --port=8401 now "..(ts*1000)
-            local ret = exec(cmd)
-            --print(ret)
-        end
-
-        local hash; do
-            local cmd = "freechains --port=8401 chain "..PUB.." post inline '"
-            cmd = cmd .. msg .. "' --sign=" .. t.keys.pvt
-            hash = exec(cmd)
-            --print('#'..hash..'#')
-        end
-        do
-            local cmd = "freechains --port=8401 chain "..PUB.." heads blocked"
-            local hashes = exec(cmd)
-            if hashes and string.find(hashes, hash) then
-                local cmd = "freechains --port=8401 chain "..PUB.." like '"
-                cmd = cmd .. hash .. "' --sign=" .. USERS['Ashlee'].keys.pvt
-                local ret = exec(cmd)
-                --print('XXX', t.user)
-                t.likes = t.likes + 1
-                --t.xxx[#t.xxx+1] = ' 1'
-                --t.yyy[#t.yyy+1] = d
-                --print(t.user)
-                --error("ok")
-            else
-                --t.xxx[#t.xxx+1] = ' 0'
-                --t.yyy[#t.yyy+1] = d
-            end
-        end
+        local ts = os.time({year=y, month=m, day=d, hour=hh, min=mm, sec=ss})
+        post(ts, PUB, 'Ashlee', user, 'inline', "'"..msg.."'")
     end
     if N == 5000 then
         --break
@@ -79,21 +71,7 @@ for l in io.lines('wikimedia.chat') do
 end
 
 print(RETS[true], RETS[false])
-
-do
-    local NS = {0,0}
-    local T = {}
-    for k,v in pairs(USERS) do
-        T[#T+1] = v
-    end
-    table.sort(T, function (v1,v2) return v1.likes>v2.likes end)
-    for _,t in ipairs(T) do
-        NS[1] = NS[1] + t.n
-        NS[2] = NS[2] + t.likes
-        print(string.format("%12s",t.user), t.likes, t.n)
-    end
-    print(#T, 'users', table.unpack(NS))
-end
+epilogue()
 
 --print(table.concat(USERS.Reedy.xxx, ' '))
 --print(table.concat(USERS.Reedy.yyy, ' '))
@@ -257,5 +235,44 @@ TrevorParscal	39	970
       danese	1	7
       Ashlee	0	871
 55	users	8625	767
+
+>B> 23
+>1> 67
+>2> 4
+>3> 28
+>4> 424
+>C> 524
+>D> 1
+>A> 548
+
+
+>B> 25
+>1> 73
+>2> 4
+>3> 40
+>4> 415
+>C> 532
+>D> 2
+>A> 559
+
+
+>B> 22
+>1> 42
+>2> 4
+>3> 47
+>4> 360
+>C> 453
+>D> 2
+>A> 477
+
+
+>B> 47
+>1> 83
+>2> 5
+>3> 49
+>4> 475
+>C> 613
+>D> 4
+>A> 665
 
 ]]
