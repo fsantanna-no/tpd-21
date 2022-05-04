@@ -157,33 +157,44 @@ Another limitation of cryptocurrencies in general is that it is not possible
 to revoke content in the middle of the blockchain, which is inadmissible
 considering the possibility of illegal content (e.g., hate speech).
 
-In this work, we adapt Bitcoin's idea of a scarce resource to reach consensus
-in the context of a content publishing protocol.
-The key insight is to recognize the actual published contents as the scarce
-resources themselves, since they require human work not only to be produced,
-but also to be validated.
+In this work, we adapt Bitcoin's idea of a scarce resource to reach consensus,
+but in the context of a content publishing protocol.
 %
-Users can create multiple forums of interest, each counting as an independent
-timeline with its own subjective etiquette.
-Work is manifested as new posts which, if approved by others, reward authors
-with tokens named \reps, which in turn serve as a means to rate other posts
-with likes and dislikes.
-With such \emph{proof-of-authoring} mechanism, token generation is expensive,
-while verification is cheap and made by multiple users (akin to Bitcoin's
+Our first contribution is to establish the actual published contents as the
+protocol scarce resource, since they require human work to be produced and
+evaluated (\emph{proof-of-authoring}).
+%
+Our second contribution is to allow that users create diversified forums of
+interest (instead of a singleton blockchain), each counting as an independent
+timeline with its own subjective consensus etiquette.
+%
+Work is manifested as new posts, which if approved by others, reward authors
+with reputation tokens named \reps, which in turn serve as a means to evaluate
+other posts in the same forum with likes and dislikes.
+With such proof-of-authoring mechanism, token generation is expensive, while
+verification is cheap and made by multiple users (akin to Bitcoin's
 proof-of-work).
 %
-Within each forum timeline, posts form a causal graph that does not imply a
-total order of events (akin to Bitcoin's blockchain).
-Therefore, to reach consensus, in the case of non-causal relationships, we
-propose that posts from authors with more reputation are ordered first (akin to
-Bitcoin's longest chain).
-The resulting order is then verified for conflicting operations, such as likes
-with insufficient \reps (akin to Bitcoin's double spending).
+Due to decentralization, posts can at most form a causal graph with only
+partial order, which we propose to upgrade a total order based on the
+reputation of authors.
+The consensus order is fundamental to detect conflicting operations, such as
+likes with insufficient \reps (akin to Bitcoin's double spending).
+%author's reputation: in the presence of a fork, 
+%a consensus order in which
+%that authors with more reputation are ordered first (akin to
+%Bitcoin's longest chain).
+%that does not imply a total
+%order of events (akin to Bitcoin's blockchain).
+%Therefore, to reach consensus, in the case of non-causal relationships, we
+%The resulting order is then verified for conflicting operations, such as likes
+%with insufficient \reps (akin to Bitcoin's double spending).
 %
-To deal with illegal content, we rely on the like/dislike rating mechanism,
-which revokes payloads crossing a negative threshold: peers are forced,
-\emph{at the protocol level}, to remove a payload and only forward its block
-metadata.
+Our third contribution is support decentralized content removal without
+compromising the integrity of the blockchain.
+Users have the power to revoke posts crossing a limit of dislikes, and peers
+are forced, \emph{at the protocol level}, to remove associated payloads, only
+forwarding metadata to preserve integrity.
 %
 We integrated the proposed consensus algorithm into \FC, a practical
 peer-to-peer content dissemination protocol~\cite{fcs.sbseg20}.
@@ -196,10 +207,15 @@ A DVCS is relevant because
     (iii) with merges that require human intervention, which we propose to
           automate.
 %
-As a derived contribution, we also discuss how a consensus mechanism can
-empower conflict-free replicated data types (CRDTs)~\cite{p2p.merkle-crdts}
-when they encounter conflicting operations.
+As a forth contribution, we show how the consensus mechanism can empower
+conflict-free replicated data types (CRDTs~\cite{p2p.merkle-crdts}) when they
+encounter conflicting operations.
 
+In summary, we propose (i) a consensus mechanism based on proof-of-authoring,
+(ii) for independent user-generated blockchains, (iii) which support content
+removal preserving integrity, and (iv) which can automate conflict resolution
+in CRDTs.
+%
 As a main limitation, the forum graphs are ever growing data structures that
 carry considerable metadata overhead.
 The costs to store and validate posts increase over time
@@ -216,10 +232,11 @@ human behavior in any way.
 Instead, it provides a transparent and quantitative mechanism to help users
 understand the evolution of forums and act accordingly.
 
+The rest of the paper is organized as follows:
 In Section~\ref{sec.freechains}, we introduce the basic functionalities of \FC
-to create, rate, and disseminate posts.
-In Section~\ref{sec.consensus}, we describe the general reputation and
-consensus mechanism, and show how it integrates with public forums in \FC.
+to create, evaluate, and disseminate posts.
+In Section~\ref{sec.consensus}, we describe the reputation and consensus
+mechanism applied to permissionless public forums.
 In Section~\ref{sec.crdts}, we discuss some correspondences with
 CRDTs, and prototype a simple DVCS.
 In Section~\ref{sec.related}, we compare our system with publish-subscribe
@@ -330,11 +347,11 @@ author publishes a post to a chain, and the other users subscribed to the same
 chain eventually receive the message by synchronizing the DAGs.
 
 The goals of this section are twofold:
-    (i)  to explain how the basic protocol operations, such as publishing posts
-         and synchronizing peers, result in chain DAGs like that of the
-         Figure~\ref{fig.family}.C; and
-    (ii) to conclude that permissionless decentralized protocols require some
-         form o Sybil resistance.
+    (i)  to depict the chain DAGs (Figure~\ref{fig.family}.C) as result of the
+         basic protocol operations (e.g., publishing posts and synchronizing
+         peers); and
+    (ii) to discuss how permissionless decentralized protocols inevitably
+         require some form o Sybil resistance.
 
 \FC supports multiple arrangements of public and private communications, which
 are detailed in Table~\ref{fig.table}.
