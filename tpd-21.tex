@@ -365,14 +365,15 @@ In Section~\ref{sec.consensus}, we focus on the behavior of \emph{public
 forums}, which involves untrusted communication between users and require the
 proposed reputation and consensus mechanism.
 
-All \FC operations go through a \emph{daemon} (analogous to Bitcoin full nodes)
-that validates posts, links them in the Merkle~DAGs, persists the chains in
-the disk, and communicates with other peers to disseminate the graphs.
-The command that follows starts a daemon to serve further operations:
+All \FC operations go through a \emph{daemon} (akin to Bitcoin's full nodes)
+that validates posts, links the Merkle~DAGs, persists the chains disk, and
+communicates with other peers to disseminate the graphs.
+The command that follows starts a daemon in the background to serve further
+operations:
 
 {\footnotesize
 \begin{verbatim}
- > freechains-daemon start '/var/freechains/'
+ > freechains-daemon start '/var/freechains/' &
 \end{verbatim}
 }
 
@@ -383,7 +384,7 @@ group chain (prefix~$\$$), and (iii) posts a message into the chain:
 
 {\footnotesize
 \begin{verbatim}
- > freechains key shared 'strong-password'   <- (i)
+ > freechains keys shared 'strong-password'  <- (i)
  A6135D..   <- returned shared key
  > freechains '$family' join 'A6135D..'      <- (ii)
  42209B..   <- hash representing the chain
@@ -414,30 +415,20 @@ The genesis block with height $0$ and hash \code{42209B..}
 depends only on the arguments given to \code{join}.
 The next block with height $1$ and hash \code{EF5DE3..} contains the posted
 message.
-As expected from a Merkle~DAG, the hash of a block depends on its payload and
-hash of previous block.
+%As expected from a Merkle~DAG, the hash of a block depends on its payload and
+%hash of previous block.
 
 \FC adheres to the \emph{local-first} software principle~\cite{p2p.local},
 allowing networked applications to work locally while offline.
-Except for synchronization, all other operations in the system affect only the
+Except for synchronization, all other operations in the system only affect the
 local replica.
 In particular, joining a chain with the same arguments in another peer results
 in the same genesis state, even if the peers have never met before.
 Hence, before synchronizing, other peers have to initialize the example chain
-with the same steps:
+with the exactly same steps as above.
 
-{\footnotesize
-\begin{verbatim}
- > freechains-daemon start '/var/freechains/'
- > freechains key shared 'strong-password'
- A6135D..
- > freechains '$family' join 'A6135D..'
- 42209B..
-\end{verbatim}
-}
-
-The synchronization of the chain DAGs is explicit, in pairs, and
-unidirectional.
+Regarding the synchronization of chain DAGs in \FC, its operation is explicit,
+in pairs, and unidirectional.
 The command \code{recv} asks the daemon in \emph{localhost} to connect to
 daemon in \emph{remote-ip} to receive all missing blocks from there:
 
@@ -459,7 +450,7 @@ have to specify the peers explicitly.
 The protocol only gives basic support for communication in pairs of peers and
 further automation requires external tools.
 In this sense, \FC is conceptually a \emph{pubsub} on how users publish and
-consume content, but it still requires underlying network support.
+consume content, but it still requires extra network support.
 
 In order to query the state of the replica, the next sequence of commands
 checks the hash(es) of the block(s) at the head of the local DAG (the latest
@@ -476,11 +467,16 @@ blocks), and then reads the payload of the single head found:
 \end{verbatim}
 }
 
-However, since the network is inherently concurrent and users are encouraged
-to work locally, typical chain DAGs are not simple lists and actually hold
-multiple heads.
-As an example, suppose that the new peer posted a message before the
-\code{recv} above, when the local DAG was still in its genesis state.
+The presented commands to join, post, synchronize, and query the chains are
+enough to build decentralized applications to publich and consume content.
+
+We now focus on how typical chains become DAGs with multiple heads and not
+simple sequential lists of posts, which would not require a consensus
+mechanism.
+The main reasons are that the network is inherently concurrent and that users
+are encouraged to work locally.
+Continuing with the example, suppose that the new peer posted a message before
+the \code{recv} above, when its local DAG was still in its genesis state.
 In this case, as illustrated in Figure~\ref{fig.family}.B, the resulting graph
 after the synchronization would now contain two blocks with height $1$.
 %
@@ -505,10 +501,10 @@ To conclude the basics of the chain operations, users can rate posts with
 
 As illustrated in Figure~\ref{fig.family}.C, a like is a regular block with an
 extra link to its target.
-Every new block points to the previous heads, establishing a logical timeline
-in the chain.
-The JSON that follows corresponds to the block \code{2\_DDA222..} with the
-like operation:
+Every new block points to the previous heads, establishing a causal logical
+timeline in the chain.
+For instance, the JSON that follows represents the block \code{2\_DDA222..}
+with the backs and extra like links:
 
 {\footnotesize
 \begin{verbatim}
@@ -522,8 +518,8 @@ like operation:
 \end{verbatim}
 }
 
-In private groups, like operations are unlimited and behave much like typical
-centralized systems.
+In private groups, like operations are unlimited and behave as a means to
+quantify engagement, much like in typical centralized systems.
 In public forums, however, likes are restricted, have to be signed by users,
 and are at the core of our proposed consensus algorithm.
 
@@ -532,7 +528,7 @@ For the sake of completeness, \FC also supports public identity chains
 
 {\footnotesize
 \begin{verbatim}
- > freechains key pubpvt 'other-password'
+ > freechains keys pubpvt 'other-password'
  EB172E.. 96700A..   <- public and private keys
  > freechains '@EB172E..' join
  F4EE21..
@@ -554,21 +550,23 @@ desktop systems.
 
 Note that the basic operations of Freechains to (i) create decentralized
 identities, (ii) publish content-addressable data, (iii) maintain Merkle DAGs,
-and (iv) synchronize peers are typical of other peer-to-peer publishing systems
-(e.g., Scuttlebutt~\cite{p2p.scuttlebutt} and Bitcoin~\cite{p2p.bitcoin}).
-Without restrictions, any number of users at any number or peers might
-inadvertently or maliciously post any kind of content and rate posts any number
-of times, thus threatening the value of the protocol.
-In addition, self-verifying Merkle DAGs are fundamental in a permissionless
-setting, which prevent peers to apply local filtering rules, such as moderating
-malicious content.
+and (iv) synchronize peers are not new.
+% and are present in other peer-to-peer publishing systems
+%(e.g., Scuttlebutt~\cite{p2p.scuttlebutt} and Bitcoin~\cite{p2p.bitcoin}).
+%
+However, without extra restrictions, any number of users at any number or peers
+might inadvertently or maliciously post any kind of content and rate posts any
+number of times, thus threatening the value of the protocol.
+%In addition, self-verifying Merkle DAGs are fundamental in a permissionless
+%setting, which prevent peers to apply local filtering rules, such as moderating
+%malicious content.
 %
 As discussed in the Introdution, Sybil resistance through consensus is a key
 requirement to combat abuse.
-Scuttlebutt only supports personal feeds (\FC's \emph{public identity chains}),
-covering single-user/multi-node consensus, which is not quite permissionless.
-Bitcoin maintains a single public ledger (\FC's \emph{public forum chains}),
-and hence, require a consensus mechanism to combat Sybils.
+%Scuttlebutt only supports personal feeds (\FC's \emph{public identity chains}),
+%covering single-user/multi-node consensus, which is not quite permissionless.
+%Bitcoin maintains a single public ledger (\FC's \emph{public forum chains}),
+%and hence, require a consensus mechanism to combat Sybils.
 %
 In the next section, we discuss the consensus mechanism of \FC to support
 public forums.
@@ -583,7 +581,7 @@ identities and SPAM millions of messages into the system.
 %Hence, without moderation, there are no limits on the number and size of posts
 %and no reasonable policy to distinguish quality.
 For this reason, we propose a reputation system that works together with a
-consensus algorithm to eradicate Sybil and make peer-to-peer public forums
+consensus algorithm to eradicate Sybils and make peer-to-peer public forums
 practical.
 
 Section~\ref{sec.consensus.design} describes the overall reputation and
@@ -604,9 +602,14 @@ content amid excess;
 a \code{dislike} is a negative feedback that revokes content when crossing a
 threshold.
 Table~\ref{fig.general} summarizes the reputation operations and their goals.
-To prevent Sybils, users with no \reps cannot perform these operations.
-Therefore, \reps must be subject to some sort of scarcity that demands
-non-trivial work immune to automation.
+To prevent Sybils, users with no \reps cannot perform these operations,
+requiring a like from any other user already in the system.
+Hence, since likes are zero-sum operations, malicious users have no incentives
+to invite Sybils into the system.
+The only way to generate new \reps is to post content that other users approve,
+which demands non-trivial work immune to automation.
+Therefore, \reps are subject to some sort of scarcity, which prevents Sybils
+from acting.
 
 \begin{table}
 \centering
@@ -639,8 +642,8 @@ these messages should be accepted.
 However, without consensus, it is not possible to globally determine which
 message to accept, since each peer would supposedly accept the first message it
 sees.
-Therefore, we need the same message ordering across peers to validate
-operations consistently.
+Therefore, we need the same message ordering within forum chain DAGs across
+peers in order to validate operations consistently.
 
 \begin{figure}
 \centering
@@ -652,18 +655,19 @@ operations consistently.
 \label{fig.reps}
 \end{figure}
 
-Our solution is to favor forks with posts from users that constitute the
+Our solution is to favor DAG forks with posts from users that constitute the
 majority of the reputation in the network.
 These forks have more associated work from active users and are analogous to
 longest chains in Bitcoin.
-More importantly, the operations in these forks have already been verified by
-reputed users, which expect that these operations are not reordered and do not
-require further recalculations.
-Technically, given that forums are DAGs, we can adapt a topological sorting
-algorithm to favor reputation when deciding between branches.
+Also, the operations in these forks have already been verified and we should
+avoid extra recalculations due to reorderings.
+Technically, given that forums chains are DAGs, we can adapt a topological
+sorting algorithm to favor reputation when deciding between branches.
 %
-Going back to the malicious user example, only the message in the fork with
-more combined work would be accepted, and all Sybil messages would be rejected.
+Going back to the malicious user example, the messages in parallel would appear
+as forks in the forum DAG.
+Only the message in the fork with more combined work would be accepted, while
+all other Sybil messages would be rejected.
 This way, in order to misuse a public forum, a malicious user first needs to
 cooperate in the same magnitude, which requires authoring work that contradicts
 his original intent.
@@ -684,7 +688,8 @@ Nonetheless, \code{branch-2} would be ordered first because, before the forking
 point, $a$ and $b$ have more reputation than $c$, $x$, and $y$ combined.
 %
 User $c$ here might represent a malicious user trying to cultivate fake
-identities $x$ and $y$ in separate of the network to accumulate \reps.
+identities $x$ and $y$ in separate of the network during weeks to accumulate
+\reps.
 %However, the whole malicious \code{branch-1} is vulnerable because users in
 %\code{branch-2} with more previous reputation take the priority and can
 %overthrow user $c$.
@@ -693,11 +698,12 @@ Figure~\ref{fig.reps}.B indicates the consensus order between blocks in the
 forum.
 All operations in \code{branch-2} appear before any operation in
 \code{branch-1}.
-The ordered list after consensus exists for accountability purposes, and is
-only a view of the primary DAG structure.
+Note that the ordered list after consensus exists for accountability purposes,
+and is only a view of the primary DAG structure.
 At any point in the consensus timeline, if an operation fails, all remaining
 blocks in the offending branch are removed from the primary DAG.
-As an example, suppose the last post by $a$ (in gray) is a dislike to user $c$.
+As an example, suppose that the last post by $a$ (in gray) is a dislike to user
+$c$.
 Then, it's possible that the last post by $c$ (in red), now with \nreps{0}, is
 rejected together with all posts by $y$ and $x$ in sequence.
 %
@@ -715,7 +721,7 @@ There are some other relevant considerations about forks and merges:
 %
 Peers that first received branches with less reputation will need to reorder
 all blocks starting at the forking point.
-This might involve removing content in the end user software.
+This might involve removing content in the end-user software.
 This behavior is similar to blockchain reorganization in Bitcoin, when a peer
 detects a new longest chain and disconsiders old blocks.
 %
@@ -728,18 +734,6 @@ local-first software principle.
 However, the longer a peer remains disconnected, the more conflicting
 operations it may perform, and the higher are the chances of rejection when
 rejoining.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.49\textwidth]{merge.png}
-\caption{
-    Merging rules:
-    (a) local branch is ordered first if it has more posts than the weekly
-        average in the common prefix;
-    (b) and (c) the branch with more reputation is ordered first.
-}
-\label{fig.merge}
-\end{figure}
 
 \begin{table*}
 \centering
@@ -765,30 +759,26 @@ chain.
 For this reason, the consensus algorithm includes an extra constraint when
 merging: long-lasting branches do not merge, creating \emph{hard forks} in the
 network.
-A hard fork occurs when a local branch contains at least 7 days of activity
-considering the average of the last 28 days in the common prefix.
-As an example, if the common prefix has 100 posts in the last 28 days, the
-weekly average is 25 posts.
-Hence, if the local branch contains more than 25 new posts, it must be ordered
-first, even if the remote branch has more reputation, which creates a hard
-fork.
+A hard fork occurs when a local branch crosses a predetermined and irreversible
+threshold, e.g., \emph{7 days} or \emph{100 posts} of activity.
+In this case, regardless of the remote branch reputation, the local branch
+takes priority and is ordered first.
 This situation is analogous to a hard fork in Bitcoin and the branches will
 never synchronize again.
 More than simply numeric disputes, hard forks represent social conflicts in
 which reconciling branches is no longer possible.
-%
-Figure~\ref{fig.merge} summarizes how to merge a branch from a remote machine
+
+In summary, these are the rules to merge a branch from a remote machine
 \code{j} into a branch from a local machine \code{i}.
 The first rule to apply determines the merging result:
 \begin{enumerate}
-    \item \code{i} is ordered first if it has more posts than the weekly
-          average in the common prefix, regardless of \code{j}.
-    \item \code{i} is ordered first if it has more reputation in the common
-          prefix.
-    \item \code{j} is ordered first if it has more reputation in the common
-          prefix.
-    \item otherwise, branches are ordered by lexicographical order of the block
-          hashes after the common prefix (not shown in the figure).
+    \item \code{i} is ordered first if it crosses an activity threshold (e.g.,
+          \emph{7 days} or \emph{100 posts}), regardless of \code{j}.
+    \item \code{i} or \code{j} is ordered first, whichever has more reputation
+          in the common prefix.
+    \item otherwise, branches are ordered by an arbitrary criteria, such as
+          lexicographical order of the block hashes immediately after the
+          common prefix.
 \end{enumerate}
 
 A fundamental drawback of Merkle~DAGs is that all replicas in the system need
@@ -819,7 +809,7 @@ the pioneer in a public chain (prefix~$\#$):
 
 {\footnotesize
 \begin{verbatim}
- > freechains key pubpvt 'pioneer-password'
+ > freechains keys pubpvt 'pioneer-password'
  4B56AD.. DA3B5F..
  > freechains '#forum' join '4B56AD..'
  10AE3E..
@@ -841,8 +831,8 @@ example) and indicates the purpose of the chain for future users.
 
 The most basic concern in public forums is to resist Sybils abusing the
 chains.
-Fully peer-to-peer systems cannot rely on identity logins or {\footnotesize
-CAPTCHAs} due to the lack of a central authority.
+Fully peer-to-peer systems cannot rely on logins or {\footnotesize CAPTCHAs}
+due to the lack of a central authority.
 Viable alternatives include (i) building social trust graphs, in which users
 already in the community vouch for new users, or (ii) imposing economic costs
 for new posts, such as proof of work.
@@ -868,7 +858,7 @@ posts a message, which is welcomed with a like signed by the pioneer:
 
 {\footnotesize
 \begin{verbatim}
- > freechains key pubpvt 'new-author-password'
+ > freechains keys pubpvt 'new-author-password'
  503AB5.. 41DDF1..
  > freechains '#forum' join '4B56AD..'
  10AE3E..     <-- same pioneer as before
@@ -927,9 +917,9 @@ It also regulates the growth speed of the chain.
 In Figure~\ref{fig.forum}, after 1 day, the pioneer would now accumulate
 \nreps{30} and the new user \nreps{2}, growing the economy in \nreps{2} as
 result of the two consolidated posts.
-Note that rule~\code{1.b} awards at most one post at a time.
-Hence, new posts during the 24-hour period will not award extra \reps to the
-author.
+Note that rule~\code{1.b} awards at most one post of each author at a time.
+Hence, new posts during the 24-hour period will not award each of them with
+extra \reps.
 Note also that rule~\code{4.b} limits authors to at most \nreps{30}, which
 provides incentives to spend likes and thus decentralize the network.
 
@@ -962,8 +952,8 @@ Note that a dislike shrinks the chain economy since it removes \reps from both
 the origin and target.
 As detailed next, the actual contents of a post may be revoked if it has at
 least 3 dislikes, and more dislikes than likes (rule~\code{3}).
-However, considering that \reps are scarce, dislikes should be encouraged to
-combat abusive behavior, but not to eliminate divergences of opinion.
+However, considering that \reps are scarce, dislikes are encouraged to combat
+abusive behavior, but not to eliminate divergences of opinion.
 
 \begin{figure}
 \centering
@@ -972,13 +962,13 @@ combat abusive behavior, but not to eliminate divergences of opinion.
     State machine of posts:
     \code{BLOCKED} posts are not linked in the DAG.
     \code{ACCEPTED} posts are linked and retransmitted.
-    The payload of \code{HIDDEN} posts are not retransmitted.
+    The payload of \code{REVOKED} posts are not retransmitted.
 }
 \label{fig.state}
 \end{figure}
 
 A post has three possible states: \code{BLOCKED}, \code{ACCEPTED}, or
-\code{HIDDEN}.
+\code{REVOKED}.
 Figure~\ref{fig.state} specifies the transitions between states.
 %
 If the author has reputation, a new post is immediately \code{ACCEPTED} in the
@@ -1002,10 +992,10 @@ again, since Merkle~DAGs are immutable by design.
 %\emph{like} (Figure~\ref{fig.forum}).
 %
 However, if the number of dislikes exceeds the threshold (rule~\code{3}), the
-block becomes \code{HIDDEN} and its payload is not retransmitted to other
+block becomes \code{REVOKED} and its payload is not retransmitted to other
 peers.
 Note that a block hash depends only on its payload hash, so it is safe to
-remove the actual payload as long as one can prove its hidden state.
+remove the actual payload as long as one can prove its revoked state.
 Later, if the post receives new likes, it means that the payload is still known
 somewhere and peers can request it when synchronizing again.
 We consider that revoking posts is fundamental in the context of content
@@ -1234,7 +1224,7 @@ We discuss this behavior further, when we illustrate commit conflicts.
 
 Since the last commit above is clearly wrong (P2P networks do scale!), other
 users in the network will dislike it until the block becomes
-\code{HIDDEN} in the chain (as described before in Figure~\ref{fig.state}):
+\code{REVOKED} in the chain (as described before in Figure~\ref{fig.state}):
 
 {\footnotesize
 \begin{verbatim}
@@ -1249,7 +1239,7 @@ users in the network will dislike it until the block becomes
 }
 
 This way, the checkout operation above will apply an empty patch associated
-with the hidden block, removing the wrong line from the file.
+with the revoked block, removing the wrong line from the file.
 This mechanism illustrates how the reputation system enables collaborative
 permissionless edition and curation.
 
@@ -1359,8 +1349,8 @@ which provides non-trivial datasets with robust merging policies.
 
 Many other systems have been proposed for distributed content
 dissemination~\cite{p2p.survey,p2p.ecosystem}.
-Here we consider publish-subscribe protocols, federated applications, and fully
-peer-to-peer systems.
+Here we consider the classes of publish-subscribe protocols, federated
+applications, and fully peer-to-peer systems.
 
 \subsection{Publish-Subscribe Protocols}
 
@@ -1374,7 +1364,7 @@ A key limitation of \emph{pubsubs} is that the brokers that mediate
 communication still have a special role in the network, such as authenticating
 and validating posts.
 %
-Nonetheless, some pubsubs do not rely on server roles, and instead, use
+Nevertheless, some pubsubs do not rely on server roles, and instead, use
 peer-to-peer gossip dissemination~\cite{pubsub.tera,pubsub.rappel,pubsub.stan,pubsub.vitis,pubsub.gossipsub,pubsub.rappel}.
 Most of these protocols focus on techniques to achieve scalability and
 performance, such as throughput, load balancing, and real-time relaying.
@@ -1384,21 +1374,22 @@ networks with malicious Sybils~\cite{pubsub.gossipsub2}.
 Being generic protocols, pubsubs are typically unaware of the applications
 built on top of them.
 %
-In contrast, as stated Section~\ref{sec.freechains}, the pubsub of \FC is
+In contrast, as stated in Section~\ref{sec.freechains}, the pubsub of \FC is
 conceptually at the application level and is integrated with the semantics of
 chains, which already verifies blocks at publishing time.
 For instance, to flood the network with posts, malicious peers need to spend
 reputation, which takes hours to recharge (rule~\code{2} in
 Table~\ref{fig.rules}).
-Blocked posts (Figure~\ref{fig.state}) are not a concern either, because they
-have limited reachability.
-Another advantage of a tighter integration is that Merkle~DAGs simplify
-synchronization, provide persistence, and prevent duplication of messages.
+In addition, blocked posts (Figure~\ref{fig.state}) are not a concern either,
+because they have limited reachability.
+Another advantage of a tighter integration between the application and protocol
+is that Merkle~DAGs simplify synchronization, provide persistence, and prevent
+duplication of messages.
 Full persistence resists long churn periods, and de-duplication tolerates
 CmRDTs with operations that are not idempotent.
 
 In summary, \FC and \emph{pubsub} middlewares operate at different network
-layers, which suggests that \FC could benefit of the latter to administer its
+layers, which suggests that \FC could benefit of the latter to manage the
 interconnections between peers.
 
 \subsection{Federated Applications}
@@ -1406,7 +1397,8 @@ interconnections between peers.
 Federated applications, such as e-mail, allow users from one domain to exchange
 messages with users of other domains seamlessly.
 \emph{Diaspora}, \emph{Matrix}, and \emph{Mastodon} are more recent
-applications for social media, chat, and microblogging~\cite{p2p.ecosystem}.
+federations for social media, chat, and microblogging~\cite{p2p.ecosystem},
+respectively.
 
 As a drawback, identities in federations are not portable across domains, which
 may become a problem when servers shutdown or users become unsatisfied with the
@@ -1422,8 +1414,8 @@ practical.
 %
 For this reason, Matrix supports a permissioned moderation system%
 \footnote{Matrix moderation: \url{https://matrix.org/docs/guides/moderation}},
-but which applies only in clients, after the messages have been flooded in the
-network.
+but which applies only within clients, after the messages have already been
+flooded in the network.
 
 As a counterpoint, federated protocols seem to be more appropriate for
 real-time applications such as large chats rooms.
@@ -1441,16 +1433,15 @@ Scuttlebutt~\cite{p2p.scuttlebutt} and Aether~\cite{p2p.ecosystem} are closer
 to \FC goals and cover human-centric \Xon and \Xnn public communication,
 respectively.
 
-Bitcoin adopts CPU \emph{proof-of-work} to achieve consensus, which does not
-solve the centralization issue entirely, given the high costs of equipment and
-energy.
-\emph{Proof-of-stake} is a prominent alternative~\cite{p2p.proofs} that
-acknowledges that centralization is inevitable (i.e., the richer gets richer),
-and thus uses a function of time and wealth to elect peers to mint new blocks.
+Bitcoin adopts CPU proof-of-work to achieve consensus, which does not solve the
+centralization issue entirely, given the high costs of equipment and energy.
+Proof-of-stake is a prominent alternative~\cite{p2p.proofs} that acknowledges
+that centralization is inevitable (i.e., the richer gets richer), and thus uses
+a function of time and wealth to elect peers to mint new blocks.
 As an advantage, these proof mechanisms are generic and apply to multiple
 domains, since they depend on an extrinsic scarce resource.
 %
-In contrast, we chose an intrinsic resource, which is authoring content for the
+In contrast, we chose an intrinsic resource, which is authored content in the
 chains themselves.
 We believe that human work grows linearly with effort and is not directly
 portable across chains with different topics.
@@ -1501,10 +1492,11 @@ A limitation of this model is that new users struggle to integrate in channel
 communities because their posts have no visibility at all.
 As a counterpoint, channels are safe places that do not suffer from abuse.
 %
-In \FC, new users require a single like for visibility in the community, which
-relies on the reputation system to prevent abuse.
-Also, a chain stores its own posts only, instead of off-topic posts from its
-subscribers.
+For group \Xnn communication, \FC relies on the reputation system to prevent
+abuse, since new users require at least one like for visibility in the
+community.
+Also, a forum chain stores its own posts only, and are not simply tags over the
+entire content in the network.
 
 Aether~\cite{p2p.ecosystem} provides peer-to-peer public communities aligned
 with \Xnn public forums of \FC.
@@ -1520,13 +1512,21 @@ mechanisms for moderation.
 \section{Conclusion}
 \label{sec.conclusion}
 
-We propose a new permissionless consensus algorithm for content dissemination
+We propose a new permissionless consensus mechanism for content dissemination
 in peer-to-peer networks.
-The main insight of the algorithm is to use the human authoring ability as a
+We enumerate four main contributions:
+    (i)   human authored content as a scarce resource
+          (\emph{proof-of-authoring});
+    (ii)  diversified public forums, each as an independent blockchain with
+          subjective moderation rules;
+    (iii) removal of abusive content while preserving data integrity; and
+    (iv)  a three-layered CRDT scheme to build collaborative applications.
+
+The main insight of the mechanism is to use the human authoring ability as a
 scarce resource to determine consensus.
 This contrasts with extrinsic resources, such as CPU power, which are
-dispendious and not evenly distributed among people.% willing to communicate.
-
+dispendious and not evenly distributed among people.
+%
 Consensus is backed by a reputation system in which users can rate posts with
 likes and dislikes, which transfer reputation between them.
 The only way to forge reputation is by authoring new content under the
@@ -1535,22 +1535,29 @@ This way, reputation generation is expensive, while verification is cheap and
 distributed.
 
 The reputation and consensus mechanism is integrated into \FC, a peer-to-peer
-protocol that offers permissionless public forums immune to Sybil attacks.
-The protocol replicates Merkle~DAGs that represent causal relationships between
-messages in the network.
-The consensus algorithm transforms DAGs into totally-ordered sets, which
-eliminates conflicts analogous to double spending in Bitcoin.
-This mechanism can be applied to any system that uses DAGs to structure its
-messages.
+protocol that offers multiple arrangements of public and private
+communications.
+Users have the power to create their own public forums of interest and apply
+diverse moderation policies that better suit their needs.
+In particular, users can revoke content considered abusive according to their
+own policies, not depending on centralized authorities.
 
-We also conceptualize a three-layered CRDT scheme to build collaborative
-applications:
-    (i)   the Merkle~DAG as a CvRDT at the transport layer,
-    (ii)  commutative updates as a CmRDT at the application layer,
-    (iii) arbitrary operations as a CRDT after consensus is applied.
-%
-On top of this scheme, we built a simple distributed version control system
-that resolves commit conflicts automatically.
+%The protocol replicates Merkle~DAGs that represent causal relationships between
+%messages in the network.
+%The consensus algorithm transforms DAGs into totally-ordered sets, which
+%eliminates conflicts analogous to double spending in Bitcoin.
+%This mechanism can be applied to any system that uses DAGs to structure its
+%messages.
+
+On top of the proposed three-layered CRDT architecture, we prototyped a
+distributed version control system that resolves commit conflicts
+automatically:
+    (i)   at the transport layer, the full commit history is held in a
+          Merkle~DAG counting as a CvRDT;
+    (ii)  at the application layer, the commit patches operate as (mostly)
+          commutative CmRDT operations; and
+    (iii) after consensus is applied, the merge conflicts are automatically
+          resolved.
 
 \begin{comment}
 
