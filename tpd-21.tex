@@ -37,8 +37,8 @@ news.
 Centralized platforms employ filtering and anti-abuse policies, but imply full
 trust from users.
 %
-We propose a decentralized peer-to-peer permissionless protocol to model
-content dissemination and combat abuse.
+We propose a permissionless Sybil-resistant peer-to-peer protocol for public
+communications. % that combats abuse.
 Our main contribution is a reputation system that moderates content and, at the
 same time, delivers network consensus.
 We can trace a parallel with Bitcoin:
@@ -46,12 +46,12 @@ We can trace a parallel with Bitcoin:
     likes and dislikes transfer reputation (vs transactions),
     and aggregate reputation determines consensus (vs longest chain).
 %
-The reputation and consensus mechanism depends exclusively on the human
-authoring ability, which is slow and scarce (\emph{proof-of-authoring}), thus
-suitable as a means to establish consensus.
+The reputation mechanism depends exclusively on the human authoring ability
+(\emph{proof-of-authoring}), which is slow and scarce, thus suitable to
+establish consensus.
 Human creativity contrasts with plain economic resources (e.g., proof-of-work/
 stake), which do not appraise social interactions and also tend to concentrate
-over time.
+over the time.
 %
 As an application example, we prototype a permissionless distributed version
 control system that, based on consensus, resolves conflicts automatically.
@@ -69,9 +69,9 @@ publish-subscribe, reputation system, VCS
 \section{Introduction}
 \label{sec.introduction}
 
-\IEEEPARstart{C}{ontent} publishing in Internet forums and social media
-platforms is increasingly more centralized in a few companies, (e.g. Facebook
-and Twitter), which benefit from closed protocols and network effects to keep
+\IEEEPARstart{C}{ontent} publishing in Internet forums and social media is
+increasingly more centralized in a few companies (e.g. Facebook and Twitter).
+These companies benefit from closed protocols and network effects to keep
 users locked in their platforms~\cite{internet.fixing,p2p.osn}.
 On the one hand, these companies offer free storage, friendly user interfaces,
 and robust access.
@@ -101,14 +101,15 @@ in conflicting orders~\cite{p2p.intention}.
 %\emph{"Y is final"} might be sent concurrently, preventing the network to
 %determine as a group its intention as \emph{X} or \emph{Y}.
 %
-Consensus is fundamental in collaborative applications, such as open discussion
-forums, chat rooms, and trading services (e.g., delivery \& auction).
+Consensus is key to eradicate Sybils, which are the major threats to
+open forums and decentralized collaborative applications in general: without
+consensus, it is not possible, \emph{at the protocol level}, to distinguish
+between correct and malicious users.
+%fundamental in collaborative applications, such as open discussion
+%forums, chat rooms, and trading services (e.g., delivery \& auction).
 %Otherwise, they become impractical due to excess and abuse (e.g., SPAM and
 %illegal content).
-At the very core, consensus is key to eradicate Sybil attacks which are a
-crucial threat to decentralized collaborative applications: without
-consensus, it is not possible, \emph{at the protocol level}, to distinguish
-between correct and malicious users and posts.
+%At the very core, consensus is
 
 Consensus is particularly challenging to the point that decentralized protocols
 partially abdicate of it.
@@ -126,7 +127,7 @@ On the other hand, a protocol like Scuttlebutt~\cite{p2p.scuttlebutt} offers
 authority over its own content across machines, but multiple users cannot reach
 consensus even in a local machine.
 %
-Our goal is then to provide \emph{multi-user/multi-node consensus} (just
+Our goal is to provide \emph{multi-user/multi-node consensus} (just
 \emph{consensus}, from now on) in the context of decentralized content
 publishing.
 
@@ -153,20 +154,16 @@ subject to the same consensus rules, which neglects all subjectivity that is
 inherent to social content.
 %For instance, high quality posts from minority groups may be suppressed in
 %favor of more popular content.
-Another limitation of cryptocurrencies in general is that it is not possible
-to revoke content in the middle of the blockchain, which is inadmissible
-considering the possibility of illegal content (e.g., hate speech).
+Another limitation of cryptocurrencies is that it is not possible to revoke
+content in the middle of the blockchain, which is inadmissible considering
+illegal content (e.g., hate speech).
 
-In this work, we adapt Bitcoin's idea of a scarce resource to reach consensus,
-but in the context of a content publishing protocol.
+In this work, we adapt Bitcoin's idea of a scarce resource to reach consensus
+to context of content publishing.
 %
-Our first contribution is to establish the actual published contents as the
-protocol scarce resource, since they require human work to be produced and
-evaluated (\emph{proof-of-authoring}).
-%
-Our second contribution is to allow that users create diversified forums of
-interest (instead of a singleton blockchain), each counting as an independent
-timeline with its own subjective consensus etiquette.
+Our first contribution is to recognize the actual published contents as the
+protocol scarce resources, since they require human work
+(\emph{proof-of-authoring}).
 %
 Work is manifested as new posts, which if approved by others, reward authors
 with reputation tokens named \reps, which in turn serve as a means to evaluate
@@ -175,9 +172,13 @@ With such proof-of-authoring mechanism, token generation is expensive, while
 verification is cheap and made by multiple users (akin to Bitcoin's
 proof-of-work).
 %
-Due to decentralization, posts can at most form a causal graph with only
-partial order, which we propose to upgrade a total order based on the
-reputation of authors.
+Our second contribution is to allow that users create diversified forums of
+interest (instead of a singleton blockchain), each counting as an independent
+timeline with its own subjective consensus etiquette.
+%
+Due to decentralization, posts in timelines form a causal graph with only
+partial order, which we promote to a total order based on the reputation of
+authors.
 The consensus order is fundamental to detect conflicting operations, such as
 likes with insufficient \reps (akin to Bitcoin's double spending).
 %author's reputation: in the presence of a fork, 
@@ -190,10 +191,10 @@ likes with insufficient \reps (akin to Bitcoin's double spending).
 %The resulting order is then verified for conflicting operations, such as likes
 %with insufficient \reps (akin to Bitcoin's double spending).
 %
-Our third contribution is support decentralized content removal without
-compromising the integrity of the blockchain.
+Our third contribution is to support content removal without compromising the
+integrity of the decentralized blockchain.
 Users have the power to revoke posts crossing a limit of dislikes, and peers
-are forced, \emph{at the protocol level}, to remove associated payloads, only
+are forced, at the protocol level, to remove associated payloads, only
 forwarding metadata to preserve integrity.
 %
 We integrated the proposed consensus algorithm into \FC, a practical
@@ -204,17 +205,16 @@ control system (DVCS) that relies on consensus to apply automatic merges.
 A DVCS is relevant because
     (i)   it is a collaborative application,
     (ii)  with commits that need evaluation from users, and
-    (iii) with merges that require human intervention, which we propose to
-          automate.
+    (iii) with merges that require human intervention, which we automate.
 %
-As a forth contribution, we show how the consensus mechanism can empower
-conflict-free replicated data types (CRDTs~\cite{p2p.merkle-crdts}) when they
-encounter conflicting operations.
+Hence, as a forth contribution, we show how the consensus mechanism can empower
+quasi conflict-free replicated data types (CRDTs~\cite{p2p.merkle-crdts}) when
+they do encounter conflicting operations.
 
 In summary, we propose (i) a consensus mechanism based on proof-of-authoring,
-(ii) for independent user-generated blockchains, (iii) which support content
-removal preserving integrity, and (iv) which can automate conflict resolution
-in CRDTs.
+(ii) for independent user-generated blockchains, (iii) which supports content
+removal while preserving integrity, and (iv) which can automate conflict
+resolution in \emph{quasi-CRDTs}.
 %
 As a main limitation, the forum graphs are ever growing data structures that
 carry considerable metadata overhead.
@@ -223,14 +223,8 @@ This is a fundamental limitation shared with
 Over the time, these costs
 We evaluate
 TODO: performance of the algorithm and overhead of the blockchain
-
 In addition, they require per-block validations that may become a bottleneck
 for real-time applications.
-%
-Finally, we do not claim that the proposed reputation system enforces ``good''
-human behavior in any way.
-Instead, it provides a transparent and quantitative mechanism to help users
-understand the evolution of forums and act accordingly.
 
 The rest of the paper is organized as follows:
 In Section~\ref{sec.freechains}, we introduce the basic functionalities of \FC
@@ -242,11 +236,6 @@ CRDTs, and prototype a simple DVCS.
 In Section~\ref{sec.related}, we compare our system with publish-subscribe
 protocols, federated applications, and fully peer-to-peer systems.
 In Section~\ref{sec.conclusion}, we conclude this work.
-
-TODO: simplificar intro
-TODO: explicitar contribuicoes (proof-of-authoring, remocao de conteudo)
-TODO: payload na chain
-TODO: remocao de conteudo
 
 \begin{comment}
 As a derived contribution, the consensus implies a total order among messages,
@@ -342,16 +331,14 @@ on).
 The DAG represents the causal relationships between the messages, whose
 cryptographic links ensure persistence and self-certification of the whole
 chain.
-The operation of the protocol is typical of publish-subscribe systems: an
-author publishes a post to a chain, and the other users subscribed to the same
-chain eventually receive the message by synchronizing the DAGs.
+The protocol operation is typical of publish-subscribe systems: an author
+publishes a post to a chain, and the other users subscribed to the same
+chain eventually receive the message by synchronizing DAGs.
 
 The goals of this section are twofold:
-    (i)  to depict the chain DAGs (Figure~\ref{fig.family}.C) as result of the
-         basic protocol operations (e.g., publishing posts and synchronizing
-         peers); and
-    (ii) to discuss how permissionless decentralized protocols inevitably
-         require some form o Sybil resistance.
+    (i)  to depict the chain DAGs as result of the basic protocol operations; and
+    (ii) to illustrate how permissionless protocols inevitably require some
+         form o Sybil resistance.
 
 \FC supports multiple arrangements of public and private communications, which
 are detailed in Table~\ref{fig.table}.
@@ -366,8 +353,8 @@ forums}, which involves untrusted communication between users and require the
 proposed reputation and consensus mechanism.
 
 All \FC operations go through a \emph{daemon} (akin to Bitcoin's full nodes)
-that validates posts, links the Merkle~DAGs, persists the chains disk, and
-communicates with other peers to disseminate the graphs.
+that validates posts, links the DAGs, and communicates with other peers to
+disseminate the graphs.
 The command that follows starts a daemon in the background to serve further
 operations:
 
@@ -427,8 +414,8 @@ in the same genesis state, even if the peers have never met before.
 Hence, before synchronizing, other peers have to initialize the example chain
 with the exactly same steps as above.
 
-Regarding the synchronization of chain DAGs in \FC, its operation is explicit,
-in pairs, and unidirectional.
+In \FC, the synchronization operation of chain DAGs is explicit, in pairs, and
+unidirectional.
 The command \code{recv} asks the daemon in \emph{localhost} to connect to
 daemon in \emph{remote-ip} to receive all missing blocks from there:
 
@@ -439,18 +426,18 @@ daemon in \emph{remote-ip} to receive all missing blocks from there:
 \end{verbatim}
 }
 
-Now, the new peer is in the same state as the original peer in
-Figure~\ref{fig.family}.A.
+If applied in the new peer, the command above would put it in the same state as
+the original peer in Figure~\ref{fig.family}.A.
 The complementary command \code{send} would synchronize the DAG in the other
 direction.
 Note that \FC does not synchronize peers automatically.
 There are no preconfigured peers, no root servers, no peer discovery.
 All connections happen through the \code{send} and \code{recv} commands which
 have to specify the peers explicitly.
-The protocol only gives basic support for communication in pairs of peers and
-further automation requires external tools.
+%The protocol only gives basic support for communication in pairs of peers and
+%further automation requires external tools.
 In this sense, \FC is conceptually a \emph{pubsub} on how users publish and
-consume content, but it still requires extra network support.
+consume content, but it still requires extra network automation.
 
 In order to query the state of the replica, the next sequence of commands
 checks the hash(es) of the block(s) at the head of the local DAG (the latest
@@ -468,15 +455,17 @@ blocks), and then reads the payload of the single head found:
 }
 
 The presented commands to join, post, synchronize, and query the chains are
-enough to build decentralized applications to publich and consume content.
+sufficient to create decentralized applications that publish and consume
+content.
 
-We now focus on how typical chains become DAGs with multiple heads and not
-simple sequential lists of posts, which would not require a consensus
+We now focus on how typical chains are not simple sequential lists of posts,
+but actually become DAGs with multiple heads that demand a consensus
 mechanism.
-The main reasons are that the network is inherently concurrent and that users
-are encouraged to work locally.
-Continuing with the example, suppose that the new peer posted a message before
-the \code{recv} above, when its local DAG was still in its genesis state.
+The main reason is because the network is inherently concurrent and users are
+encouraged to work locally.
+Continuing with the example in Figure~\ref{fig.family}, suppose that the new
+peer posted a message before the \code{recv} above, when its local DAG was
+still in its genesis state.
 In this case, as illustrated in Figure~\ref{fig.family}.B, the resulting graph
 after the synchronization would now contain two blocks with height $1$.
 %
@@ -511,7 +500,7 @@ with the backs and extra like links:
 {
   "id":    "2_DDA222..",  // block hash id
   "backs": ["1_EF5..","1_A22.."] // back links
-  "time":  1650722072223, // creation timestamp
+  "time":  1650722072223, // source timestamp
   "data":  "E95DBF.."     // hash of the payload
   "like":  "1_EF5DE3.."   // like link (optional)
 }
@@ -1559,6 +1548,11 @@ automatically:
     (iii) after consensus is applied, the merge conflicts are automatically
           resolved.
 
+TODO
+Finally, we do not claim that the proposed reputation system enforces ``good''
+human behavior in any way.
+Instead, it provides a transparent and quantitative mechanism to help users
+understand the evolution of forums and act accordingly.
 \begin{comment}
 
 where else can we use this?

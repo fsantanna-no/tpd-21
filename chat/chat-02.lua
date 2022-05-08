@@ -62,10 +62,11 @@ for l in io.lines('wikimedia.chat') do
         assert(y and m and d and hh and mm and ss and user and msg)
         --print(y , m , d , hh , mm , ss , user , msg)
         local ts = os.time({year=y, month=m, day=d, hour=hh, min=mm, sec=ss})
-        post(ts, PUB, 'Ashlee', user, 'inline', "'"..msg.."'")
+        local h = post(8501, ts, PUB, 'Ashlee', user, 'inline', "'"..msg.."'")
+        print(h)
     end
     if N == 5000 then
-        --break
+        break
     end
     N = N + 1
 end
