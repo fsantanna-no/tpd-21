@@ -1102,6 +1102,9 @@ This contrasts with CvRDTs, which would require to store complete versions.
 At the third layer, the consensus algorithm transforms a chain DAG into a
 totally-ordered set, which supports quasi-CRDTs with non-commutative
 operations.
+Note that even full-CRDTs can benefit from consensus, since they often
+encounter corner cases that require arbitrary choices (e.g., aggregating
+updates or ressurecting data~\cite{p2p.automerge}).
 
 Next, we illustrate this three-layered CRDT scheme through an example of a
 simple permissionless distributed VCS (DVCS) implemented on top of public
