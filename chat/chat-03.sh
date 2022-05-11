@@ -23,12 +23,14 @@ case $1 in
         ;;
     "consensus" )
         for i in $(seq 8501 8510); do
+            echo "### $i"
             freechains --port=$i chain $2 consensus | sed 's/ /\n/g' | tee /tmp/cons-$i.txt | wc
         done
         ;;
     "sync" )
         for i in $(seq 8501 8510); do
             for j in $(seq 8501 8510); do
+                echo "### $i -> $j"
                 freechains --port=$i peer localhost:$j send $2
                 freechains --port=$i peer localhost:$j recv $2
             done

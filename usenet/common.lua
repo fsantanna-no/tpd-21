@@ -51,6 +51,11 @@ function fc_send (src, dst, chain)
     return exec(cmd)
 end
 
+function fc_recv (src, dst, chain)
+    local cmd = "freechains --port="..src.." peer localhost:"..dst.." recv "..chain
+    return exec(cmd)
+end
+
 function post (port, ts, chain, pioneer, user, mode, payload)
     local t = USERS[user] or { n=0, user=user, keys=nil, likes=0, xxx={}, yyy={} }
     USERS[user] = t
