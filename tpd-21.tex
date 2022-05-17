@@ -53,7 +53,7 @@ Human creativity contrasts with plain economic resources (e.g., proof-of-work/
 stake), which do not appraise social interactions and also tend to concentrate
 over the time.
 %
-As an application example, we prototype a permissionless distributed version
+As an application example, we prototype a permissionless decentralized version
 control system that, based on consensus, resolves conflicts automatically.
 \end{abstract}
 
@@ -101,10 +101,10 @@ in conflicting orders~\cite{p2p.intention}.
 %\emph{"Y is final"} might be sent concurrently, preventing the network to
 %determine as a group its intention as \emph{X} or \emph{Y}.
 %
-Consensus is key to eradicate Sybils, which are the major threats to
-open forums and decentralized collaborative applications in general: without
-consensus, it is not possible, \emph{at the protocol level}, to distinguish
-between correct and malicious users.
+Consensus is key to eradicate Sybils~\cite{p2p.sybil}, which are the major
+threats to open forums and decentralized collaborative applications in general:
+without consensus, it is not possible, \emph{at the protocol level}, to
+distinguish between correct and malicious users.
 %fundamental in collaborative applications, such as open discussion
 %forums, chat rooms, and trading services (e.g., delivery \& auction).
 %Otherwise, they become impractical due to excess and abuse (e.g., SPAM and
@@ -197,12 +197,13 @@ Users have the power to revoke posts crossing a limit of dislikes, and peers
 are forced, at the protocol level, to remove associated payloads, only
 forwarding metadata to preserve integrity.
 %
-We integrated the proposed consensus algorithm into \FC, a practical
-peer-to-peer content dissemination protocol~\cite{fcs.sbseg20}.
+We integrated the proposed consensus algorithm into \FC~\cite{fcs.sbseg20}, a
+practical peer-to-peer content dissemination protocol that provides strong
+eventual consistency~\cite{p2p.crdts,p2p.sec}.
 
-As an application example, we prototyped a permissionless distributed version
-control system (DVCS) that relies on consensus to apply automatic merges.
-A DVCS is relevant because
+As an application example, we prototyped a permissionless decentralized version
+control system (dVCS) that relies on consensus to apply automatic merges.
+A dVCS is relevant because
     (i)   it is a collaborative application,
     (ii)  with commits that need evaluation from users, and
     (iii) with merges that require human intervention, which we automate.
@@ -233,7 +234,7 @@ to create, evaluate, and disseminate posts.
 In Section~\ref{sec.consensus}, we describe the reputation and consensus
 mechanism applied to permissionless public forums.
 In Section~\ref{sec.crdts}, we discuss some correspondences with
-CRDTs, and prototype a simple DVCS.
+CRDTs, and prototype a simple dVCS.
 In Section~\ref{sec.related}, we compare our system with publish-subscribe
 protocols, federated applications, and fully peer-to-peer systems.
 In Section~\ref{sec.conclusion}, we conclude this work.
@@ -332,6 +333,9 @@ on).
 The DAG represents the causal relationships between the messages, whose
 cryptographic links ensure persistence and self-certification of the whole
 chain.
+The protocol also ensures strong eventual consistency, if we consider that the
+DAG itself represents the state of the peers~\cite{fed.matrix,p2p.byz}.
+
 The protocol operation is typical of publish-subscribe systems: an author
 publishes a post to a chain, and the other users subscribed to the same
 chain eventually receive the message by synchronizing DAGs.
@@ -993,12 +997,15 @@ somewhere and peers can request it when synchronizing again.
 We consider that revoking posts is fundamental in the context of content
 publishing, and thus, an important contribution of this work.
 
-\subsection{The Consensus Algorithm}
+\subsection{The Consensus and Synchronization Algorithm}
 \label{sec.consensus.algo}
 
-As discussed in Section~\ref{sec.consensus.design}, the consensus algorithm
-needs to be at the core of the protocol to provide the same message ordering
-across peers, and thus, validate publications consistently.
+In order to validate publications consistently across the network, the
+consensus algorithm needs to execute at the core of the protocol, while peers
+synchronize their chain DAGs.
+
+
+provide the same message ordering across peers, and thus,
 Conceptually, for every message that needs to be published in a chain, the
 protocol
     (i) executes the consensus algorithm over its Merkle~DAG,
@@ -1008,6 +1015,11 @@ mutual causal order, and run towards the genesis block.
 
 - complexity
 - recursive, no cache, no memoization, load/unload everything
+
+- sync
+    - limit heads
+    - impossible DOS
+    - cite byzantine paper~\cite{p2p.dag.sync}
 
 
 \subsection{Experiments}
@@ -1080,7 +1092,7 @@ specific conflicts, such as manual merges in version control systems (VCSs).
 Our observation is that, since the proposed consensus algorithm already relies
 on human interactions, we can use it to resolve conflicts automatically.
 
-We propose a three-layered CRDT scheme to build distributed collaborative
+We propose a three-layered CRDT scheme to build decentralized collaborative
 applications:
     state-based CRDTs at transport layer (CvRDTs),
     operation-based CRDTs at application layer (CmRDTs), and
@@ -1107,12 +1119,12 @@ encounter corner cases that require arbitrary choices (e.g., aggregating
 updates or ressurecting data~\cite{p2p.automerge}).
 
 Next, we illustrate this three-layered CRDT scheme through an example of a
-simple permissionless distributed VCS (DVCS) implemented on top of public
+simple permissionless decentralized VCS (dVCS) implemented on top of public
 chains.
 
-\subsection{A DVCS with Automatic Merges}
+\subsection{A dVCS with Automatic Merges}
 
-We built a simple DVCS with the functionalities (and associated \FC
+We built a simple dVCS with the functionalities (and associated \FC
 operations) as follows:
 %
 \begin{itemize}
@@ -1302,7 +1314,7 @@ revoke it and remove the warning.
 \subsection{Discussion}
 
 In summary, the proposed reputation and consensus mechanism empowers a simple
-DVCS with cooperative authoring and automatic conflict resolution.
+dVCS with cooperative authoring and automatic conflict resolution.
 It only requires the standard \emph{diff \& patch} tools and the basic API of
 \FC.
 
@@ -1330,7 +1342,7 @@ messages in chats, forums, and social media posts.
 This is also the general case for notifications in these applications, such as
 status updates and social engagements.
 
-Towards richer distributed collaborative applications, we can employ CRDTs to
+Towards richer decentralized collaborative applications, we can employ CRDTs to
 model data other than raw text.
 As an example, \emph{Automerge}~\cite{p2p.automerge} manipulates JSON objects,
 which provides non-trivial datasets with robust merging policies, but which
@@ -1343,7 +1355,7 @@ could still benefit from consensus to resolve corner cases.
 % CRDTs
 % Consensus
 
-Many other systems have been proposed for distributed content
+Many other systems have been proposed for decentralized content
 dissemination~\cite{p2p.survey,p2p.ecosystem}.
 Here we consider the classes of publish-subscribe protocols, federated
 applications, and fully peer-to-peer systems.
@@ -1505,6 +1517,26 @@ only.
 In contrast, \FC relies on its permissionless reputation and consensus
 mechanisms for moderation.
 
+Regarding the structure of messages, append-only Merkle~DAGs have been proposed
+to represent self-certified causal relationships, and are themselves CRDTs that
+provide strong eventual consistency~\cite{fed.matrix,p2p.byz}.
+However, when these DAGs are open to permissionless writes, they are subject to
+abuse, which may degrade the content and performance of the network.
+Another aspect is that a DAG itself has no attached semantics, which weakens
+its consistency property at the application level, which may interpret the DAG
+in conflicting orders.
+The proposed consensus mechanism addresses permissionless writes and provides
+a total order for applications (at the cost of rollbacks).
+
+A similar dVCS with a DAG representation and merging policies have been
+recently proposed~\cite{p2p.dvcs}.
+To resolve what they call \emph{competition conflicts}, they propose to use an
+external scoring function such as users' reputations.
+Our proposed consensus mechanism internalizes such reputation scoring function.
+Integrated reputation also prevents SPAM and abusive behavior from byzantine
+nodes, which could otherwise generate very large graphs that take forever to
+synchronize~\cite{p2p.dag.sync}.
+
 \section{Conclusion}
 \label{sec.conclusion}
 
@@ -1546,7 +1578,7 @@ own community policies, not depending on centralized authorities.
 %messages.
 
 On top of the proposed three-layered CRDT architecture, we prototyped a
-distributed version control system that resolves commit conflicts
+decentralized version control system that resolves commit conflicts
 automatically:
     (i)   at the transport layer, the full commit history is held in a
           Merkle~DAG counting as a CvRDT;
