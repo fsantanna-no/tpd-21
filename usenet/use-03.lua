@@ -27,6 +27,9 @@ local TS = 0
 local reps = 0
 local N = 1
 local PUB2PEER = {}
+local NPEERS = 10
+
+os.remove('/tmp/fc.stop')
 
 while true do
     local from = read_until("^From: (.*)")
@@ -83,10 +86,10 @@ while true do
 
     local port = PUB2PEER[from]
     if port == nil then
-        port = 8500+math.random(10)
+        port = 8500+math.random(NPEERS)
         PUB2PEER[from] = port
     end
-    for i=1, 10 do
+    for i=1, NPEERS do
         fc_now(8500+i, TS)
     end
 
@@ -97,14 +100,14 @@ while true do
     local i = 0
 print('>>>')
     while true do
-        local p = 8500+math.random(10)
+        local p = 8500+math.random(NPEERS)
         if not reps[p] then
             reps[p] = true
 print(port, p)
             print('', fc_send(port, p, PUB))
             print('', fc_send(p, port, PUB))
             i = i + 1
-            if i == 3 then
+            if i == 5 then
                 break
             end
         end
@@ -115,8 +118,11 @@ print('<<<')
     if term then
         break
     end
-    if N == 4000 then
+    if io.open('/tmp/fc.stop') then
         break
+    end
+    if N == 15000 then
+        --break
     end
     N = N + 1
 --[[
@@ -129,11 +135,11 @@ print('<<<')
 ]]
 end
 
-for i=1,9 do
+for i=1,(NPEERS-1) do
     print(8500+i, 8500+i+1)
     fc_send(8500+i, 8500+i+1, PUB)
 end
-for i=10,2,-1 do
+for i=NPEERS,2,-1 do
     print(8500+i, 8500+i-1)
     fc_send(8500+i, 8500+i-1, PUB)
 end
