@@ -1003,24 +1003,84 @@ publishing, and thus, an important contribution of this work.
 In order to validate publications consistently across the network, the
 consensus algorithm needs to execute at the core of the protocol, while peers
 synchronize their chain DAGs.
+From the perspective of a peer on the receive side, the overview of the
+consensus and synchronization mechanism is as follows:
+\begin{enumerate}
+\item \textbf{Consensus:}
+    Calculate the consensus order of blocks considering the local DAG.
+\item \textbf{Synchronization:}
+    Receive the next missing block respecting topological order.
+\item \textbf{Verification:}
+    Verify that the block is valid and add it to the local DAG.
+\item \textbf{Repeat:}
+    Restart from step (a) until no blocks are missing.
+\end{enumerate}
 
+Step (a) is discussed and motivated in extent in the previous sections.
+The actual algorithm is detailed further and adapts topological sorting to
+favor branches with more reputation.
 
-provide the same message ordering across peers, and thus,
-Conceptually, for every message that needs to be published in a chain, the
-protocol
-    (i) executes the consensus algorithm over its Merkle~DAG,
+Step (b) is very similar to \emph{Byzantine Causal Broadcast}~\cite{p2p.dag.sync},
+which also synchronizes DAGs representing causal messages in the presence of
+malicious nodes:
+    (i)   starting from the heads of the DAGs;
+    (ii)  traverse each head backwards until a common block is found;
+    (iii) now traverse forward all missing blocks, respecting topological order;
+    (iv)  each message represents an iteration of Step (b).
+What distinguishes our algorithm is that \code{BLOCKED} blocks are not
+synchronized, which mitigates denial of service attacks with very long
+malicious branches.
+We also limit the number of iterations on Step (b.ii) to ensure that the
+algorithm terminates.
+If necessary, a remote peer that is disconnected for too long can try older
+heads to adapt to this limitation.
 
-The algorithm starts at the DAG heads, which are the latest blocks with no
-mutual causal order, and run towards the genesis block.
+Step (c) verifies if the next missing block found in Step (b) can be added to
+the local DAG considering the consensus order found in Step (a).
+It verifies the following properties:
+    (i)   Merkle DAG structure is consistent (e.g., block hash and back pointers);
+    (ii)  Back pointers are not in \emph{BLOCKED} state (discussed above);
+    (iii) Author signing the block has enough reputation.
+In case of success, the block is added to the DAG and the next iteration of the
+consensus algorithm should consider it.
+Otherwise, the block is marked as \emph{BLOCKED}, and the remaining branch is
+ignored in Step (b.iii).
 
-- complexity
-- recursive, no cache, no memoization, load/unload everything
+The topological sorting for the Consensus Step (a) is an adaptation of Kahn's
+algorithm~\cite{kahn}:
+%
+\begin{enumerate}
+\item The set $S$ of all blocks in the DAG with no incoming edges starts with
+      the chain genesis.
+\item Removes from $S$ the block $B$ in the branch with more reputation
+      (Figure~\ref{fig.reps}) and adds it to the end of the consensus list $L$.
+      This steps differs from Kahn's algorithm, which would take any block from
+      $S$.
+\item Adds to $S$ all blocks directly in front of $B$, excluding those
+      reachable from any node still in $S$.
+\item When $S$ is empty, the list $L$ holds the consensus order.
+\end{enumerate}
+%
+Step (b) requires to find the maximum value in set $S$ according to the
+reputation criteria.
+The comparison function needs to find the authors that are not in common in
+the suffix of the two branches in order to compare the sum of their
+reputations.
+%
+For this reason, the algorithm also needs to track negative, neutral, and
+positive blocks according to Table~\ref{fig.rules}.
+%
+We take advantage of the hard fork rule that fixes the consensus list $L$ when
+crossing an activity threshold (e.g., \emph{7 days} or \emph{100 posts}).
+We use it as a checkpoint to cache the reputations, which limits the input size
+to a fixed sized that does not depend on the sizes of the chains.
 
-- sync
-    - limit heads
-    - impossible DOS
-    - cite byzantine paper~\cite{p2p.dag.sync}
-
+Currently, we hold the DAG structure directly in the file system with no
+database support.
+Each chain uses a separate directory, and each block uses two separate files:
+a \emph{JSON} for the metadata and a payload exactly as posted.
+We build the DAG by traversing the chain directory and save the cache and
+current consensus order in an index file.
 
 \subsection{Experiments}
 \label{sec.consensus.eval}
@@ -1531,11 +1591,11 @@ a total order for applications (at the cost of rollbacks).
 A similar dVCS with a DAG representation and merging policies have been
 recently proposed~\cite{p2p.dvcs}.
 To resolve what they call \emph{competition conflicts}, they propose to use an
-external scoring function such as users' reputations.
+external scoring function, such as users' reputations.
 Our proposed consensus mechanism internalizes such reputation scoring function.
 Integrated reputation also prevents SPAM and abusive behavior from byzantine
 nodes, which could otherwise generate very large graphs that take forever to
-synchronize~\cite{p2p.dag.sync}.
+synchronize (as discussed for Byzantine Causal Broadcast~\cite{p2p.dag.sync}).
 
 \section{Conclusion}
 \label{sec.conclusion}
