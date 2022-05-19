@@ -16,40 +16,67 @@ local PUB = "'@57B7F4EF65AF1630C64B7A7094E4A01B01C9821622E32ECBB8D7F3B718A367FD'
 local RETS = {[true]=0,[false]=0}
 local N = 1
 
+local PUB2PEER = {}
+local NPEERS = 5
+local NSYNCS = 3
+
+os.remove('/tmp/fc.stop')
+
 for l in io.lines('wikimedia.chat') do
     l = string.gsub(l, "'", " ")
     assert(not string.find(l, "'"))
-    local y,m,d,hh,mm,ss,user,msg = string.match(l, "(%d%d%d%d)(%d%d)(%d%d) %[(%d%d):(%d%d):(%d%d)%] %<([%a%d-_]+)%>\t(.*)")
+    local y,m,d,hh,mm,ss,from,msg = string.match(l, "(%d%d%d%d)(%d%d)(%d%d) %[(%d%d):(%d%d):(%d%d)%] %<([%a%d-_]+)%>\t(.*)")
     RETS[y~=nil] = RETS[y~=nil] + 1
     if y then
-        assert(y and m and d and hh and mm and ss and user and msg)
-        --print(y , m , d , hh , mm , ss , user , msg)
+        assert(y and m and d and hh and mm and ss and from and msg)
+        --print(y , m , d , hh , mm , ss , from , msg)
         local ts = os.time({year=y, month=m, day=d, hour=hh, min=mm, sec=ss})
-        local port = 8500+math.random(10)
-        for i=1, 10 do
+    
+        local port = PUB2PEER[from]
+        if port == nil then
+            port = 8500+math.random(NPEERS)
+            PUB2PEER[from] = port
+        end
+        for i=1, NPEERS do
             fc_now(8500+i, ts)
         end
-        local h,user = post(port, ts, PUB, 'Ashlee', user, 'inline', "'"..msg.."'")
+
+        local h = post(port, ts, PUB, 'Ashlee', from, 'inline', "'"..msg.."'")
         print(h)
-        local p1 = port
-        local p2 = 8500+math.random(10)
-        local p3 = 8500+math.random(10)
-        fc_send(p1, p2, PUB)
-        fc_send(p2, p1, PUB)
-        fc_send(p1, p3, PUB)
-        fc_send(p3, p1, PUB)
+
+        local reps = { [port]=true }
+        local i = 0
+print('>>>')
+        while true do
+            local p = 8500+math.random(NPEERS)
+            if not reps[p] then
+                reps[p] = true
+print(port, p)
+                print('', fc_send(port, p, PUB))
+                print('', fc_send(p, port, PUB))
+                i = i + 1
+                if i == NSYNCS then
+                    break
+                end
+            end
+        end
+print('<<<')
+    end
+
+    if io.open('/tmp/fc.stop') then
+        break
     end
     if N == 500 then
-        break
+        --break
     end
     N = N + 1
 end
 
-for i=1,9 do
+for i=1, (NPEERS-1) do
     print(8500+i, 8500+i+1)
     fc_send(8500+i, 8500+i+1, PUB)
 end
-for i=10,2,-1 do
+for i=NPEERS,2,-1 do
     print(8500+i, 8500+i-1)
     fc_send(8500+i, 8500+i-1, PUB)
 end
