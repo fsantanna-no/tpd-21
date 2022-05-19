@@ -27,7 +27,8 @@ local TS = 0
 local reps = 0
 local N = 1
 local PUB2PEER = {}
-local NPEERS = 10
+local NPEERS = 20
+local NSYNCS = 5
 
 os.remove('/tmp/fc.stop')
 
@@ -107,7 +108,7 @@ print(port, p)
             print('', fc_send(port, p, PUB))
             print('', fc_send(p, port, PUB))
             i = i + 1
-            if i == 5 then
+            if i == NSYNCS then
                 break
             end
         end
