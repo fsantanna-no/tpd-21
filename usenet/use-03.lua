@@ -27,8 +27,8 @@ local TS = 0
 local reps = 0
 local N = 1
 local PUB2PEER = {}
-local NPEERS = 20
-local NSYNCS = 5
+local NPEERS = 5
+local NSYNCS = 2
 
 os.remove('/tmp/fc.stop')
 
@@ -85,35 +85,43 @@ while true do
         f:write(body)
     end
 
-    local port = PUB2PEER[from]
-    if port == nil then
-        port = 8500+math.random(NPEERS)
-        PUB2PEER[from] = port
-    end
-    for i=1, NPEERS do
-        fc_now(8500+i, TS)
-    end
-
-    local h = post(port, TS, PUB, 'johnl@ima.UUCP', from, 'file', "/tmp/fc.txt")
-    print(h)
-
-    local reps = { [port]=true }
-    local i = 0
-print('>>>')
     while true do
-        local p = 8500+math.random(NPEERS)
-        if not reps[p] then
-            reps[p] = true
-print(port, p)
-            print('', fc_send(port, p, PUB))
-            print('', fc_send(p, port, PUB))
-            i = i + 1
-            if i == NSYNCS then
-                break
+        local v,err = pcall(function ()
+            local port = PUB2PEER[from]
+            if port == nil then
+                port = 8500+math.random(NPEERS)
+                PUB2PEER[from] = port
             end
-        end
-    end
+            for i=1, NPEERS do
+                fc_now(8500+i, TS)
+            end
+
+            local h = post(port, TS, PUB, 'johnl@ima.UUCP', from, 'file', "/tmp/fc.txt")
+            print(h)
+
+            local reps = { [port]=true }
+            local i = 0
+print('>>>')
+            while true do
+                local p = 8500+math.random(NPEERS)
+                if not reps[p] then
+                    reps[p] = true
+print(port, p)
+                    print('', fc_send(port, p, PUB))
+                    print('', fc_send(p, port, PUB))
+                    i = i + 1
+                    if i == NSYNCS then
+                        break
+                    end
+                end
+            end
 print('<<<')
+        end)
+        if v then
+            break
+        end
+print('ERROR', err)
+    end
 
 
     if term then
