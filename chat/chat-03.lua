@@ -42,7 +42,7 @@ for l in io.lines('wikimedia.chat') do
         end
 
         local h = post(port, ts, PUB, 'Ashlee', from, 'inline', "'"..msg.."'")
-        print(h)
+        print('posted', h)
 
         local reps = { [port]=true }
         local i = 0
@@ -54,6 +54,15 @@ print('>>>')
 print(port, p)
                 print('', fc_send(port, p, PUB))
                 print('', fc_send(p, port, PUB))
+
+                local bs = fc_blocked(p, PUB) or ''
+                local f = string.gmatch(bs, "[^ ]+")
+                local h = f()
+                if h then
+                    fc_like(p, PUB, USERS['Ashlee'].keys.pvt, h)
+                    print('liked', h)
+                end
+
                 i = i + 1
                 if i == NSYNCS then
                     break

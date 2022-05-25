@@ -27,7 +27,7 @@ local TS = 0
 local reps = 0
 local N = 1
 local PUB2PEER = {}
-local NPEERS = 20
+local NPEERS = 10
 local NSYNCS = 5
 
 os.remove('/tmp/fc.stop')
@@ -114,7 +114,6 @@ print(port, p)
         end
     end
 print('<<<')
-
 
     if term then
         break
