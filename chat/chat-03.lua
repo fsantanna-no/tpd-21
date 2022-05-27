@@ -69,6 +69,7 @@ print('<<<')
             end
 print('ERROR', err)
         end
+print('<<<')
     end
 
     if io.open('/tmp/fc.stop') then

@@ -122,6 +122,7 @@ print('<<<')
         end
 print('ERROR', err)
     end
+print('<<<')
 
 
     if term then
