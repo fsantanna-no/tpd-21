@@ -27,6 +27,12 @@ case $3 in
             freechains --port=$i chain $4 consensus | sed 's/ /\n/g' | tee /tmp/cons-$i.txt | wc
         done
         ;;
+    "blocked" )
+        for i in $(seq $1 $2); do
+            echo "### $i"
+            freechains --port=$i chain $4 heads blocked
+        done
+        ;;
     "sync" )
         for i in $(seq $1 $2); do
             for j in $(seq $1 $2); do

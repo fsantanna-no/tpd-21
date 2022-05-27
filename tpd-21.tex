@@ -750,9 +750,10 @@ In this case, users $a$ and $b$ might be the ones trying to take over the
 chain.
 Yet another possibility is that both branches are legit but became disconnected
 for a long period of time.
-It is simply impossible to judge with confidence which is the case.
+It is simply not possible to judge with confidence which is the case.
 Nevertheless, it is unacceptable that a very old remote branch affects a long
 active local chain.
+%
 For this reason, the consensus algorithm includes an extra constraint when
 merging: long-lasting local branches do not merge, creating \emph{hard forks}
 in the network.
@@ -760,11 +761,27 @@ A hard fork occurs when a local branch crosses a predetermined and irreversible
 threshold, e.g., \emph{7 days} or \emph{100 posts} of activity.
 In this case, regardless of the remote branch reputation, the local branch
 takes priority and is ordered first.
-Figure~\ref{fig.hard} TODO.
 This situation is analogous to a hard fork in Bitcoin and the branches will
 never synchronize again.
 More than simply numeric disputes, hard forks represent social conflicts in
 which reconciling branches is no longer possible.
+%
+Figure~\ref{fig.hard} illustrates hard forks by distinguishing \emph{stable}
+consensus, which cannot be reordered, from \emph{unstable}, which may still be
+affected by incoming branches.
+The activity threshold counts backwards, from the latest local block in the
+unstable consensus.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.49\textwidth]{n100-d7.png}
+\caption{
+    Stable consensus freezes the order of blocks once they cross the activity
+    threshold.
+    The remaining unstable order may still be affected by incoming branches.
+}
+\label{fig.hard}
+\end{figure}
 
 In summary, the rules to merge a branch from a remote machine \code{j} into a
 branch from a local machine \code{i} are as follows:
@@ -1209,8 +1226,8 @@ The system relies on public forum chains, which means that repositories are
 permissionless and adhere to the proposed reputation and consensus mechanism.
 The main innovations in this system are that
     (i)  users can rate commits to reject them, and
-    (ii) checkout operations merge conflicting commits automatically based on
-         consensus order.
+    (ii) checkout operations merge conflicts automatically based on consensus
+         order.
 
 As a concrete example, we model a Wiki article as a chain behaving as a VCS
 holding its full edition history.
@@ -1399,10 +1416,11 @@ The \emph{patch} tool is mostly commutative, except when branches modify the
 same lines.
 %
 Hence, in these situations, we resort to the third layer with the consensus
-order, which we apply sequentially until a patch conflict occurs.
+order, and apply the patches sequentially until a conflict occurs.
 The final state of the file is guaranteed to be consistent, i.e., the result of
 a sequence of correct patch applications.
 
+\begin{comment}
 Applications that rely only on commutative operations can traverse the DAG in
 any causal order, possibly in parallel.
 This is the case of most social apps with threaded conversations, in which
@@ -1411,11 +1429,12 @@ For instance, it is not problematic to rely on block timestamps to display
 messages in chats, forums, and social media posts.
 This is also the general case for notifications in these applications, such as
 status updates and social engagements.
+\end{comment}
 
 Towards richer decentralized collaborative applications, we can employ CRDTs to
 model data other than raw text.
 As an example, \emph{Automerge}~\cite{p2p.automerge} manipulates JSON objects,
-which provides non-trivial datasets with robust merging policies, but which
+which supports non-trivial datasets with robust merging policies, but which
 could still benefit from consensus to resolve corner cases.
 
 \section{Related Work}
@@ -1426,9 +1445,9 @@ could still benefit from consensus to resolve corner cases.
 % Consensus
 
 Many other systems have been proposed for decentralized content
-dissemination~\cite{p2p.survey,p2p.ecosystem}.
-Here we consider the classes of publish-subscribe protocols, federated
-applications, and fully peer-to-peer systems.
+publishing~\cite{p2p.survey,p2p.ecosystem}.
+Here we consider the classes of publish-subscribe, federated, and fully
+peer-to-peer protocols.
 
 \subsection{Publish-Subscribe Protocols}
 
@@ -1470,9 +1489,9 @@ In summary, \FC and \emph{pubsub} middlewares operate at different network
 layers, which suggests that \FC could benefit of the latter to manage the
 interconnections between peers.
 
-\subsection{Federated Applications}
+\subsection{Federated Protocols}
 
-Federated applications, such as e-mail, allow users from one domain to exchange
+Federated protocols, such as e-mail, allow users from one domain to exchange
 messages with users of other domains seamlessly.
 \emph{Diaspora}, \emph{Matrix}, and \emph{Mastodon} are more recent
 federations for social media, chat, and microblogging~\cite{p2p.ecosystem},
@@ -1501,17 +1520,17 @@ The number of hops and header overhead can be much smaller in client-server
 architectures compared to peer-to-peer systems, which typically include message
 signing, hash linking, and extra verification rules.
 
-\subsection{Peer-to-Peer Systems}
+\subsection{Peer-to-Peer Protocols}
 
 Bitcoin~\cite{p2p.bitcoin} is probably the most successful permissionless
-network but serves specifically for electronic cash.
-IPFS~\cite{p2p.ipfs} and Dat~\cite{p2p.dat} are data-centric systems for
+network, but serves specifically for electronic cash.
+IPFS~\cite{p2p.ipfs} and Dat~\cite{p2p.dat} are data-centric protocols for
 hosting large files and applications, respectively.
 Scuttlebutt~\cite{p2p.scuttlebutt} and Aether~\cite{p2p.ecosystem} are closer
 to \FC goals and cover human-centric \Xon and \Xnn public communication,
 respectively.
 
-Bitcoin adopts CPU proof-of-work to achieve consensus, which does not solve the
+Bitcoin adopts proof-of-work to achieve consensus, which does not solve the
 centralization issue entirely, given the high costs of equipment and energy.
 Proof-of-stake is a prominent alternative~\cite{p2p.proofs} that acknowledges
 that centralization is inevitable (i.e., the richer gets richer), and thus uses
@@ -1555,7 +1574,7 @@ This graph is replicated in the network topology as well as in data storage.
 For instance, if identity $A$ follows identity $B$, it means that the computer
 of $A$ connects to $B$'s in a few hops and also that it stores all of his posts
 locally.
-This architecture is similar to \Xon public identity chains of \FC in
+Scuttlebutt is aligned to \Xon public identity chains of \FC in
 Table~\ref{fig.table}.
 %
 For group \Xnn communication, Scuttlebutt uses the concept of channels, which
@@ -1598,10 +1617,10 @@ in conflicting orders.
 The proposed consensus mechanism addresses permissionless writes and provides
 a total order for applications (at the cost of rollbacks).
 
-A similar dVCS with a DAG representation and merging policies have been
-recently proposed~\cite{p2p.dvcs}.
-To resolve what they call \emph{competition conflicts}, they propose to use an
-external scoring function, such as users' reputations.
+A similar dVCS have been recently proposed~\cite{p2p.dvcs}, with a DAG
+representation and merging policies.
+To resolve \emph{competition conflicts}, they propose to use an external
+scoring function, such as users' reputations.
 Our proposed consensus mechanism internalizes such reputation scoring function.
 Integrated reputation also prevents SPAM and abusive behavior from byzantine
 nodes, which could otherwise generate very large graphs that take forever to
@@ -1610,18 +1629,18 @@ synchronize (as discussed for Byzantine Causal Broadcast~\cite{p2p.dag.sync}).
 \section{Conclusion}
 \label{sec.conclusion}
 
-We propose a new permissionless consensus mechanism for content dissemination
-in peer-to-peer networks.
+We propose a new permissionless consensus and reputation mechanism for content
+sharing in peer-to-peer networks.
 We enumerate four main contributions:
     (i)   human authored content as a scarce resource
           (\emph{proof-of-authoring});
     (ii)  diversified public forums, each as an independent blockchain with
           subjective moderation rules;
-    (iii) removal of abusive content while preserving data integrity; and
-    (iv)  a three-layered CRDT scheme to build collaborative applications.
+    (iii) abusive content removal preserving data integrity; and
+    (iv)  three-layered CRDTs to build collaborative applications.
 
-The key insight of the mechanism is to use the human authoring ability as a
-scarce resource to determine consensus.
+The key insight of the consensus mechanism is to use the human authoring
+ability as a scarce resource to determine consensus.
 This contrasts with extrinsic resources, such as CPU power, which are
 dispendious and not evenly distributed among people.
 %
@@ -1630,7 +1649,7 @@ likes and dislikes, which transfer reputation between them.
 The only way to forge reputation is by authoring new content under the
 judgement of other users.
 This way, reputation generation is expensive, while verification is cheap and
-distributed.
+decentralized.
 
 The reputation and consensus mechanism is integrated into \FC, a peer-to-peer
 protocol that offers multiple arrangements of public and private
@@ -1654,7 +1673,7 @@ automatically:
           Merkle~DAG counting as a CvRDT;
     (ii)  at the application layer, the commit patches operate as (mostly)
           commutative CmRDT operations; and
-    (iii) after consensus is applied, the merge conflicts are automatically
+    (iii) after consensus is applied, merge conflicts are automatically
           resolved.
 
 TODO
