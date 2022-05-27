@@ -32,42 +32,50 @@ for l in io.lines('wikimedia.chat') do
         --print(y , m , d , hh , mm , ss , from , msg)
         local ts = os.time({year=y, month=m, day=d, hour=hh, min=mm, sec=ss})
     
-        local port = PUB2PEER[from]
-        if port == nil then
-            port = 8500+math.random(NPEERS)
-            PUB2PEER[from] = port
-        end
-        for i=1, NPEERS do
-            fc_now(8500+i, ts)
-        end
-
-        local h = post(port, ts, PUB, 'Ashlee', from, 'inline', "'"..msg.."'")
-        print('posted', h)
-
-        local reps = { [port]=true }
-        local i = 0
-print('>>>')
         while true do
-            local p = 8500+math.random(NPEERS)
-            if not reps[p] then
-                reps[p] = true
-print(port, p)
-                print('', fc_send(port, p, PUB))
-                print('', fc_send(p, port, PUB))
-
-                local bs = fc_blocked(p, PUB) or ''
-                local f = string.gmatch(bs, "[^ ]+")
-                local h = f()
-                if h then
-                    fc_like(p, PUB, USERS['Ashlee'].keys.pvt, h)
-                    print('liked', h)
+            local v,err = pcall(function ()
+                local port = PUB2PEER[from]
+                if port == nil then
+                    port = 8500+math.random(NPEERS)
+                    PUB2PEER[from] = port
+                end
+                for i=1, NPEERS do
+                    fc_now(8500+i, ts)
                 end
 
-                i = i + 1
-                if i == NSYNCS then
-                    break
+                local h = post(port, ts, PUB, 'Ashlee', from, 'inline', "'"..msg.."'")
+                print('posted', h)
+
+                local reps = { [port]=true }
+                local i = 0
+        print('>>>')
+                while true do
+                    local p = 8500+math.random(NPEERS)
+                    if not reps[p] then
+                        reps[p] = true
+        print(port, p)
+                        print('', fc_send(port, p, PUB))
+                        print('', fc_send(p, port, PUB))
+
+                        local bs = fc_blocked(p, PUB) or ''
+                        local f = string.gmatch(bs, "[^ ]+")
+                        local h = f()
+                        if h then
+                            fc_like(p, PUB, USERS['Ashlee'].keys.pvt, h)
+                            print('liked', h)
+                        end
+
+                        i = i + 1
+                        if i == NSYNCS then
+                            break
+                        end
+                    end
                 end
+            end)
+            if v then
+                break
             end
+            print('ERROR', err)
         end
 print('<<<')
     end
