@@ -3,7 +3,7 @@
 case $3 in
     "start" )
         for i in $(seq $1 $2); do
-            freechains-host --port=$i start /tmp/fc-$i &
+            freechains-host --port=$i start /x/tmp/fc/fc-$i &
         done
         ;;
     "stop" )

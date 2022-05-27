@@ -73,6 +73,7 @@ print('<<<')
                 break
             end
 print('ERROR', err)
+io.read()
         end
 print('<<<')
     end
