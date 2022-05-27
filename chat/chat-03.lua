@@ -28,12 +28,12 @@ for l in io.lines('wikimedia.chat') do
     local y,m,d,hh,mm,ss,from,msg = string.match(l, "(%d%d%d%d)(%d%d)(%d%d) %[(%d%d):(%d%d):(%d%d)%] %<([%a%d-_]+)%>\t(.*)")
     RETS[y~=nil] = RETS[y~=nil] + 1
     if y then
-        assert(y and m and d and hh and mm and ss and from and msg)
-        --print(y , m , d , hh , mm , ss , from , msg)
-        local ts = os.time({year=y, month=m, day=d, hour=hh, min=mm, sec=ss})
-    
         while true do
             local v,err = pcall(function ()
+                assert(y and m and d and hh and mm and ss and from and msg)
+                --print(y , m , d , hh , mm , ss , from , msg)
+                local ts = os.time({year=y, month=m, day=d, hour=hh, min=mm, sec=ss})
+            
                 local port = PUB2PEER[from]
                 if port == nil then
                     port = 8500+math.random(NPEERS)
@@ -44,38 +44,35 @@ for l in io.lines('wikimedia.chat') do
                 end
 
                 local h = post(port, ts, PUB, 'Ashlee', from, 'inline', "'"..msg.."'")
-                print('posted', h)
+                print(h)
 
                 local reps = { [port]=true }
                 local i = 0
-        print('>>>')
+print('>>>')
                 while true do
                     local p = 8500+math.random(NPEERS)
                     if not reps[p] then
                         reps[p] = true
-        print(port, p)
+print(port, p)
                         print('', fc_send(port, p, PUB))
                         print('', fc_send(p, port, PUB))
-
-                        local bs = fc_blocked(p, PUB) or ''
-                        local f = string.gmatch(bs, "[^ ]+")
-                        local h = f()
-                        if h then
-                            fc_like(p, PUB, USERS['Ashlee'].keys.pvt, h)
-                            print('liked', h)
-                        end
-
                         i = i + 1
                         if i == NSYNCS then
                             break
                         end
                     end
                 end
+
+                i = i + 1
+                if i == NSYNCS then
+                    break
+                end
+print('<<<')
             end)
             if v then
                 break
             end
-            print('ERROR', err)
+print('ERROR', err)
         end
 print('<<<')
     end
