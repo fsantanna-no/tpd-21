@@ -28,39 +28,47 @@ for l in io.lines('wikimedia.chat') do
     local y,m,d,hh,mm,ss,from,msg = string.match(l, "(%d%d%d%d)(%d%d)(%d%d) %[(%d%d):(%d%d):(%d%d)%] %<([%a%d-_]+)%>\t(.*)")
     RETS[y~=nil] = RETS[y~=nil] + 1
     if y then
-        assert(y and m and d and hh and mm and ss and from and msg)
-        --print(y , m , d , hh , mm , ss , from , msg)
-        local ts = os.time({year=y, month=m, day=d, hour=hh, min=mm, sec=ss})
-    
-        local port = PUB2PEER[from]
-        if port == nil then
-            port = 8500+math.random(NPEERS)
-            PUB2PEER[from] = port
-        end
-        for i=1, NPEERS do
-            fc_now(8500+i, ts)
-        end
-
-        local h = post(port, ts, PUB, 'Ashlee', from, 'inline', "'"..msg.."'")
-        print(h)
-
-        local reps = { [port]=true }
-        local i = 0
-print('>>>')
         while true do
-            local p = 8500+math.random(NPEERS)
-            if not reps[p] then
-                reps[p] = true
-print(port, p)
-                print('', fc_send(port, p, PUB))
-                print('', fc_send(p, port, PUB))
-                i = i + 1
-                if i == NSYNCS then
-                    break
+            local v,err = pcall(function ()
+                assert(y and m and d and hh and mm and ss and from and msg)
+                --print(y , m , d , hh , mm , ss , from , msg)
+                local ts = os.time({year=y, month=m, day=d, hour=hh, min=mm, sec=ss})
+            
+                local port = PUB2PEER[from]
+                if port == nil then
+                    port = 8500+math.random(NPEERS)
+                    PUB2PEER[from] = port
                 end
-            end
-        end
+                for i=1, NPEERS do
+                    fc_now(8500+i, ts)
+                end
+
+                local h = post(port, ts, PUB, 'Ashlee', from, 'inline', "'"..msg.."'")
+                print(h)
+
+                local reps = { [port]=true }
+                local i = 0
+print('>>>')
+                while true do
+                    local p = 8500+math.random(NPEERS)
+                    if not reps[p] then
+                        reps[p] = true
+print(port, p)
+                        print('', fc_send(port, p, PUB))
+                        print('', fc_send(p, port, PUB))
+                        i = i + 1
+                        if i == NSYNCS then
+                            break
+                        end
+                    end
+                end
 print('<<<')
+            end)
+            if v then
+                break
+            end
+print('ERROR', err)
+        end
     end
 
     if io.open('/tmp/fc.stop') then
