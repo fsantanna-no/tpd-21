@@ -56,16 +56,19 @@ print('>>>')
 print(port, p)
                         print('', fc_send(port, p, PUB))
                         print('', fc_send(p, port, PUB))
-                        i = i + 1
-                        if i == NSYNCS then
-                            break
+
+                        local bs = fc_blocked(p, PUB) or ''
+                        local f = string.gmatch(bs, "[^ ]+")
+                        local h = f()
+                        if h then
+                            fc_like(p, PUB, USERS['Ashlee'].keys.pvt, h)
+                            print('liked', h)
                         end
                     end
-                end
-
-                i = i + 1
-                if i == NSYNCS then
-                    break
+                    i = i + 1
+                    if i == NSYNCS then
+                        break
+                    end
                 end
 print('<<<')
             end)
@@ -75,14 +78,13 @@ print('<<<')
 print('ERROR', err)
 io.read()
         end
-print('<<<')
     end
 
     if io.open('/tmp/fc.stop') then
         break
     end
-    if N == 500 then
-        --break
+    if N == 10000 then
+        break
     end
     N = N + 1
 end

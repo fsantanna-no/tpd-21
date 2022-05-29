@@ -131,8 +131,8 @@ print('<<<')
     if io.open('/tmp/fc.stop') then
         break
     end
-    if N == 15000 then
-        --break
+    if N == 10000 then
+        break
     end
     N = N + 1
 --[[
