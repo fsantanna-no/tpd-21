@@ -67,7 +67,7 @@ publish-subscribe, reputation system, VCS
 
 \IEEEPARstart{C}{ontent} publishing in Internet forums and social media is
 increasingly more centralized in a few companies (e.g. Facebook and
-Twitter)~\cite{internet.fixing,p2p.osn}.
+Twitter)~\cite{internet.fixing,p2p.osn,p2p.dosn}.
 %These companies benefit from closed protocols and network effects to keep
 %users locked in their platforms.
 On the one hand, these companies offer free storage, friendly user interfaces,
@@ -1107,23 +1107,207 @@ We build the DAG by traversing the chain directory.
 \subsection{Experiments}
 \label{sec.consensus.eval}
 
-In this section, we perform some experiments to evaluate the consensus
-performance and the practicability of the protocol as a whole.
+In this section, we perform some experiments to evaluate the performance and
+practicability of the protocol as a whole.
+%
+As detailed further, we evaluate are the following parameters:
+    (a) metadata overhead,
+    (b) consensus algorithm runtime,
+    (c) graph forks, and
+    (d) likes to blocked messages.
+
 We took two publicly available forums from the \emph{Internet Archive} and
 simulate their behavior as if they were using \FC:
 %
-    (i)  a chat channel from the Wikimedia Foundation%
-\footnote{ Chat: \url{https://archive.org/download/WikimediaIrcLogs/} }; and
-    (ii) Usenet's \emph{comp.compilers} newsgroup%
+    a chat channel from the Wikimedia Foundation%
+\footnote{ Chat: \url{https://archive.org/download/WikimediaIrcLogs/} }, and
+    Usenet's \emph{comp.compilers} newsgroup%
 \footnote{ Newsgroup: \url{https://archive.org/download/usenet-comp} }.
 %
-Chats and newsgroups represent typical public forums with
-    (i)  faster interactions with shorter payloads, and
-    (ii) slower interactions with larger payloads.
+Chats and newsgroups represent typical public forums respectively with
+    faster interactions with shorter payloads, and
+    slower interactions with larger payloads.
+%
+We only simulate the first \emph{10000} messages of the forums, which
+represent 3 months of activity in the chat and 9 years in the newsgroup.
 
-- usenet
-    - more machines, less connections
-    - less machines, more connections
+\begin{comment}
+For longer periods, we assume that the protocol would employ archiving or
+pruning techniques~\cite{p2p.prune}.
+For instance, an archive operation over a chain would freeze the reputation of
+posts and authors back to some past block in the hard consensus, and disallow
+back links to the archive (e.g., likes and dislikes).
+We leave this operation to future work.
+\end{comment}
+
+A simulation starts $N$ peers, each joining the same chain with the same
+parameters.
+For each message in the original forum, we
+    (i)   set the timestamp of all peers to match the date,
+    (ii)  create a pair of keys if the author is new,
+    (iii) post the message from a random peer in $N$,
+    (iv)  like the post if the author has no reputation, and
+    (v)   synchronize the chain with $M$ random peers.
+%
+Since all messages are part of the original archive, we always perform step
+(iv) to unblock messages from newbies.
+One of the evaluation criteria is the number of unblocking likes, which may
+signal excess of bookkeeping from existing users.
+Step (v) will inevitably create forks in the chain for any $M<N$, which is
+another evaluation criterion.
+
+For the newsgroup, we use $N=15$ and $M=5$, which represents larger number of
+peers with few interconnections to stress the local-first nature of the
+protocol.
+For the chat, we use $N=5$ and $M=3$, which represents smaller number of peers
+with more interconnections.
+
+\begin{comment}
+We assume chats are less distributed given their real-time requirements, i.e.,
+users would connect to a few but more interconnected peers.
+Note that \FC focus on the decentralization of authority, which is not directly
+related to network distribution, which may vary from applications.
+\end{comment}
+
+Evaluation item (a) measures the protocol overhead due to blockchain metadata:
+timestamp, author signature, and hashes (for the id, payload, backlinks, and
+likes).
+%
+The original chat archive is $800Kb$ in size, or $80b$ for each message, which
+includes a timestamp, an username, and the actual payload.
+The simulated chat chain is $8Mb$ in size, which represents a $10x$ overhead.
+% (\code{20100825 [03:37:43]})
+% (\code{hello everyone})
+% (\code{<Ashlee>})
+The original newsgroup is $30Mb$ in size, or $3Kb$ for each message, which
+includes a timestamp, a sender, a subject, and the actual payload (typically
+much longer).
+The simulated newsgroup chain is $42Mb$ in size, which is an overhead of under
+$50\%$.
+% (\code{29 Aug 88 23:36:58 GMT})
+% (\code{mark@ramid.com})
+% (\code{Error messages and Yacc})
+
+Item (b) evaluates the consensus step depicted in
+Section~\ref{sec.consensus.algo}.
+We measured the time to sort blocks in a local DAG for the first time without
+any cache, and incrementally from irreversible hard forks caches.
+%
+For the chat chain, it takes $125s$ and $50ms$ for the initial and incremental
+sorts, while for the newsgroup chain, it takes $100s$ and $70ms$ respectively.
+%
+%Currently, we synchronize the DAGs takes hours because we the synchronization time
+
+Item (c) evaluates the number of forks in chain DAGs, which indicates the level
+of asynchronicity between peers supposedly following the local-first principle.
+We calculate the ratio of forks over the total number of messages.
+From the choices for $M$ and $N$, we expect the newsgroup to have a higher
+ratio, since peers synchronize less.
+We found a ratio of $18\%$ for the chat and $14\%$ for the newsgroup.
+TODO: deveria ser o contrario?
+
+Item (d) evaluates how much bookkeeping is required to incorporate new active
+users into the forums.
+As we argue in Section~\ref{sec.consensus.chains}, the newbie rule~\code{4.a}
+in Table~\ref{fig.rules} is fundamental to combat Sybils.
+However, after a non-malicious user receives his initial like, ideally he
+should not require extra likes for further messages.
+%
+Hence, we count the number of blocked messages requiring extra likes after the
+initial likes.
+This situation occurs when an user with low reputation tries to post multiple
+messages in a row without the necessary interval imposed by rule~\code{2}.
+We then calculate the ratio of extra likes over the total number of messages.
+As an example, suppose an user successfully posts 9 messages, but his next
+message is blocked due to no remaining reputation.
+In this case, the chain required $1$ like for a total of $10$ messages, leading
+to a bookkeeping ratio of $10\%$.
+%
+For the chat with $80$ users, we found a ratio of $3.7\%$.
+For the newsgroup with $5000$ users, we found a ratio of $8.8\%$.
+%
+We expected the newsgroup to have a lower bookkeeping given the higher interval
+between messages.
+However, we
+%
+Note that the users were not aware of the reputation rules These numbers
+
+Note that we do not evaluate the quality of posts and how they would affect the
+reputation of users.
+We leave this analysis to future work.
+We also assume that users would use the revoke mechanism to combat abusive
+content, having no further effects on our evaluation.
+
+\begin{comment}
+CHAT
+timestamp user message
+ 798857 bytes
+
+> DELL+ /x/tmp/fc-chat-20220529
+- 3.7
+- 455793 7419368 7875161
+
+> DELL+ /x/tmp/fc-chat-20220530
+- 3.7
+- 455793 7433845 7889638
+
+> DELL- /x/tmp/fc-chat-20220529
+- 3.7
+- 455793 7434379 7890172
+- 125s, 50ms
+- 10511 / 1852 = 18%
+
+> DELL- /x/tmp/fc-chat-20220530
+- 3.7
+- 455793 7433590 7889383
+- 150s, 50ms
+- 10510 / 1850 = 18%
+
+> NOTE 20220530
+- 5.1
+ 455811
+7577544
+- 100ms / 130ms
+- 10693 / 1811 = 17%
+
+> NOTE 20220531
+- 3.7
+ 455793
+7434804
+- 100ms / 130ms
+- 10511 / 1851 = 18%
+
+> NOTE 20220601
+- 3.5
+ 455793
+7384694
+- 249s / 100ms
+- 10456 / 1837 = 18%
+
+-------------------------------------------------------------------------------
+
+USENET
+code From: Subject: Date: BODY
+29.863.335 bytes
+
+> DELL+ /x/tmp/fc-usenet-20220531
+- 8.9
+42.262.616
+
+> DELL+ /x/tmp/fc-usenet-20220601
+- 8.9
+42357914
+
+
+> DELL- /x/tmp/fc-usenet-20220601
+- 8.7
+42160398
+- 52s / 70ms
+- 15665 / 2198 = 14%
+
+> DELL- /x/tmp/fc-usenet-20220602
+- 60s / 70ms
+- 15678 / 2091 = 13%
 
 - lockdown strategy ok?
 
@@ -1137,9 +1321,6 @@ Discussion:
 - no images, videos
     - 128k enough for memes?
 
-We take existent public forums from the Internet Archive
-
-\begin{comment}
 - Two cases
     - chat:
         - 2010-08-25 2012-11-01
@@ -1158,8 +1339,6 @@ We take existent public forums from the Internet Archive
         - 13000 users
         - 3.8 messages per day
 
-- size in bytes (multiplier vs original)
-- ratio of required likes for newbies
 - number of forks
     - chat 30s per peer
     - e-mail 1h per peer
