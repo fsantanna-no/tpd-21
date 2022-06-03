@@ -11,7 +11,7 @@ local MON = {
     Jul=7, Aug=8, Sep=9, Oct=10, Nov=11, Dec=12
 }
 
-local f = io.open('xxx.mbox')
+local f = io.open('yyy.mbox')
 
 function read_until (patt)
     while true do
@@ -27,8 +27,8 @@ local TS = 0
 local reps = 0
 local N = 1
 local PUB2PEER = {}
-local NPEERS = 5
-local NSYNCS = 2
+local NPEERS = 12
+local NSYNCS = 4
 
 os.remove('/tmp/fc.stop')
 
@@ -97,7 +97,7 @@ while true do
             end
 
             local h = post(port, TS, PUB, 'johnl@ima.UUCP', from, 'file', "/tmp/fc.txt")
-            print(h)
+            print(TS, h)
 
             local reps = { [port]=true }
             local i = 0
@@ -121,6 +121,7 @@ print('<<<')
             break
         end
 print('ERROR', err)
+io.read()
     end
 print('<<<')
 
