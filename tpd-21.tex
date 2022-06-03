@@ -536,7 +536,7 @@ in the network.
 
 \FC is around $1500$ LoC in Kotlin. %and is publicly available.
 %\footnote{\url{http://www.freechains.org}}.
-The binary for the JVM is around $6Mb$ in size and works in Android and most
+The binary for the JVM is around $6MB$ in size and works in Android and most
 desktop systems.
 
 Note that the basic operations of Freechains to (i) create decentralized
@@ -999,7 +999,7 @@ However, if blocked posts are not disseminated, new users will never have the
 chance to be welcomed with a like.
 A reasonable policy is to hold blocked posts in a temporary bag and retransmit
 them for some visibility in the network.
-Rule~\code{4.c} limits the size of posts to at most \emph{128Kb} to prevent
+Rule~\code{4.c} limits the size of posts to at most \emph{128kB} to prevent
 DDoS attacks using gigantic blocked posts.
 %
 Once accepted, a post becomes part of the chain and can never be removed
@@ -1161,6 +1161,10 @@ peers with few interconnections to stress the local-first nature of the
 protocol.
 For the chat, we use $N=5$ and $M=3$, which represents smaller number of peers
 with more interconnections.
+%
+We executed each simulation $4$ times in a conventional desktop PC ($i7$ CPU,
+$8GB$ RAM, $512GB$ SSD).
+Since the variations were negligible, we always display the median measures.
 
 \begin{comment}
 We assume chats are less distributed given their real-time requirements, i.e.,
@@ -1173,36 +1177,36 @@ Evaluation item (a) measures the protocol overhead due to blockchain metadata:
 timestamp, author signature, and hashes (for the id, payload, backlinks, and
 likes).
 %
-The original chat archive is $800Kb$ in size, or $80b$ for each message, which
+The original chat archive is $800kB$ in size, or $80B$ for each message, which
 includes a timestamp, an username, and the actual payload.
-The simulated chat chain is $8Mb$ in size, which represents a $10x$ overhead.
+The simulated chat chain is $8MB$ in size, which indicates a $10x$ overhead.
 % (\code{20100825 [03:37:43]})
 % (\code{hello everyone})
 % (\code{<Ashlee>})
-The original newsgroup is $30Mb$ in size, or $3Kb$ for each message, which
+The original newsgroup is $30MB$ in size, or $3kB$ for each message, which
 includes a timestamp, a sender, a subject, and the actual payload (typically
 much longer).
-The simulated newsgroup chain is $42Mb$ in size, which is an overhead of under
-$50\%$.
+The simulated newsgroup chain is $42MB$ in size, which indicates a $50\%$
+overhead.
 % (\code{29 Aug 88 23:36:58 GMT})
 % (\code{mark@ramid.com})
 % (\code{Error messages and Yacc})
 
 Item (b) evaluates the consensus step depicted in
 Section~\ref{sec.consensus.algo}.
-We measured the time to sort blocks in a local DAG for the first time without
-any cache, and incrementally from irreversible hard forks caches.
+We measured the time to sort blocks in a local DAG both for the first time
+(without any caches), and incrementally (from irreversible hard forks caches).
 %
 For the chat chain, it takes $125s$ and $50ms$ for the initial and incremental
-sorts, while for the newsgroup chain, it takes $100s$ and $70ms$ respectively.
+sorts respectively, while for the newsgroup chain, it takes $100s$ and $70ms$.
 %
 %Currently, we synchronize the DAGs takes hours because we the synchronization time
 
 Item (c) evaluates the number of forks in chain DAGs, which indicates the level
-of asynchronicity between peers supposedly following the local-first principle.
+of asynchronicity between peers following the local-first principle.
 We calculate the ratio of forks over the total number of messages.
-From the choices for $M$ and $N$, we expect the newsgroup to have a higher
-ratio, since peers synchronize less.
+Based on the choices for $M$ and $N$ for each forum, we expect the newsgroup to
+have a higher ratio, since peers synchronize less.
 We found a ratio of $18\%$ for the chat and $14\%$ for the newsgroup.
 TODO: deveria ser o contrario?
 
