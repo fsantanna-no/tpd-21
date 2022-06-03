@@ -217,19 +217,20 @@ In summary, we propose
 %
 As a main limitation, the forum graphs are ever growing data structures that
 carry considerable metadata overhead.
-The costs to store and validate posts increase over time
-This is a fundamental limitation shared with 
-Over the time, these costs
-We evaluate
-TODO: performance of the algorithm and overhead of the blockchain
-In addition, they require per-block validations that may become a bottleneck
-for real-time applications.
+The costs to store and validate posts increase over time, which is a limitation
+of blockchains in general.
+%In addition, they require per-block validations that may become a bottleneck
+%for real-time applications.
+%
+Nevertheless, in order to show the practicability of the protocol, we present
+simulations of $10.000$ messages in publicly available chat and newsgroup
+archives.
 
 The rest of the paper is organized as follows:
 In Section~\ref{sec.freechains}, we introduce the basic functionalities of \FC
 to create, evaluate, and synchronize posts.
 In Section~\ref{sec.consensus}, we describe the reputation and consensus
-mechanism applied to public forums.
+mechanism applied to public forums and evaluate its perfomance.
 In Section~\ref{sec.crdts}, we discuss the correspondences with CRDTs, and
 prototype a simple dVCS.
 In Section~\ref{sec.related}, we compare our system with publish-subscribe
@@ -577,13 +578,14 @@ consensus algorithm to resist Sybil attacks and make peer-to-peer public forums
 practical.
 
 Section~\ref{sec.consensus.design} describes the overall reputation and
-consensus mechanism, which can be applied any other system using DAGs to
+consensus mechanism, which can be applied to other systems using DAGs to
 structure its messages.
 Section~\ref{sec.consensus.chains} describes the concrete rules we implemented
 for public forums in \FC.
 Section~\ref{sec.consensus.algo} details the consensus and synchronization
 algorithm.
-Section~\ref{sec.consensus.eval} TODO.
+Section~\ref{sec.consensus.eval} simulates the behavior of chains to evaluate
+the performance of the protocol.
 
 \subsection{Overall Design}
 \label{sec.consensus.design}
@@ -1128,7 +1130,7 @@ Chats and newsgroups represent typical public forums respectively with
     faster interactions with shorter payloads, and
     slower interactions with larger payloads.
 %
-We only simulate the first \emph{10000} messages of the forums, which
+We only simulate the first \emph{10.000} messages of the forums, which
 represent 3 months of activity in the chat and 9 years in the newsgroup.
 
 \begin{comment}
@@ -1228,19 +1230,19 @@ In this case, the chain required $1$ like for a total of $10$ messages, leading
 to a bookkeeping ratio of $10\%$.
 %
 For the chat with $80$ users, we found a ratio of $3.7\%$.
-For the newsgroup with $5000$ users, we found a ratio of $8.8\%$.
+For the newsgroup with $5000$ users, we found a ratio of $3.5\%$.
 %
-We expected the newsgroup to have a lower bookkeeping given the higher interval
-between messages.
-However, we
-%
-Note that the users were not aware of the reputation rules These numbers
+As expected, the newsgroup should have a lower bookkeeping given the higher
+interval between messages.
 
-Note that we do not evaluate the quality of posts and how they would affect the
-reputation of users.
-We leave this analysis to future work.
-We also assume that users would use the revoke mechanism to combat abusive
+A few notes about the subjective behavior of chains, which our analysis does
+not evaluate:
+First, the original users were not aware of the reputation rules, which
+otherwise could decrease the required bookkeeping even further.
+Second, we assume that users would use the revoke mechanism to combat abusive
 content, having no further effects on our evaluation.
+Third, we do not evaluate the quality of posts and how they would affect the
+reputation of users.
 
 \begin{comment}
 CHAT
@@ -1250,10 +1252,15 @@ timestamp user message
 > DELL+ /x/tmp/fc-chat-20220529
 - 3.7
 - 455793 7419368 7875161
+- erro (consensus ate 93\_*)
+- 10491 / 1794 = 17%
+
 
 > DELL+ /x/tmp/fc-chat-20220530
 - 3.7
 - 455793 7433845 7889638
+- erro (consensus ate 93\_*)
+- 10510 / 1851 = 18%
 
 > DELL- /x/tmp/fc-chat-20220529
 - 3.7
@@ -1297,11 +1304,24 @@ code From: Subject: Date: BODY
 > DELL+ /x/tmp/fc-usenet-20220531
 - 8.9
 42.262.616
+- 73s / 66ms
+- 15659 / 2395
 
 > DELL+ /x/tmp/fc-usenet-20220601
 - 8.9
 42357914
+- 75s / 70ms
+- 15682 / 2195
 
+> DELL+ /x/tmp/fc-usenet-20220602
+- 8.9
+- 69s / 66ms
+- 15669 / 2286
+
+> DELL+ /x/tmp/fc-usenet-20220603
+- 3.5
+- 64s / 64ms
+- 15416 / 2327
 
 > DELL- /x/tmp/fc-usenet-20220601
 - 8.7
@@ -1859,14 +1879,13 @@ automatically:
     (iii) after consensus is applied, merge conflicts are automatically
           resolved.
 
-TODO
 Finally, we do not claim that the proposed reputation system enforces ``good''
 human behavior in any way.
 Instead, it provides a transparent and quantitative mechanism to help users
 understand the evolution of forums and act accordingly.
-Human creativity contrasts with plain economic resources (e.g., proof-of-work/
-stake), which do not appraise social interactions and also tend to concentrate
-over the time.
+Human creativity contrasts with plain economic resources (e.g.,
+proof-of-work/stake), which do not appraise social interactions and also tend
+to concentrate over the time.
 %
 \begin{comment}
 
