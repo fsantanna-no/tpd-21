@@ -760,7 +760,7 @@ For this reason, the consensus algorithm includes an extra constraint when
 merging: long-lasting local branches do not merge, creating \emph{hard forks}
 in the network.
 A hard fork occurs when a local branch crosses a predetermined and irreversible
-threshold, e.g., \emph{7 days} or \emph{100 posts} of activity.
+threshold, i.e., \emph{7 days} or \emph{100 posts} of activity.
 In this case, regardless of the remote branch reputation, the local branch
 takes priority and is ordered first.
 This situation is analogous to a hard fork in Bitcoin and the branches will
@@ -1331,6 +1331,11 @@ code From: Subject: Date: BODY
 - 64s / 64ms
 - 15416 / 2327
 
+> DELL+ /x/tmp/fc-usenet-20220604
+- 3.4
+- ??s / ??ms
+- ????? / ????
+
 > DELL- /x/tmp/fc-usenet-20220601
 - 8.7
 42160398
@@ -1869,6 +1874,10 @@ Users have the power to create their own public forums of interest and apply
 diverse moderation policies that better suit their needs.
 In particular, users can revoke content considered abusive according to their
 own community policies, not depending on centralized authorities.
+%
+We simulate the behavior of existing chat and newsgroup forums as if they were
+using \FC to show the practicability of the protocol as a descentralized
+alternative for public forums.
 
 %The protocol replicates Merkle~DAGs that represent causal relationships between
 %messages in the network.

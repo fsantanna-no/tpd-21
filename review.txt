@@ -33,8 +33,9 @@ appeared in comments from all reviewers with variations:
 
    In the Abstract, we are now more explicit about our main contribution as "a
    reputation system that moderates content and, at the same time, delivers
-   network consensus". We also compare human authoring ability with plain
-   economic resources (proof-of-work/stake) to reinforce our contributions.
+   network consensus". We also highlight the use of the human authoring ability
+   (proof-of-authoring) instead of plain economic resources (proof-of-work/stake)
+   to reinforce our contributions.
 
    In the Introduction, we added an early discussion about the existing support
    for either multi-user/single-node or single-user/multi-node consensus.
@@ -42,15 +43,18 @@ appeared in comments from all reviewers with variations:
    our research goal. We then discuss the limitations of Bitcoin proof-of-work
    in the context of content publishing. Finally, we discuss our proposal
    considering the limitations of existing work and highlight the key insight
-   of using human work as a scarce resource. We also motivate the DVCS
+   of using human work as a scarce resource. We also motivate the dVCS
    application example as a collaborative application that requires explicit
    human interactions. We also removed the excess of details on the mechanisms.
 
-   In the Conclusion, we TODO...
+   In the Conclusion, we summarize our main contributions again, and mention
+   practical uses of the protocol as a decentralized alternative for public
+   forums and collaborative applications.
+
    We also respond individually to each of these comments below.
 
 2. Improve related work.
-   We TODO...
+
    Follows the reviewer comments related to this area:
     - "section 5 only provides a very basic related work section", "needs to be
       further developed to truly show how this system differs from and approves
@@ -63,8 +67,32 @@ appeared in comments from all reviewers with variations:
       references are needed"
       1/3 chose option "References are sufficient and appropriate"
 
+  Regarding Section 5 (Publish-Subscribe Protocols), and as also discussed
+  further, we de-emphasized the pubsub nature of the protocol, highlighting
+  that "pubsub middlewares operate at different network layers, which suggests
+  that Freechains could benefit of the latter to manage the interconnections
+  between peers".
+  We added a discussion about Merkle DAGs as self-certifying conversations and
+  highlight the semantic aspect of our approach which enables permissionless
+  writes.
+  We added a comparison with another dVCS with respect to the reputation
+  system.
+  We added 5 new recent references:
+    - [2020] Byzantine eventual consistency and the fundamental limits of
+             peer-to-peer databases
+    - [2021] Decentralized collaborative version control
+    - [2021] Analysis of the matrix event graph replicated data type
+    - [2021] Decentralized collaborative version control
+    - [2022] Making CRDTs Byzantine Fault Tolerant
+  We now use 10 references, most of which are recent (2009, 2014, 2x2018, 2019,
+  2020, 3x2021, 2022).
+
 3. Show more discussion/evidence/evaluation about the protocol.
-   We TODO...
+
+   We added two new subsections to the paper:
+    - 3.3: The Consensus and Synchronization Algorithm
+    - 3.4: Experiments
+
    Follows the reviewer comments related to this area:
     - "this paper lacks analysis or experiments to prove the correctness of the
       design"
@@ -81,9 +109,37 @@ appeared in comments from all reviewers with variations:
       2/3 reviewers chose option "Appears to be - but didn't check completely"
       1/3 chose option "Yes"
 
+   The section on experiments evaluates 4 parameters: (a) metadata overhead,
+   (b) consensus runtime, (c) graph forks, and (d) blocked messages.
+   We simulate the behavior of two publicly available forums (a chat and a
+   newsgroup) as if they were using Freechains.
+   For item (a), we conclude that "the metatada overhead is not negligible,
+   specially for short chat messages, but decreases as the payload increases".
+   For item (b), we discuss that the stable consensus rule "conveniently
+   settles an upper bound on the input size of the consensus algorithm", which
+   makes it practical regardless of the forum size.
+   For item (c), we calculate the level of asynchrony (peers working locally)
+   and found a ratio around 15%, which "confirms that the simulation achieves a
+   reasonable level of asynchrony".
+   For item (d), we evaluate "how much bookkeeping is required to sustain
+   active users in the forums" and found a ratio below 5%, which "considering
+   that users were not aware of the reputation rules, indicates that their
+   natural posting behavior matches the rules constraints".
+
+   The section on the consensus algorithm details the necessary steps to
+   validate publications consistently across the network: (a)
+   Consensus, (b) Synchronization, (c) Verification, (d) Repeat.
+   The focus is on step (a), which is an adaptation of Khan's topological
+   sorting algorithm to favor branches with more reputation.
+
+-------------------------------------------------------------------------------
+
 The first version of the paper was submitted more than 1 year ago.
-In the meantime, we made a small but important modification in the consensus,
-TODO: more focus on forks introduction, change in the consensus algorithm
+In the meantime, we made a slight modification to hard forks, which are now
+based on fixed activity thresholds (7 days or 100 posts), and not any longer on
+reputation thresholds (which was confusing).
+This change does not affect the paper results and discussions, except the part
+mentioning hard forks (mainly Section 3.1).
 
 Next, we go through all the comments and respond individually to each of them.
 
@@ -111,16 +167,14 @@ We added a remark in Section 2:
 "Note that Freechains does not synchronize peers automatically. There are no
 preconfigured peers, no root servers, no peer discovery. All connections happen
 through the `send` and `recv` commands which have to specify the peers
-explicitly. The protocol only gives basic support for communication in pairs of
-peers and further automation requires external tools. In this sense, Freechains
-is conceptually a pubsub on how users publish and consume content, but it still
-requires underlying network support."
+explicitly. In this sense, Freechains is conceptually a pubsub on how users
+publish and consume content, but it still requires extra network automation."
 
 We also emphasize the layer mismatch in Related Work:
 
 "In summary, Freechains and pubsub middlewares operate at different network
-layers, which suggests that Freechains could benefit of the latter to
-administer its interconnections between peers."
+layers, which suggests that Freechains could benefit of the latter to manage
+the interconnections between peers."
 
 > 3. Authors should use pseudo-code or flowcharts to describe the system
      design. The use of commands can be designated as supplemental material.
@@ -143,11 +197,17 @@ We renamed them all as tables.
      order in the ordering algorithm shown in Figure 4.A? Does the prototype
      system have sufficient performance to support real Internet forums?
 
-TODO
+As described before, we added two new subsections to the paper which details
+the algorithm and evaluates its performance.
+We simulated 10000 messages from real archives with a chat and a newsgroup, and
+achieved sufficient performance.
 
 > 6. The organization of the paper can be improved.
 
-TODO
+The Introduction and Conclusion were mostly rewritten.
+We added a new figure to explain the consensus, and added two more sections at
+the core of the paper (Section 3).
+We also rewrote parts of the Related Work.
 
 -------------------------------------------------------------------------------
 
@@ -165,14 +225,19 @@ Answered above:
 
    In the Abstract, we are now more explicit about our main contribution as "a
    reputation system that moderates content and, at the same time, delivers
-   network consensus". We also compare human authoring ability with plain
-   economic resources (proof-of-work/stake) to reinforce our contributions.
+   network consensus". We also highlight the use of the human authoring ability
+   (proof-of-authoring) instead of plain economic resources (proof-of-work/stake)
+   to reinforce our contributions.
 
 > 2. Similarly, the conclusion does not talk to the protocol’s novelty or
      innovation, nor does it provide context in terms of implications or real
      world applications.
 
-TODO
+Answered above:
+
+   In the Conclusion, we summarize our main contributions again, and mention
+   practical uses of the protocol as a decentralized alternative for public
+   forums and collaborative applications.
 
 > 3. The introduction’s second paragraph provides a good insight into the
      problem that is being addressed. The rest of the introduction, however,
@@ -191,7 +256,7 @@ Answered above:
    our research goal. We then discuss the limitations of Bitcoin proof-of-work
    in the context of content publishing. Finally, we discuss our proposal
    considering the limitations of existing work and highlight the key insight
-   of using human work as a scarce resource. We also motivate the DVCS
+   of using human work as a scarce resource. We also motivate the dVCS
    application example as a collaborative application that requires explicit
    human interactions. We also removed the excess of details on the mechanisms.
 
@@ -230,11 +295,9 @@ We are now clear about the intention of the section and refer to the figure
 with the resulting metadata:
 
 "The goals of this section are twofold:
-    (i)  to explain how the basic protocol operations, such as publishing posts
-         and synchronizing peers, result in chain DAGs like that of the
-         Figure 1.C; and
-    (ii) to conclude that permissionless decentralized protocols require some
-         form o Sybil resistance."
+    (i)  to depict chain DAGs as the result of basic protocol operations; and
+    (ii) to illustrate how permissionless protocols inevitably require some
+         form o Sybil resistance to become practical."
 
 > - At the moment, Section 1 mentions that Freechains will be used to integrate
 >   the protocol, but Section 2 does not shape this within the bigger context
@@ -243,24 +306,17 @@ with the resulting metadata:
 >   bigger goal of the paper.
 
 The item (ii) above connects Freechains with the rest of the paper.
-We conclude the section as follows:
+We now conclude the section as follows:
 
 "Note that the basic operations of Freechains to (i) create decentralized
 identities, (ii) publish content-addressable data, (iii) maintain Merkle DAGs,
-and (iv) synchronize peers are typical of other peer-to-peer publishing systems
-(e.g., Scuttlebutt and Bitcoin).  Without restrictions, any number of users at
-any number or peers might inadvertently or maliciously post any kind of content
-and rate posts any number of times, thus threatening the value of the protocol.
-In addition, self-verifying Merkle DAGs are fundamental in a permissionless
-setting, which prevent peers to apply local filtering rules, such as moderating
-malicious content. As discussed in the Introdution, Sybil resistance through
-consensus is a key requirement to combat abuse.
-Scuttlebutt only supports personal feeds (Freechains' public identity chains),
-covering single-user/multi-node consensus, which is not quite permissionless.
-Bitcoin maintains a single public ledger (Freechains' public forum chains),
-and hence, require a consensus mechanism to combat Sybils.  In the next
-section, we discuss the consensus mechanism of Freechains to support public
-forums."
+and (iv) synchronize peers are not new in the context of peer-to-peer
+protocols. However, without extra restrictions, any number of users at any
+number or peers might inadvertently or maliciously post any kind of content and
+rate posts any number of times, thus threatening the value of the protocol.
+As discussed in the Introdution, Sybil resistance through consensus is a key
+requirement to combat abuse. In the next section, we propose a consensus
+mechanism to support public forums in Freechains."
 
 > - Figure 2(C), it is not clear how the ‘likes’ are stored. The figure
 >   indicates two arrows, but how is this recorded and stored in the chain?
@@ -268,14 +324,14 @@ forums."
 We now add a sample JSON to illustrate the internal structure of a block:
 
 "As illustrated in Figure 1.C, a like is a regular block with an extra link to
-its target. Every new block points to the previous heads, establishing a
-logical timeline in the chain.  The JSON that follows corresponds to the block
-"2_DDA222.." with the like operation:"
+its target. Every new block points to the previous heads, establishing a causal
+logical timeline in the chain. For instance, the JSON that follows represents
+the block `2_DDA222..` with the backs and extra like links:"
 
     {
         "id":    "2_DDA222..",  // block hash id
         "backs": ["1_EF5..","1_A22.."] // back links
-        "time":  1650722072223, // creation timestamp
+        "time":  1650722072223, // source timestamp
         "data":  "E95DBF.."     // hash of the payload
         "like":  "1_EF5DE3.."   // like link (optional)
     }
@@ -290,13 +346,13 @@ Agreed. We now state the problem as follows:
 
 "Nonetheless, scarce operations are not yet sufficient because they demand
 consensus to establish an order in time across the network. As an example,
-consider a malicious author with a single unit of reps trying to post an
-arbitrary number of new messages in parallel using multiple peers. According to
-the Expense rule of Table 1, only one of these messages should be accepted.
+consider a malicious author with a single unit of reps posting an arbitrary
+number of new messages using multiple peers at the same time. According to the
+Expense rule of Table 1, only one of these messages should be accepted.
 However, without consensus, it is not possible to globally determine which
 message to accept, since each peer would supposedly accept the first message it
-sees. Therefore, we need the same message ordering across peers to validate
-operations consistently."
+sees. Therefore, in order to validate operations consistently, we need the same
+message ordering across all peers in the network."
 
 > - Figure 4(a): adding the reputation score in the figure will make this more
 >   reader friendly and make the examples in the text more self-explanatory.
@@ -320,27 +376,26 @@ better content and have more reputation combined than c has alone (i.e.,
 >   branches will split totally, that would be ordered as prefix, then branch 1
 >   and separately, prefix and then branch 2. This is not the same scenario.
 
-We simplified the merge algorithm and it is now based on accumulated time and
-not reputation. We believe that time is easier to understand and better
-represent the users intentions:
+We simplified the merge algorithm and hard forks, which are now based on
+accumulated time and not reputation. This paragraph has been completely
+rewritten and we also added Figure 3 to help in the description.
 
-"Nevertheless, it is unacceptable that a very old branch affects a long active
-chain. For this reason, the consensus algorithm includes an extra constraint
-when merging: long-lasting branches do not merge, creating hard forks in the
-network. A hard fork occurs when a local branch contains at least 7 days of
-activity considering the average of the last 28 days in the common prefix. As
-an example, if the common prefix has 100 posts in the last 28 days, the weekly
-average is 25 posts. Hence, if the local branch contains more than 25 new
-posts, it must be ordered first, even if the remote branch has more reputation,
-which creates a hard fork. This situation is analogous to a hard fork in
-Bitcoin and the branches will never synchronize again. More than simply numeric
-disputes, hard forks represent social conflicts in which reconciling branches
-is no longer possible. Figure 3 summarizes how to merge a branch from a remote
-machine j into a branch from a local machine i..."
+"Nevertheless, it is unacceptable that a very old remote branch affects a long
+active local chain. For this reason, the consensus algorithm includes an extra
+constraint when merging: long-lasting local branches do not merge, creating
+hard forks in the network. A hard fork occurs when a local branch crosses a
+predetermined and irreversible threshold, i.e., 7 days or 100 posts of
+activity. In this case, regardless of the remote branch reputation, the local
+branch takes priority and is ordered first. This situation is analogous to a
+hard fork in Bitcoin and the branches will never synchronize again. More than
+simply numeric disputes, hard forks represent social conflicts in which
+reconciling branches is no longer possible. Figure 3 illustrates hard forks by
+distinguishing stable consensus, which cannot be reordered, from unstable,
+which may still be affected by incoming branches. The activity threshold counts
+backwards, from the latest local block in the unstable consensus."
 
 The criteria changed from reps to time, but the underlying goal is the same,
-that some merges over time are impossible and should create a hard fork in the
-network.
+that some merges over time are impossible, creating a hard fork in the network.
 
 > - Section 3.2: More details about the pioneers needed. How many pioneers?
     From the discussion it seems that there would be multiple pioneers, but
@@ -365,22 +420,19 @@ future users."
 >   did not come across well and needs a bit further refinement to remove
 >   ambiguity.
 
-Even if the rep reward is additional to the initial 30 reps, the question about
-encouraging discussion would still hold.
 The chosen constants (30 reps, 24 hours, etc) are arbitrary and were designed
 with mailing lists in mind.
-For chat applications, these numbers would probably not work well to encourage
-discussion.
 We modified Figure 6 to include the following caption:
 
-"The chosen constants (\nreps{30}, $24h$, $128kb$) are arbitrary and target
-typical Internet forums with moderate traffic. A future revision of the
-protocol could support them as chain parameters."
+"The chosen constants (30 reos, 24h, 128kb) are arbitrary and target typical
+Internet forums with moderate traffic. A future revision of the protocol could
+support them as chain parameters."
 
-Also, even though the +1 rep reward is only accounted after 24h, the -1 rep
-discount may be revoked in a very short period depending on the author
-reputation, which allows for free posts in sequence, even if they do not award
-extra reps.
+Even though the +1 rep reward is only accounted after 24h, the -1 rep discount
+may be revoked in a very short period depending on the author reputation, which
+allows for free posts in sequence, even if they do not award extra reps.
+If limiting rep rewards do not encourage discussion, at least, the rule to
+revoke the -1 discount will not discourage it.
 
 > - Section 3.2 alludes to the chicken and egg problem, but this is not
 >   expanded on. Please do so to ensure that the reader knows exactly what you
@@ -397,14 +449,14 @@ necessary that some authors have initial reps to boot the chains."
 
 We now link the consensus mechanism with CRDTs in the Introduction:
 
-"As a derived contribution, we also discuss how a consensus mechanism can
-empower conflict-free replicated data types (CRDTs) when they encounter
-conflicting operations."
+"Hence, as a forth contribution, we show how the consensus mechanism can
+empower mostly conflict-free replicated data types (quasi-CRDTs) when they do
+encounter conflicting operations."
 
 In Section 4, are now more specific about the correspondence:
 
 "However, CRDTs are not a panacea and often require human intervention to solve
-general conflicts, such as merge conflicts in version control systems (VCSs).
+specific conflicts, such as manual merges in version control systems (VCSs).
 Our observation is that, since the proposed consensus algorithm already relies
 on human interactions, we can use it to resolve conflicts automatically."
 
@@ -416,7 +468,7 @@ We now explain what a patch is and how it relates to CRDTs:
 "A commit first makes a checkout from the repository into temporary file
 `p2p.remote`. Then, it compares this version against our local changes, saving
 the diffs into file `p2p.patch`. A patch contains the minimal set of changes to
-apply back into the repository and represents a CmRDT operation in our model.
+apply back into the repository, and represents a CmRDT operation in our model.
 Finally, the commit posts the patch file back into the chain.
 ...
 A `checkout` recreates the latest version of the file in the repository by
@@ -428,7 +480,13 @@ a CmRDT operation to recreate the final state of the data."
 >   and approves upon currently available technologies. Particularly Section
 >   5.1 just scratches the surface and needs to be extended.
 
-TODO
+Answered above:
+
+  Regarding Section 5 (Publish-Subscribe Protocols), and as also discussed
+  further, we de-emphasized the pubsub nature of the protocol, highlighting
+  that "pubsub middlewares operate at different network layers, which suggests
+  that Freechains could benefit of the latter to manage the interconnections
+  between peers".
 
 > There are minor language and spelling issues to address:
 > - Page 2: of-fline -> off-line
@@ -450,7 +508,17 @@ OK.
 > - The reference list is overall a bit unbalanced, with not enough recent
 >   academic citations.
 
-TODO
+Answered above:
+
+  We added 5 new recent references:
+    - [2020] Byzantine eventual consistency and the fundamental limits of
+             peer-to-peer databases
+    - [2021] Decentralized collaborative version control
+    - [2021] Analysis of the matrix event graph replicated data type
+    - [2021] Decentralized collaborative version control
+    - [2022] Making CRDTs Byzantine Fault Tolerant
+  We now use 10 references, most of which are recent (2009, 2014, 2x2018, 2019,
+  2020, 3x2021, 2022).
 
 -------------------------------------------------------------------------------
 
@@ -469,22 +537,38 @@ Answered above:
    our research goal. We then discuss the limitations of Bitcoin proof-of-work
    in the context of content publishing. Finally, we discuss our proposal
    considering the limitations of existing work and highlight the key insight
-   of using human work as a scarce resource. We also motivate the DVCS
+   of using human work as a scarce resource. We also motivate the dVCS
    application example as a collaborative application that requires explicit
    human interactions. We also removed the excess of details on the mechanisms.
 
 > - What is the complexity of the proposed algorithm?
 
-TODO: do algoritmo de consenso
+We added Section 3.3 to detail the consensus and synchronization algorithm.
+The core algorithm is an adaptation of Khan's topological sorting algorithm to
+favor branches with more reputation (O(V+N)).
 
 > - The discussion part needs to be expanded. The author must discuss the
 >   efficiency of the proposed approach to deal with different attacks, and
 >   mention the advantages and disadvantages of the proposed protocol. The
 >   attacks that the algorithm can detect and those that cannot detect.
-
-TODO
-
 > - An experimental or simulation results with comparison to existing works is
 >   missing in this paper.
 
-TODO
+Answered above:
+
+   The section on experiments evaluates 4 parameters: (a) metadata overhead,
+   (b) consensus runtime, (c) graph forks, and (d) blocked messages.
+   We simulate the behavior of two publicly available forums (a chat and a
+   newsgroup) as if they were using Freechains.
+   For item (a), we conclude that "the metatada overhead is not negligible,
+   specially for short chat messages, but decreases as the payload increases".
+   For item (b), we discuss that the stable consensus rule "conveniently
+   settles an upper bound on the input size of the consensus algorithm", which
+   makes it practical regardless of the forum size.
+   For item (c), we calculate the level of asynchrony (peers working locally)
+   and found a ratio around 15%, which "confirms that the simulation achieves a
+   reasonable level of asynchrony".
+   For item (d), we evaluate "how much bookkeeping is required to sustain
+   active users in the forums" and found a ratio below 5%, which "considering
+   that users were not aware of the reputation rules, indicates that their
+   natural posting behavior matches the rules constraints".
