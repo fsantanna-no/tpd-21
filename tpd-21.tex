@@ -37,8 +37,8 @@ news.
 Centralized platforms employ filtering and anti-abuse policies, but imply full
 trust from users.
 %
-We propose a permissionless Sybil-resistant peer-to-peer protocol for public
-communications. % that combats abuse.
+We propose a permissionless Sybil-resistant peer-to-peer protocol for content
+sharing. % that combats abuse.
 Our main contribution is a reputation system that moderates content and, at the
 same time, delivers network consensus.
 We can trace a parallel with Bitcoin:
@@ -76,7 +76,7 @@ On the other hand, they concentrate more power than required to operate by
 collecting users' data and ``algorithmizing'' consumption.
 %
 Peer-to-peer alternatives~\cite{p2p.survey} eliminate intermediaries, but
-strive to achieve overall state consistency while dealing with malicious users.
+strive to achieve consistency while dealing with malicious users.
 %given the decentralization of authority and infrastructure.
 % and push to end users the responsibility to manage data and connectivity.
 
@@ -99,17 +99,16 @@ in conflicting orders~\cite{p2p.intention,p2p.dvcs}.
 %determine as a group its intention as \emph{X} or \emph{Y}.
 %
 Consensus is key to eradicate Sybil attacks~\cite{p2p.sybil}, which are the
-major threats to open forums and decentralized collaborative applications in
-general: without consensus, it is not possible, \emph{at the protocol level},
-to distinguish between correct and malicious users in order to satisfy item
-(iii).
+major threats to decentralized applications in general: without consensus, it
+is not possible, \emph{at the protocol level}, to distinguish between correct
+and malicious users in order to satisfy item (iii).
 %fundamental in collaborative applications, such as open discussion
 %forums, chat rooms, and trading services (e.g., delivery \& auction).
 %Otherwise, they become impractical due to excess and abuse (e.g., SPAM and
 %illegal content).
 %At the very core, consensus is
 
-Consensus is particularly challenging to the point that decentralized protocols
+Consensus is notably challenging to the point that decentralized protocols
 partially abdicate of it.
 %For instance, it is typically either possible to have
 %\emph{multi-user/single-node} or \emph{single-user/multi-node}, but not
@@ -158,15 +157,14 @@ In this work, we adapt Bitcoin's idea of a scarce resource to reach consensus
 in the context of content sharing.
 %
 Our first contribution is to recognize the actual published contents as the
-protocol scarce resources, since they require human work
-(\emph{proof-of-authoring}).
+protocol scarce resources, since they require human work.
 %
 Work is manifested as new posts, which if approved by others, reward authors
 with reputation tokens, which are used to evaluate other posts with likes and
 dislikes.
-With such proof-of-authoring mechanism, token generation is expensive, while
-verification is cheap and made by multiple users (akin to Bitcoin's
-proof-of-work).
+With such \emph{proof-of-authoring} mechanism, token generation is expensive,
+while verification is cheap and made by multiple users.
+% (akin to Bitcoin's proof-of-work).
 %
 Due to decentralization, posts in a timeline form a causal graph with only
 partial order, which we promote to a total order based on the reputation of
@@ -189,9 +187,8 @@ timeline with its own subjective consensus etiquette.
 %
 Our third contribution is to support content removal without compromising the
 integrity of the decentralized blockchain.
-Users have the power to revoke posts crossing a limit of dislikes, and peers
-are forced to remove associated payloads, only forwarding metadata to preserve
-integrity.
+Users have the power to revoke posts with dislikes, and peers are forced to
+remove payloads, only forwarding associated metadata.
 %
 We integrated the proposed consensus algorithm into \FC~\cite{fcs.sbseg20}, a
 practical peer-to-peer content dissemination protocol that provides strong
@@ -215,16 +212,16 @@ In summary, we propose
     (iii) which supports content removal, and
     (iv)  which can automate conflict resolution in quasi-CRDTs.
 %
-As a main limitation, the forum graphs are ever growing data structures that
-carry considerable metadata overhead.
+As a main limitation, the forum causal graphs are ever growing data structures
+that carry considerable metadata overhead.
 The costs to store and validate posts increase over time, which is a limitation
 of blockchains in general.
 %In addition, they require per-block validations that may become a bottleneck
 %for real-time applications.
 %
-Nevertheless, in order to show the practicability of the protocol, we present
-simulations of $10.000$ messages in publicly available chat and newsgroup
-archives.
+Nevertheless, to show the practicability of the protocol, we simulated months
+of activity of a chat channel and years of a newsgroup forum, both extracted
+from publicly available archives.
 
 The rest of the paper is organized as follows:
 In Section~\ref{sec.freechains}, we introduce the basic functionalities of \FC
@@ -329,14 +326,15 @@ publish-subscribe protocol, in which each topic or \emph{chain} is a replicated
 \emph{Merkle Directed Acyclic Graph}~\cite{p2p.ipfs} (just \emph{DAG}, from now
 on).
 The DAG represents the causal relationships between the messages, whose
-cryptographic links ensure persistence and self-certification of the whole
-chain.
-The protocol also ensures strong eventual consistency, considering that the DAG
-itself represents the state of the peers~\cite{fed.matrix,p2p.byz}.
+cryptographic links ensure persistence and self certification.
+% of the whole chain.
+Considering that the DAG itself represents the state of the peers, the protocol
+ensures strong eventual consistency~\cite{fed.matrix,p2p.byz}.
 %
 The operation of the protocol is typical of publish-subscribe systems: an
-author publishes a post to a chain, and the other users subscribed to the same
-chain eventually receive the message by synchronizing DAGs.
+author publishes a post to a chain, and subscribed users eventually receive the
+message.
+% by synchronizing DAGs.
 
 The goals of this section are twofold:
     (i)  to depict chain DAGs as the result of basic protocol operations; and
@@ -375,11 +373,11 @@ group chain (prefix~$\$$), and (iii) posts a message into the chain:
 {\footnotesize
 \begin{verbatim}
  > freechains keys shared 'strong-password'  <- (i)
- A6135D..   <- returned shared key
+ A6135D..   <-- returned shared key
  > freechains '$family' join 'A6135D..'      <- (ii)
- 42209B..   <- hash representing the chain
+ 42209B..   <-- hash representing the chain
  > freechains '$family' post 'Good morning!' <- (iii)
- 1_EF5DE3.. <- hash representing the post
+ 1_EF5DE3.. <-- hash representing the post
 \end{verbatim}
 }
 
@@ -408,8 +406,8 @@ message.
 %As expected from a Merkle~DAG, the hash of a block depends on its payload and
 %hash of previous block.
 
-\FC adheres to the \emph{local-first} software principle~\cite{p2p.local},
-allowing networked applications to work locally while offline.
+\FC adheres to the \emph{local-first} software principle~\cite{p2p.local}, in
+which networked applications can work locally while offline.
 Except for synchronization, all other operations in the system only affect the
 local replica.
 In particular, joining a chain with the same arguments in another peer results
@@ -425,7 +423,7 @@ connect to daemon in \emph{remote-ip} to receive all missing blocks from there:
 {\footnotesize
 \begin{verbatim}
  > freechains '$family' recv '<remote-ip>'
- 1/1  <- one block received from <remote-ip>
+ 1/1  <-- one block received from <remote-ip>
 \end{verbatim}
 }
 
@@ -451,9 +449,9 @@ blocks), and then reads the payload of the single head found:
 {\footnotesize
 \begin{verbatim}
  > freechains '$family' heads
- 1_EF5DE3..
+ 1_EF5DE3..     <-- hash of head block
  > freechains '$family' payload '1_EF5DE3..'
- Good morning!
+ Good morning!  <-- block payload
 \end{verbatim}
 }
 
@@ -461,20 +459,20 @@ The presented commands to join, post, synchronize, and query the chains are
 sufficient to create decentralized applications that publish and consume
 content.
 
-We now focus on how typical chains are not simple sequential lists of posts,
-but actually become DAGs with multiple heads that demand a consensus
-mechanism.
-The main reason is because the network is inherently concurrent and users are
+Note that chains do not typically evolve to a simple list of sequential posts,
+but instead become DAGs with multiple heads.
+% that demand a consensus mechanism.
+The main reason is that the network is inherently concurrent and users are
 encouraged to work locally.
-Continuing with the example in Figure~\ref{fig.family}, suppose that the new
-peer posted a message before the \code{recv} above, when its local DAG was
+Hence, continuing with the example in Figure~\ref{fig.family}, suppose that the
+new peer posted a message before the \code{recv} above, when its local DAG was
 still in its genesis state.
 In this case, as illustrated in Figure~\ref{fig.family}.B, the resulting graph
-after the synchronization would now contain two blocks with height $1$.
+after synchronizing would now contain two blocks with height $1$.
 %
 Note that forks in the DAG create ambiguity in the order of messages, which is
 a fundamental obstacle to reach consensus.
-In private chains, we can apply simple methods, such as relying on the local
+In private chains, we could apply simple methods, such as relying on the local
 source timestamps of the blocks.
 However, in public forums, a malicious user could modify his local time to
 manipulate the order of messages.
@@ -485,9 +483,9 @@ To conclude the basic operations of chains, users can rate posts with
 {\footnotesize
 \begin{verbatim}
  > freechains '$family' like '1_EF5DE3..'
- 2_BF3319..
+ 2_BF3319..     <-- hash representing the like
  > freechains '$family' reps '1_EF5DE3..'
- 1  <-- post received 1 like
+ 1              <-- post received 1 like
 \end{verbatim}
 }
 
@@ -510,10 +508,11 @@ with the backs and extra like links:
 \end{verbatim}
 }
 
-In private groups, like operations are unlimited and are used to quantify
-engagement, similarly to typical centralized systems.
-In public forums, however, likes are restricted, have to be signed by users,
-and are at the core of our proposed consensus algorithm.
+%In private groups, like operations are unlimited and are used to quantify
+%engagement, similarly to typical centralized systems.
+%In public forums, however, likes
+As we discuss in the next section, like operations in public forums have to be
+signed by users, and are at the core of our proposed consensus algorithm.
 
 For the sake of completeness, \FC also supports public identity chains
 (prefix~$@$) with owners attached to public/private keys:
@@ -521,12 +520,12 @@ For the sake of completeness, \FC also supports public identity chains
 {\footnotesize
 \begin{verbatim}
  > freechains keys pubpvt 'other-password'
- EB172E.. 96700A..   <- public and private keys
+ EB172E.. 96700A..  <-- public and private keys
  > freechains '@EB172E..' join
- F4EE21..
+ F4EE21..           <-- hash representing the chain
  > freechains '@EB172E..' post 'This is Pelé' \
     --sign='96700A..'
- 1_547A2D..
+ 1_547A2D..         <-- hash representing the post
 \end{verbatim}
 }
 
@@ -534,11 +533,6 @@ In the example, a public figure creates a key pair and joins an identity chain
 attached to his public key.
 Every post in the chain needs to be signed with his private key to be accepted
 in the network.
-
-\FC is around $1500$ LoC in Kotlin. %and is publicly available.
-%\footnote{\url{http://www.freechains.org}}.
-The binary for the JVM is around $6MB$ in size and works in Android and most
-desktop systems.
 
 Note that the basic operations of Freechains to (i) create decentralized
 identities, (ii) publish content-addressable data, (iii) maintain Merkle DAGs,
@@ -563,6 +557,12 @@ requirement to combat abuse.
 %
 In the next section, we propose a consensus mechanism to support public forums
 in \FC.
+%
+\FC is around $1500$ LoC in Kotlin. %and is publicly available.
+%\footnote{\url{http://www.freechains.org}}.
+The binary for the JVM is around $6MB$ in size and works in Android and most
+desktop systems.
+
 
 \section{Reputation and Consensus Mechanism}
 \label{sec.consensus}
@@ -574,8 +574,8 @@ identities and SPAM millions of messages into the system.
 %Hence, without moderation, there are no limits on the number and size of posts
 %and no reasonable policy to distinguish quality.
 For this reason, we propose a reputation system that works together with a
-consensus algorithm to resist Sybil attacks and make peer-to-peer public forums
-practical.
+consensus algorithm to resist Sybil attacks.
+% and make peer-to-peer public forums practical.
 
 Section~\ref{sec.consensus.design} describes the overall reputation and
 consensus mechanism, which can be applied to other systems using DAGs to
@@ -600,13 +600,13 @@ a \code{dislike} is a negative feedback that revokes content when crossing a
 threshold.
 Table~\ref{fig.general} summarizes the reputation operations and their goals.
 To prevent Sybils, users with no \reps cannot perform these operations,
-requiring a like from any other user already in the system.
-Hence, since likes are zero-sum operations, malicious users have no incentives
-to invite Sybils into the system.
+requiring a welcoming like from any other user already in the system.
+The fact the likes only transfer reputation (being zero-sum operations)
+eliminates the incentives from malicious to invite Sybils into the system.
 The only way to generate new \reps is to post content that other users approve,
 which demands non-trivial work immune to automation.
-Therefore, \reps are subject to scarcity, which prevents Sybils from acting
-indiscriminately.
+%Therefore, \reps are subject to scarcity, which prevents Sybils from acting
+%indiscriminately.
 
 \begin{table}
 \centering
@@ -617,11 +617,11 @@ indiscriminately.
 
 Bitcoin employs proof-of-work to mitigate Sybil attacks.
 However, CPU or other extrinsic resources are not evenly distributed among
-humans and/or machines, specially considering that most communications now use
+humans, specially considering that most communications now use
 battery-powered devices.
 %
-In the context of public forums, we understand that the human authoring ability
-is already an intrinsic resource that we can take advantage of.
+Considering the context of public forums, we can take advantage of the human
+authoring ability as an intrinsic resource instead.
 Creating new content is hard and takes time, but is comparatively easy to
 verify and rate.
 Therefore, in order to impose scarcity, we determine that only content
@@ -630,10 +630,11 @@ users.
 %but limited by periods of time to prevent excess (e.g., once in a day per user).
 %Additionally,
 %
-Nonetheless, scarce operations are not yet sufficient because they demand
-consensus to establish an order in time across the network.
+Nevertheless, scarce operations are not yet sufficient because they demand
+consensus to establish an order in time across the network to prevent
+inconsistent operations.
 As an example, consider a malicious author with a single unit of \reps posting
-an arbitrary number of new messages using multiple peers at the same time.
+new messages using multiple peers at the same time.
 According to the \emph{Expense} rule of Table~\ref{fig.general}, only one of
 these messages should be accepted.
 However, without consensus, it is not possible to globally determine which
@@ -652,14 +653,14 @@ message ordering across all peers in the network.
 \label{fig.reps}
 \end{figure}
 
-Our idea is to favor DAG forks with posts from users that constitute the
-majority of the reputation in the network.
+Our idea to stablish consensus is to favor DAG forks with posts from users that
+constitute the majority of the reputation in the network.
 These forks have more associated work from active users and are analogous to
 longest chains in Bitcoin.
 %Also, the operations in these forks have already been verified and we should
 %avoid extra recalculations due to reorderings.
-Technically, given that forums chains are DAGs, we can adapt a topological
-sorting algorithm to favor reputation when deciding between branches.
+In technical terms, we can adapt a topological sorting algorithm to favor
+reputation when deciding between branches in the chain DAG.
 %
 Going back to the malicious user example, the simultaneous messages would
 appear as forks in the forum DAG.
@@ -682,12 +683,13 @@ in \code{branch-1}, only user $c$ remains active and we see that new users $x$
 and $y$ (with no previous reputation in the common prefix) generate a lot of
 new content;
 in \code{branch-2}, only users $a$ and $b$ participate but with less activity.
-Nonetheless, \code{branch-2} would be ordered first because, before the forking
-point, $a$ and $b$ have more reputation than $c$, $x$, and $y$ combined.
+Nevertheless, \code{branch-2} would be ordered first because, before the
+forking point, $a$ and $b$ have more reputation than $c$, $x$, and $y$
+combined.
 %
 User $c$ here might represent a malicious user trying to cultivate fake
-identities $x$ and $y$ in separate of the network to accumulate \reps during
-weeks.
+identities $x$ and $y$ in separate of the network during weeks to accumulate
+\reps.
 %However, the whole malicious \code{branch-1} is vulnerable because users in
 %\code{branch-2} with more previous reputation take the priority and can
 %overthrow user $c$.
@@ -720,11 +722,12 @@ There are some other relevant considerations about forks and merges:
 Peers that first received branches with less reputation will need to reorder
 all blocks starting at the forking point.
 This might involve removing content in the end-user software.
-This behavior is similar to blockchain reorganization in Bitcoin, when a peer
-detects a new longest chain and disconsiders old blocks.
+This behavior is similar to Bitcoin's blockchain reorganization, when a peer
+detects a new longest chain. % and disconsiders old blocks.
 %
 Likewise, peers that first saw branches with more reputation just need to put
-the other branch in sequence and do not need to recompute anything.
+the other branch in sequence with no reordering.
+%and do not need to recompute anything.
 This behavior is expected to happen in the majority of the network.
 %
 Unlike Bitcoin, forks are not only permitted but encouraged due to the
@@ -747,20 +750,20 @@ rejoining.
 
 As a counterpoint to the consensus order in Figure~\ref{fig.reps}.B, maybe
 users $a$ and $b$ have abandoned the chain for months, and thus \code{branch-1}
-is legit.
+is actually legit.
 In this case, users $a$ and $b$ might be the ones trying to take over the
 chain.
 Yet another possibility is that both branches are legit but became disconnected
 for a long period of time.
-It is simply not possible to judge with confidence which is the case.
-Nevertheless, it is unacceptable that a very old remote branch affects a long
+%It is simply not possible to judge with confidence which is the case.
+In any case, it is unacceptable that a very old remote branch affects a long
 active local chain.
 %
-For this reason, the consensus algorithm includes an extra constraint when
-merging: long-lasting local branches do not merge, creating \emph{hard forks}
-in the network.
-A hard fork occurs when a local branch crosses a predetermined and irreversible
-threshold, i.e., \emph{7 days} or \emph{100 posts} of activity.
+For this reason, the consensus algorithm includes an extra constraint that
+prevents long-lasting local branches to merge, creating \emph{hard forks} in
+the network.
+A hard fork occurs when a local branch crosses the predetermined and
+irreversible thresholds of \emph{7 days} or \emph{100 posts} of activity.
 In this case, regardless of the remote branch reputation, the local branch
 takes priority and is ordered first.
 This situation is analogous to a hard fork in Bitcoin and the branches will
@@ -787,17 +790,18 @@ unstable consensus.
 
 In summary, the rules to merge a branch from a remote machine \code{j} into a
 branch from a local machine \code{i} are as follows:
-\begin{enumerate}
-    \item \code{i} is ordered first if it crosses an activity threshold (e.g.,
-          \emph{7 days} or \emph{100 posts}), regardless of \code{j}.
+\begin{itemize}
+    \item \code{i} is ordered first if it crosses the activity threshold of
+          \emph{7 days} or \emph{100 posts}, regardless of \code{j}.
     \item \code{i} or \code{j} is ordered first, whichever has more reputation
           in the common prefix.
     \item otherwise, branches are ordered by an arbitrary criteria, such as
           lexicographical order of the block hashes immediately after the
           common prefix.
-\end{enumerate}
-The first rule to apply determines the merging result:
+\end{itemize}
+%The first rule to apply determines the merging result:
 
+\begin{comment}
 A fundamental drawback of Merkle~DAGs is that all replicas in the system need
 to store the complete graph in order to synchronize and verify new blocks.
 As a counter measure, tree pruning techniques allow to remove parts of the
@@ -811,28 +815,29 @@ A more pragmatic approach, but which requires cooperation among users, is to
 revoke past posts, which deletes associated payloads to save some space.
 This approach is more feasible in private groups and public identities chains,
 tough.
+\end{comment}
 
 \subsection{Public Forum Chains}
 \label{sec.consensus.chains}
 
-We integrated the proposed reputation system in the public forums of \FC to
-support content moderation and enforce consensus in the chains.
-Table~\ref{fig.rules} details the concrete rules, which are discussed as
-follows.
+We integrated the proposed reputation and consensus mechanism in the public
+forums of \FC to support content moderation and mitigate abuse in the chains.
+Table~\ref{fig.rules} details the concrete rules we conceived, which are
+discussed as follows.
 Authors have to sign their posts in order to be accounted by the reputation
 system and operate in the chains.
 The example that follows creates an identity whose public key is assigned as
-the pioneer in a public chain (prefix~$\#$):
+the pioneer in a public chain (prefix~$\#$ in Table~\ref{fig.table}):
 
 {\footnotesize
 \begin{verbatim}
  > freechains keys pubpvt 'pioneer-password'
- 4B56AD.. DA3B5F..
+ 4B56AD.. DA3B5F..  <-- public and private keys
  > freechains '#forum' join '4B56AD..'
- 10AE3E..
+ 10AE3E..           <-- hash representing the chain
  > freechains '#forum' post --sign='DA3B5F..' \
     'The purpose of this chain is...'
- 1_CC2184..
+ 1_CC2184..         <-- hash representing the post
 \end{verbatim}
 }
 
@@ -876,12 +881,12 @@ posts a message, which is welcomed with a like signed by the pioneer:
 {\footnotesize
 \begin{verbatim}
  > freechains keys pubpvt 'newbie-password'
- 503AB5.. 41DDF1..
+ 503AB5.. 41DDF1..  <-- public and private keys
  > freechains '#forum' join '4B56AD..'
- 10AE3E..     <-- same pioneer as before
+ 10AE3E..           <-- same pioneer as before
  > freechains '#forum' post 'Im a newbie...' \
     --sign='41DDF1..'
- 2_C3A40F..   <-- blocked post
+ 2_C3A40F..         <-- blocked post
  > freechains '#forum' like '2_C3A40F..' \
     --sign='DA3B5F..'
  3_59F3E1..
