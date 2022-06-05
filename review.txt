@@ -9,9 +9,6 @@ appeared in comments from all reviewers with variations:
 
 1. Make the paper scope/contributions/limitations more clear/explicit.
 
-   We rewrote parts of the Abstract, and most of the Introduction and
-   Conclusion.
-
    Follows the reviewer comments related to this area:
 
     - "abstract is very lightweight", "does not address the novelty", "is
@@ -30,6 +27,9 @@ appeared in comments from all reviewers with variations:
       the novelty of the proposed model"
     - "the author should clearly identify the novelty and the motivation of his
       work in the introduction comparing it to existing work"
+
+   We rewrote parts of the Abstract, and most of the Introduction and
+   Conclusion.
 
    In the Abstract, we are now more explicit about our main contribution as "a
    reputation system that moderates content and, at the same time, delivers
@@ -56,6 +56,7 @@ appeared in comments from all reviewers with variations:
 2. Improve related work.
 
    Follows the reviewer comments related to this area:
+
     - "section 5 only provides a very basic related work section", "needs to be
       further developed to truly show how this system differs from and approves
       upon currently available technologies", "particularly section 5.1 just
@@ -67,33 +68,28 @@ appeared in comments from all reviewers with variations:
       references are needed"
       1/3 chose option "References are sufficient and appropriate"
 
-  Regarding Section 5 (Publish-Subscribe Protocols), and as also discussed
-  further, we de-emphasized the pubsub nature of the protocol, highlighting
-  that "pubsub middlewares operate at different network layers, which suggests
-  that Freechains could benefit of the latter to manage the interconnections
-  between peers".
+  Regarding Section 5 (Publish-Subscribe Protocols), we de-emphasized the
+  pubsub nature of the protocol, highlighting that "pubsub middlewares operate
+  at different network layers, which suggests that Freechains could benefit of
+  the latter to manage the interconnections between peers".
   We added a discussion about Merkle DAGs as self-certifying conversations and
   highlight the semantic aspect of our approach which enables permissionless
   writes.
   We added a comparison with another dVCS with respect to the reputation
   system.
-  We added 5 new recent references:
+  We added 4 new recent references:
     - [2020] Byzantine eventual consistency and the fundamental limits of
              peer-to-peer databases
-    - [2021] Decentralized collaborative version control
     - [2021] Analysis of the matrix event graph replicated data type
     - [2021] Decentralized collaborative version control
     - [2022] Making CRDTs Byzantine Fault Tolerant
-  We now use 10 references, most of which are recent (2009, 2014, 2x2018, 2019,
-  2020, 3x2021, 2022).
+
+   We also respond individually to each of these comments below.
 
 3. Show more discussion/evidence/evaluation about the protocol.
 
-   We added two new subsections to the paper:
-    - 3.3: The Consensus and Synchronization Algorithm
-    - 3.4: Experiments
-
    Follows the reviewer comments related to this area:
+
     - "this paper lacks analysis or experiments to prove the correctness of the
       design"
     - "does the prototype system have sufficient performance to support real
@@ -108,6 +104,10 @@ appeared in comments from all reviewers with variations:
     - Is the manuscript technically sound?
       2/3 reviewers chose option "Appears to be - but didn't check completely"
       1/3 chose option "Yes"
+
+   We added two new subsections to the paper:
+    - 3.3: The Consensus and Synchronization Algorithm
+    - 3.4: Experiments
 
    The section on experiments evaluates 4 parameters: (a) metadata overhead,
    (b) consensus runtime, (c) graph forks, and (d) blocked messages.
@@ -131,6 +131,8 @@ appeared in comments from all reviewers with variations:
    Consensus, (b) Synchronization, (c) Verification, (d) Repeat.
    The focus is on step (a), which is an adaptation of Khan's topological
    sorting algorithm to favor branches with more reputation.
+
+   We also respond individually to each of these comments below.
 
 -------------------------------------------------------------------------------
 
@@ -197,10 +199,10 @@ We renamed them all as tables.
      order in the ordering algorithm shown in Figure 4.A? Does the prototype
      system have sufficient performance to support real Internet forums?
 
-As described before, we added two new subsections to the paper which details
+As described before, we added two new subsections to the paper, which details
 the algorithm and evaluates its performance.
-We simulated 10000 messages from real archives with a chat and a newsgroup, and
-achieved sufficient performance.
+We simulated 10000 messages from real archives of a chat and a newsgroup, and
+achieved reasonable performance.
 
 > 6. The organization of the paper can be improved.
 
@@ -267,19 +269,16 @@ Answered above:
 >         Which companies? Adding an example here would make it easier for the
 >         reader to connect with the paper.
 
-In the beginning of the Introduction, we now mention how Facebook and Twitter
-benefit from network effects and avoid open protocols, which lock their users
-in the platform.
+In the beginning of the Introduction, we now mention Facebook and Twitter,
+linking them with the concentration of power sentence.
 
 > Page 1: ‘DAG’ is not introduced as a full term the first time it is used.
 
 The concept of a Merkle DAG now only appears in Section 2 with a reference and
 an explanation in sequence:
 
-"...each topic or chain is a replicated Merkle Directed Acyclic Graph [22]...
-The DAG represents the causal relationships between the messages, whose
-cryptographic links ensure persistence and self-certification of the whole
-chain."
+"...each topic or chain is a replicated Merkle Directed Acyclic Graph [22]...,
+whose cryptographic links ensure persistence and self certification."
 
 > Page 2: What is labelled as Figure 1 is actually a table. This should be
 >         updated. Same with Figure 6.
@@ -297,7 +296,7 @@ with the resulting metadata:
 "The goals of this section are twofold:
     (i)  to depict chain DAGs as the result of basic protocol operations; and
     (ii) to illustrate how permissionless protocols inevitably require some
-         form o Sybil resistance to become practical."
+         form of Sybil resistance to become practical."
 
 > - At the moment, Section 1 mentions that Freechains will be used to integrate
 >   the protocol, but Section 2 does not shape this within the bigger context
@@ -344,15 +343,15 @@ the block `2_DDA222..` with the backs and extra like links:"
 
 Agreed. We now state the problem as follows:
 
-"Nonetheless, scarce operations are not yet sufficient because they demand
-consensus to establish an order in time across the network. As an example,
-consider a malicious author with a single unit of reps posting an arbitrary
-number of new messages using multiple peers at the same time. According to the
-Expense rule of Table 1, only one of these messages should be accepted.
-However, without consensus, it is not possible to globally determine which
-message to accept, since each peer would supposedly accept the first message it
-sees. Therefore, in order to validate operations consistently, we need the same
-message ordering across all peers in the network."
+"Nevertheless, scarce operations are not yet sufficient because they demand
+consensus to establish an order in time across the network to prevent
+inconsistent operations. As an example, consider a malicious author with a
+single unit of reps posting new messages using multiple peers at the same time.
+According to the Expense rule of Table 2, only one of these messages should be
+accepted. However, without consensus, it is not possible to globally determine
+which message to accept, since each peer would supposedly accept the first
+message it sees. Therefore, in order to validate operations consistently, we
+need the same message ordering across all peers in the network."
 
 > - Figure 4(a): adding the reputation score in the figure will make this more
 >   reader friendly and make the examples in the text more self-explanatory.
@@ -380,19 +379,20 @@ We simplified the merge algorithm and hard forks, which are now based on
 accumulated time and not reputation. This paragraph has been completely
 rewritten and we also added Figure 3 to help in the description.
 
-"Nevertheless, it is unacceptable that a very old remote branch affects a long
+"In any case, it is unacceptable that a very old remote branch affects a long
 active local chain. For this reason, the consensus algorithm includes an extra
-constraint when merging: long-lasting local branches do not merge, creating
-hard forks in the network. A hard fork occurs when a local branch crosses a
-predetermined and irreversible threshold, i.e., 7 days or 100 posts of
-activity. In this case, regardless of the remote branch reputation, the local
-branch takes priority and is ordered first. This situation is analogous to a
-hard fork in Bitcoin and the branches will never synchronize again. More than
-simply numeric disputes, hard forks represent social conflicts in which
-reconciling branches is no longer possible. Figure 3 illustrates hard forks by
-distinguishing stable consensus, which cannot be reordered, from unstable,
-which may still be affected by incoming branches. The activity threshold counts
-backwards, from the latest local block in the unstable consensus."
+constraint that prevents long-lasting local branches to merge, creating hard
+forks in the network. A hard fork occurs when a local branch crosses the
+predetermined and irreversible thresholds of 7 days or 100 posts of activity.
+In this case, regardless of the remote branch reputation, the local branch
+takes priority and is ordered first. This situation is analogous to a hard fork
+in Bitcoin and the branches will never synchronize again. More than simply
+numeric disputes, hard forks represent social conflicts in which reconciling
+branches is no longer possible.
+Figure 3 illustrates hard forks by distinguishing stable consensus, which
+cannot be reordered, from unstable consensus, which may still be affected by
+incoming branches. The activity threshold counts backwards, from the latest
+local block in the unstable consensus."
 
 The criteria changed from reps to time, but the underlying goal is the same,
 that some merges over time are impossible, creating a hard fork in the network.
@@ -430,9 +430,9 @@ support them as chain parameters."
 
 Even though the +1 rep reward is only accounted after 24h, the -1 rep discount
 may be revoked in a very short period depending on the author reputation, which
-allows for free posts in sequence, even if they do not award extra reps.
-If limiting rep rewards do not encourage discussion, at least, the rule to
-revoke the -1 discount will not discourage it.
+allows for free posts in sequence. If limiting rep rewards does not encourage
+discussion too much, at least, the rule to revoke the -1 discount will not
+discourage it.
 
 > - Section 3.2 alludes to the chicken and egg problem, but this is not
 >   expanded on. Please do so to ensure that the reader knows exactly what you
@@ -456,9 +456,10 @@ encounter conflicting operations."
 In Section 4, are now more specific about the correspondence:
 
 "However, CRDTs are not a panacea and often require human intervention to solve
-specific conflicts, such as manual merges in version control systems (VCSs).
-Our observation is that, since the proposed consensus algorithm already relies
-on human interactions, we can use it to resolve conflicts automatically."
+specific conflicts (quasi-CRDTs), such as manual merges in version control
+systems (VCSs). Our observation is that, since the proposed consensus algorithm
+already relies on human interactions, we can use it to resolve conflicts
+automatically."
 
 > - Section 4.1 document the merge process with patching, but the principle of
 >   patching is not sufficiently addressed.
@@ -482,11 +483,10 @@ a CmRDT operation to recreate the final state of the data."
 
 Answered above:
 
-  Regarding Section 5 (Publish-Subscribe Protocols), and as also discussed
-  further, we de-emphasized the pubsub nature of the protocol, highlighting
-  that "pubsub middlewares operate at different network layers, which suggests
-  that Freechains could benefit of the latter to manage the interconnections
-  between peers".
+  Regarding Section 5 (Publish-Subscribe Protocols), we de-emphasized the
+  pubsub nature of the protocol, highlighting that "pubsub middlewares operate
+  at different network layers, which suggests that Freechains could benefit of
+  the latter to manage the interconnections between peers".
 
 > There are minor language and spelling issues to address:
 > - Page 2: of-fline -> off-line
@@ -508,17 +508,19 @@ OK.
 > - The reference list is overall a bit unbalanced, with not enough recent
 >   academic citations.
 
-Answered above:
+  We added 9 new references (7 starting from 2017):
 
-  We added 5 new recent references:
+    - [1962] Topological sorting of large networks
+    - [2002] The sybil attack
+    - [2017] Verifying strong eventual consistency in distributed systems
+    - [2017] The good left undone: Advances and challenges in decentralizing
+             online social networks
+    - [2019] Making federated networks more distributed
     - [2020] Byzantine eventual consistency and the fundamental limits of
              peer-to-peer databases
-    - [2021] Decentralized collaborative version control
     - [2021] Analysis of the matrix event graph replicated data type
     - [2021] Decentralized collaborative version control
     - [2022] Making CRDTs Byzantine Fault Tolerant
-  We now use 10 references, most of which are recent (2009, 2014, 2x2018, 2019,
-  2020, 3x2021, 2022).
 
 -------------------------------------------------------------------------------
 
